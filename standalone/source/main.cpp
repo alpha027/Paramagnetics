@@ -26,8 +26,8 @@ auto main(int argc, char** argv) -> int {
     ("n,name", "Name to greet", cxxopts::value(name)->default_value("World"))
     ("l,lang", "Language code to use", cxxopts::value(language)->default_value("en"))
   ;
-  // clang-format on
 
+  // clang-format on
   auto result = options.parse(argc, argv);
 
   if (result["help"].as<bool>()) {
@@ -48,6 +48,11 @@ auto main(int argc, char** argv) -> int {
 
   greeter::Greeter greeter(name);
   std::cout << greeter.greet(langIt->second) << std::endl;
+
+  greeter::CuboidMagnet magnetic_cube;
+
+  double x = magnetic_cube.computeMagneticField(0, 0, 0);
+  std::cout << "Magnetic field at (0, 0, 0): " << x << std::endl;
 
   return 0;
 }

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include <vector>
 
 namespace greeter {
 
@@ -26,6 +27,35 @@ namespace greeter {
      * @return a string containing the greeting
      */
     std::string greet(LanguageCode lang = LanguageCode::EN) const;
+  };
+
+  class Magnet {
+
+  public:
+    virtual double computeMagneticField(double x, double y, double z) const = 0;
+
+  };
+
+  class SphereMagnet: public Magnet {
+    double radius;
+    double magnetization;
+
+    public:
+      SphereMagnet(double radius, double magnetization);
+      SphereMagnet();
+      double computeMagneticField(double x, double y, double z) const override;
+  };
+
+  class CuboidMagnet: public Magnet {
+
+    std::vector<float> position;
+    std::vector<float> orientation;
+    std::vector<float> magnetization;
+
+    public:
+      CuboidMagnet();
+      CuboidMagnet(std::vector<float> position, std::vector<float> orientation, std::vector<float> magnetization);
+      double computeMagneticField(double x, double y, double z) const override;
   };
 
 }  // namespace greeter

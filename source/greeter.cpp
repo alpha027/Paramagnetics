@@ -18,3 +18,22 @@ std::string Greeter::greet(LanguageCode lang) const {
       return fmt::format("Bonjour {}!", name);
   }
 }
+
+
+SphereMagnet::SphereMagnet(double _radius, double _magnetization) : radius(_radius), magnetization(_magnetization) {}
+
+double SphereMagnet::computeMagneticField(double x, double y, double z) const {
+  return 0;
+}
+
+CuboidMagnet::CuboidMagnet() : position({0, 0, 0}), orientation({0, 0, 0}), magnetization({0, 0, 0}) {}
+CuboidMagnet::CuboidMagnet( std::vector<float> _position, std::vector<float> _orientation,
+                            std::vector<float> _magnetization
+                          ) : 
+position(std::move(_position)), orientation(std::move(_orientation)),
+magnetization(std::move(_magnetization)) 
+{}
+
+double CuboidMagnet::computeMagneticField(double x, double y, double z) const {
+  return 0;
+}

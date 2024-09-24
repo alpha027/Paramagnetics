@@ -6,6 +6,8 @@ project(GreeterStandalone LANGUAGES CXX)
 
 include(../cmake/tools.cmake)
 
+include(../cmake/common.cmake)
+
 # ---- Dependencies ----
 
 include(../cmake/CPM.cmake)
@@ -15,6 +17,8 @@ CPMAddPackage(
   VERSION 3.0.0
   OPTIONS "CXXOPTS_BUILD_EXAMPLES NO" "CXXOPTS_BUILD_TESTS NO" "CXXOPTS_ENABLE_INSTALL YES"
 )
+
+#find_package(Kokkos REQUIRED)
 
 CPMAddPackage(NAME Greeter SOURCE_DIR ${CMAKE_CURRENT_LIST_DIR}/..)
 
@@ -27,3 +31,4 @@ add_executable(${PROJECT_NAME} ${sources})
 set_target_properties(${PROJECT_NAME} PROPERTIES CXX_STANDARD 17 OUTPUT_NAME "Greeter")
 
 target_link_libraries(${PROJECT_NAME} Greeter::Greeter cxxopts)
+target_link_libraries(${PROJECT_NAME} Kokkos::kokkos)
