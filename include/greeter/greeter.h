@@ -73,7 +73,8 @@ namespace greeter {
 
       static std::vector<float> calculateMagneticFieldForCube(
         std::vector<float> position, std::vector<float> orientation, 
-        std::vector<float> magnetization, std::vector<float> observation_point
+        std::vector<float> dimensions, std::vector<float> magnetization,
+        std::vector<float> observation_point
       );
     
   };
