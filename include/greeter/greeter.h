@@ -39,6 +39,8 @@ namespace greeter {
   };
 
   class SphereMagnet: public Magnet {
+
+    std::vector<float> position;
     double radius;
     double magnetization;
 
@@ -47,19 +49,33 @@ namespace greeter {
       SphereMagnet();
       virtual ~SphereMagnet();
       double computeMagneticField(double x, double y, double z) const override;
+
+      static std::vector<float> calculateMagneticFieldForCube(
+        std::vector<float> position, double radius, double magnetization,
+        std::vector<float> observation_point
+      );
   };
 
   class CuboidMagnet: public Magnet {
 
     std::vector<float> position;
+    std::vector<float> dimensions;
     std::vector<float> orientation;
     std::vector<float> magnetization;
 
     public:
       CuboidMagnet();
-      CuboidMagnet(std::vector<float> position, std::vector<float> orientation, std::vector<float> magnetization);
+      CuboidMagnet(std::vector<float> position, std::vector<float> dimensions,
+                   std::vector<float> orientation,
+                   std::vector<float> magnetization);
       virtual ~CuboidMagnet();
       double computeMagneticField(double x, double y, double z) const override;
+
+      static std::vector<float> calculateMagneticFieldForCube(
+        std::vector<float> position, std::vector<float> orientation, 
+        std::vector<float> magnetization, std::vector<float> observation_point
+      );
+    
   };
 
 }  // namespace greeter

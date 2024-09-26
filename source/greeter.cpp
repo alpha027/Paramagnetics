@@ -32,10 +32,10 @@ double SphereMagnet::computeMagneticField(double x, double y, double z) const {
 }
 
 CuboidMagnet::CuboidMagnet() : position({0, 0, 0}), orientation({0, 0, 0}), magnetization({0, 0, 0}) {}
-CuboidMagnet::CuboidMagnet( std::vector<float> _position, std::vector<float> _orientation,
+CuboidMagnet::CuboidMagnet( std::vector<float> _position, std::vector<float> _dimensions, std::vector<float> _orientation,
                             std::vector<float> _magnetization
                           ) : 
-position(std::move(_position)), orientation(std::move(_orientation)),
+position(std::move(_position)), dimensions(std::move(_dimensions)), orientation(std::move(_orientation)),
 magnetization(std::move(_magnetization)) 
 {}
 
