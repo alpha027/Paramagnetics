@@ -1,12 +1,24 @@
 #include <greeter/greeter.h>
 #include <greeter/version.h>
+#include <greeter/KokkosDefines.h>
+
+#include <greeter/MagnetCollection_i.h>
 
 #include <cxxopts.hpp>
 #include <iostream>
 #include <string>
 #include <unordered_map>
 
+//#include <Kokkos_Core.hpp>
+
 auto main(int argc, char** argv) -> int {
+  Kokkos::initialize(argc, argv);
+
+  //typedef Kokkos::Cuda ExecSpace;
+  // typedef Kokkos::OpenMP ExecSpace;
+  // typedef Kokkos::OpenMP MemSpace;
+  // typedef Kokkos::LayoutLeft Layout;
+
   const std::unordered_map<std::string, greeter::LanguageCode> languages{
       {"en", greeter::LanguageCode::EN},
       {"de", greeter::LanguageCode::DE},
@@ -54,5 +66,27 @@ auto main(int argc, char** argv) -> int {
   double x = magnetic_cube.computeMagneticField(0, 0, 0);
   std::cout << "Magnetic field at (0, 0, 0): " << x << std::endl;
 
+  std::cout << "Kokkos related stuff"  << std::endl;
+  int atomCount = 100000000;
+  Float3VectorView forces( "forces", atomCount );
+  Float3VectorView positions("positions", atomCount);
+  Float3VectorView orientations("orientations", atomCount);
+  Float3VectorView magnetizations("magnetizations", atomCount);
+  Float3VectorView radii("radii", atomCount);
+  Float3VectorView observation_points("observation_points", atomCount);
+
+  std::cout << "About to initialize Magnet collection simulator"  << std::endl;
+
+  greeter::MagnetCollectionSimulator simulator(observation_points, orientations, magnetizations, radii, positions);
+
+  simulator.simulate();
+
+  simulator.printValue(0);
+
+  simulator.printValue(254704);
+
+  std::cout << "Finished simulating"  << std::endl;
+ 
   return 0;
+  Kokkos::finalize();
 }

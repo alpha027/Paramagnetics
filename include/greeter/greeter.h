@@ -34,6 +34,8 @@ namespace greeter {
   public:
     virtual double computeMagneticField(double x, double y, double z) const = 0;
 
+    virtual ~Magnet() = 0;
+
   };
 
   class SphereMagnet: public Magnet {
@@ -43,6 +45,7 @@ namespace greeter {
     public:
       SphereMagnet(double radius, double magnetization);
       SphereMagnet();
+      virtual ~SphereMagnet();
       double computeMagneticField(double x, double y, double z) const override;
   };
 
@@ -55,6 +58,7 @@ namespace greeter {
     public:
       CuboidMagnet();
       CuboidMagnet(std::vector<float> position, std::vector<float> orientation, std::vector<float> magnetization);
+      virtual ~CuboidMagnet();
       double computeMagneticField(double x, double y, double z) const override;
   };
 
