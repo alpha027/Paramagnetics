@@ -1,18 +1,21 @@
 #include <greeter/SphericalMagnet.h>
 #include <cmath>
 
-greeter::SphereMagnet::SphereMagnet(float _radius, float _magnetization) : radius(_radius), magnetization(_magnetization) {}
+greeter::SphereMagnet::SphereMagnet(float _radius, float _magnetization) :
+    radius(_radius), magnetization(_magnetization) {}
 
 greeter::SphereMagnet::SphereMagnet() : radius(0), magnetization(0) {}
 
 greeter::SphereMagnet::~SphereMagnet() {}
 
-double greeter::SphereMagnet::computeMagneticField(double x, double y, double z) const {
+double greeter::SphereMagnet::
+    computeMagneticField(double x, double y, double z) const {
   return 0;
 }
 
-void greeter::SphereMagnet::computeMagneticField(const float* parameters, const float* observation_point, 
-                                        float& b_x, float& b_y, float& b_z) const {
+void greeter::SphereMagnet::computeMagneticField(
+    const float* parameters, const float* observation_point,
+    float& b_x, float& b_y, float& b_z) const {
 
   float position[3] = {parameters[0], parameters[1], parameters[2]};
   float orientation[3] = {parameters[3], parameters[4], parameters[5]};
@@ -53,9 +56,11 @@ void greeter::SphereMagnet::calculateMagneticFieldForSphere(
         std::vector<float> observation_point,
         float& result_x, float& result_y, float& result_z) {
 
-        float parameters[5] = {position[0], position[1], position[2], radius, magnetization};
+        float parameters[5] = {
+            position[0], position[1], position[2], radius, magnetization};
 
-        float the_observation_point[3] = {observation_point[0], observation_point[1], observation_point[2]};
+        float the_observation_point[3] = {
+            observation_point[0], observation_point[1], observation_point[2]};
         
         greeter::SphereMagnet::computeMagneticFieldForSphere(
             parameters, the_observation_point,
@@ -64,4 +69,8 @@ void greeter::SphereMagnet::calculateMagneticFieldForSphere(
 }
 
 
-static bool registerCalculateMagneticFieldForSphereToFactory __attribute__((unused)) = greeter::MagneticFieldMethodFactory::getInstance().registerComputeMagneticField(greeter::SphereMagnet::getStaticType(), greeter::SphereMagnet::computeMagneticFieldForSphere);
+static bool registerCalculateMagneticFieldForSphereToFactory
+    __attribute__((unused)) = greeter::MagneticFieldMethodFactory::getInstance().
+    registerComputeMagneticField(
+        greeter::SphereMagnet::getStaticType(), 
+        greeter::SphereMagnet::computeMagneticFieldForSphere );
