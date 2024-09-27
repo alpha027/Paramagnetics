@@ -10,14 +10,14 @@ void greeter::MagneticFieldMethodFactory::displayRegistered() const {
 
 
 bool greeter::MagneticFieldMethodFactory::registerComputeMagneticField(
-    const std::string& key, MethodFunction _method) {
+    const u_int16_t& key, MethodFunction _method) {
     registry[key] = _method;
     return true;
 }
 
 
 void greeter::MagneticFieldMethodFactory::computeMagneticField(
-    const std::string& key, const float* parameters, 
+    const u_int16_t& key, const float* parameters, 
     const float* observation_point, float& a, float& b, float& c) const {
 
     auto it = registry.find(key);

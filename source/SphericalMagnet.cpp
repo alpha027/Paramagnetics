@@ -24,10 +24,13 @@ void greeter::SphereMagnet::computeMagneticField(const float* parameters, const 
   float result_z = 0.0;
 }
 
-std::string greeter::SphereMagnet::getStaticType() {
+std::string greeter::SphereMagnet::getStaticTypeName() {
   return "sphere";
 }
 
+u_int16_t greeter::SphereMagnet::getStaticType() {
+  return 1;
+}
 
 void greeter::SphereMagnet::computeMagneticFieldForSphere(
         const float* parameters,

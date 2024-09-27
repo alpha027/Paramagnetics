@@ -1,3 +1,6 @@
+#ifndef MAGNETICFIELDMETHODFACTORY_H
+#define MAGNETICFIELDMETHODFACTORY_H
+
 #include <functional>
 #include <memory>
 #include <string>
@@ -23,9 +26,9 @@ public:
                                            float& a, float& b, float& c)>;
 
     // Method to register a class with a key
-    bool registerComputeMagneticField(const std::string& key, MethodFunction _method);
+    bool registerComputeMagneticField(const u_int16_t& key, MethodFunction _method);
 
-    void computeMagneticField(const std::string& key, const float* parameters, 
+    void computeMagneticField(const u_int16_t& key, const float* parameters, 
                               const float* observation_point, float& a, float& b, float& c) const;
     // Method to display all registered types
     void displayRegistered() const;
@@ -36,7 +39,9 @@ private:
     ~MagneticFieldMethodFactory() = default; // Destructor
     MagneticFieldMethodFactory(const MagneticFieldMethodFactory&) = delete; // Prevent copying
     MagneticFieldMethodFactory& operator=(const MagneticFieldMethodFactory&) = delete; // Prevent assignment
-    std::unordered_map<std::string, MethodFunction> registry;  // Map of key to creator function
+    std::unordered_map<u_int16_t, MethodFunction> registry;  // Map of key to creator function
 };
 
 }  // namespace greeter
+
+#endif

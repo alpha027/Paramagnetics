@@ -37,7 +37,8 @@ class SphereMagnet: public Magnet {
         float& result_x, float& result_y, float& result_z
       );
 
-      static std::string getStaticType();
+      static std::string getStaticTypeName();
+      static u_int16_t getStaticType();
   };
 
 } // namespace greeter

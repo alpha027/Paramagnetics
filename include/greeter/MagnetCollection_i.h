@@ -1,5 +1,5 @@
 #include <greeter/MagnetCollection.h>
-
+#include <greeter/MagneticFieldMethodFactory.h>
 
 inline
 greeter::MagnetCollectionSimulator::MagnetCollectionSimulator(
@@ -26,7 +26,6 @@ void greeter::MagnetCollectionSimulator::simulate() {
     Kokkos::parallel_for( range_policy( 0, num_samples ),
                           *this );
     Kokkos::fence();
-
 
     //const size_t num_samples = 1000000;
     double total_field = 1.0;
