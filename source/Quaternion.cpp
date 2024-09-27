@@ -2,42 +2,42 @@
 #include <stdexcept>
 #include <cmath>
 
-greeter::Quaternion::Quaternion() : data({0, 0, 0, 0}) {};
+greeter::Quaternion::Quaternion() : data({0, 0, 0, 0}) {}
 
-greeter::Quaternion::Quaternion(double w, double x, double y, double z) : data({w, x, y, z}) {};
+greeter::Quaternion::Quaternion(double w, double x, double y, double z) : data({w, x, y, z}) {}
 
-greeter::Quaternion::Quaternion(const greeter::Quaternion& other) : data(other.data) {};
+greeter::Quaternion::Quaternion(const greeter::Quaternion& other) : data(other.data) {}
 
 greeter::Quaternion::Quaternion(std::vector<double> _data) {
     if (_data.size() != 4) {
         throw std::invalid_argument("Quaternion must be initialized with 4 values");
     }
     data = _data;
-};
+}
 
 double greeter::Quaternion::getW() const {
     return data[0];
-};
+}
 
 double greeter::Quaternion::getX() const {
     return data[1];
-};
+}
 
 double greeter::Quaternion::getY() const {
     return data[2];
-};
+}
 
 double greeter::Quaternion::getZ() const {
     return data[3];
-};
+}
 
 bool greeter::Quaternion::operator==(const greeter::Quaternion& other) const {
     return data == other.data;
-};
+}
 
 bool greeter::Quaternion::operator!=(const greeter::Quaternion& other) const {
     return data != other.data;
-};
+}
 
 
 greeter::Quaternion greeter::Quaternion::operator*(const greeter::Quaternion& other) const {
@@ -46,16 +46,15 @@ greeter::Quaternion greeter::Quaternion::operator*(const greeter::Quaternion& ot
     double y = data[0] * other.data[2] - data[1] * other.data[3] + data[2] * other.data[0] + data[3] * other.data[1];
     double z = data[0] * other.data[3] + data[1] * other.data[2] - data[2] * other.data[1] + data[3] * other.data[0];
     return greeter::Quaternion(w, x, y, z);
-};
+}
 
 greeter::Quaternion greeter::Quaternion::operator+(const greeter::Quaternion& other) const {
     return greeter::Quaternion(data[0] + other.data[0], data[1] + other.data[1], data[2] + other.data[2], data[3] + other.data[3]);
-};
+}
 
 greeter::Quaternion greeter::Quaternion::operator-(const greeter::Quaternion& other) const {
     return greeter::Quaternion(data[0] - other.data[0], data[1] - other.data[1], data[2] - other.data[2], data[3] - other.data[3]);
 }
-
 
 greeter::Quaternion greeter::Quaternion::getConjugate() const {
     return greeter::Quaternion(data[0], -data[1], -data[2], -data[3]);
