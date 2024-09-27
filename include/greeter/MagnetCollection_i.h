@@ -74,3 +74,54 @@ void greeter::MagnetCollectionSimulator::operator()( u_int64_t observation_point
     observation_points( observation_point_index, 2 ) = 2.3f;
 
 }
+
+KOKKOS_INLINE_FUNCTION
+void greeter::MagnetCollectionSimulator::fillMagnetPositions(const std::vector<std::vector<float>>& _positions) {
+
+    const size_t M = _positions.size();
+
+    Kokkos::parallel_for( "positions", M, KOKKOS_LAMBDA ( int i ) {
+       positions(i, 0) = _positions[i][0];
+       positions(i, 1) = _positions[i][1];
+       positions(i, 2) = _positions[i][2];
+    });
+    // for (size_t i = 0; i < _positions.size(); ++i) {
+    //     positions(i, 0) = _positions[i][0];
+    //     positions(i, 1) = _positions[i][1];
+    //     positions(i, 2) = _positions[i][2];
+    // }
+}
+
+KOKKOS_INLINE_FUNCTION
+void greeter::MagnetCollectionSimulator::fillMagnetOrientations(const std::vector<std::vector<float>>& _orientations) {
+
+    const size_t M = _orientations.size();
+
+    Kokkos::parallel_for( "orientations", M, KOKKOS_LAMBDA ( int i ) {
+       orientations(i, 0) = _orientations[i][0];
+       orientations(i, 1) = _orientations[i][1];
+       orientations(i, 2) = _orientations[i][2];
+    });
+    // for (size_t i = 0; i < _orientations.size(); ++i) {
+    //     orientations(i, 0) = _orientations[i][0];
+    //     orientations(i, 1) = _orientations[i][1];
+    //     orientations(i, 2) = _orientations[i][2];
+    // }
+}
+
+KOKKOS_INLINE_FUNCTION
+void greeter::MagnetCollectionSimulator::fillObservationPoints(const std::vector<std::vector<float>>& _observation_points) {
+
+    const size_t M = _observation_points.size();
+
+    Kokkos::parallel_for( "magnetizations", M, KOKKOS_LAMBDA ( int i ) {
+       observation_points(i, 0) = _observation_points[i][0];
+       observation_points(i, 1) = _observation_points[i][1];
+       observation_points(i, 2) = _observation_points[i][2];
+    });
+    // for (size_t i = 0; i < _magnetizations.size(); ++i) {
+    //     magnetizations(i, 0) = _magnetizations[i][0];
+    //     magnetizations(i, 1) = _magnetizations[i][1];
+    //     magnetizations(i, 2) = _magnetizations[i][2];
+    // }
+}

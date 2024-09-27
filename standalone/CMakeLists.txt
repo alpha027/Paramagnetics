@@ -30,5 +30,5 @@ add_executable(${PROJECT_NAME} ${sources})
 
 set_target_properties(${PROJECT_NAME} PROPERTIES CXX_STANDARD 17 OUTPUT_NAME "Greeter")
 
-target_link_libraries(${PROJECT_NAME} Greeter::Greeter cxxopts)
+target_link_libraries(${PROJECT_NAME} Greeter::Greeter cxxopts Kokkos::kokkos)
 target_link_libraries(${PROJECT_NAME} Kokkos::kokkos)

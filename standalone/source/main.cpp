@@ -86,6 +86,14 @@ auto main(int argc, char** argv) -> int {
   simulator.printValue(254704);
 
   std::cout << "Finished simulating"  << std::endl;
+
+  std::cout << "fill positions " << std::endl;
+
+  std::vector<std::vector<float>> _positions ={ (size_t) atomCount, {1.0, 2.0, 3.0} };
+
+  simulator.fillMagnetPositions(_positions);
+
+  std::cout << "finished positions ! " << std::endl;
  
   return 0;
   Kokkos::finalize();
