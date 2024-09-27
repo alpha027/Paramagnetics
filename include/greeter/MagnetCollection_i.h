@@ -65,6 +65,14 @@ void greeter::MagnetCollectionSimulator::printValue( u_int64_t observation_point
               << observation_points(observation_point_index,2) << ")" << std::endl;
 }
 
+inline
+void greeter::MagnetCollectionSimulator::printPosition( u_int64_t observation_point_index ) const {
+    std::cout << "position for index " << observation_point_index << ": (" 
+              << positions( observation_point_index, 0) << ", " 
+              << positions(observation_point_index, 1) << ", " 
+              << positions(observation_point_index,2) << ")" << std::endl;
+}
+
 KOKKOS_INLINE_FUNCTION
 void greeter::MagnetCollectionSimulator::operator()( u_int64_t observation_point_index ) const {
 
@@ -80,10 +88,12 @@ void greeter::MagnetCollectionSimulator::fillMagnetPositions(const std::vector<s
 
     const size_t M = _positions.size();
 
+    auto all_positions = _positions.data();
+
     Kokkos::parallel_for( "positions", M, KOKKOS_LAMBDA ( int i ) {
-       positions(i, 0) = _positions[i][0];
-       positions(i, 1) = _positions[i][1];
-       positions(i, 2) = _positions[i][2];
+       positions(i, 0) = all_positions[i][0]; //_positions[i][0];
+       positions(i, 1) = all_positions[i][1]; //_positions[i][1];
+       positions(i, 2) = all_positions[i][2]; //_positions[i][2];
     });
     // for (size_t i = 0; i < _positions.size(); ++i) {
     //     positions(i, 0) = _positions[i][0];

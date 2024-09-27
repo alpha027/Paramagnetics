@@ -1,3 +1,6 @@
+#if !defined(QUATERNION_H)
+#define QUATERNION_H
+
 #include <vector>
 
 namespace greeter {
@@ -58,3 +61,5 @@ class Quaternion {
 };
 
 }
+
+#endif // QUATERNION_H

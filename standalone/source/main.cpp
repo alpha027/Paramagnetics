@@ -1,4 +1,5 @@
 #include <greeter/greeter.h>
+#include <greeter/CubicMagnet.h>
 #include <greeter/version.h>
 #include <greeter/KokkosDefines.h>
 
@@ -94,6 +95,8 @@ auto main(int argc, char** argv) -> int {
   simulator.fillMagnetPositions(_positions);
 
   std::cout << "finished positions ! " << std::endl;
+
+  simulator.printPosition(15000);
  
   return 0;
   Kokkos::finalize();
