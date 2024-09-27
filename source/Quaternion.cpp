@@ -128,13 +128,33 @@ double greeter::Quaternion::
 }
 
 
-std::vector<double> greeter::Quaternion::applyRotation(
+std::vector<double> greeter::Quaternion::applyRotationFromQuaternion(
     const std::vector<double> quaternion,
     const std::vector<double> vector ) {
 
     if (quaternion.size() != 4 || vector.size() != 3) {
         throw std::invalid_argument("Quaternion must be initialized with 4 values");
     }
+
+    double* arr = new double[3]{ 0.0, 0.0, 3.0 };
+
+    greeter::Quaternion::applyRotationFromQuaternion(
+        quaternion.data(),
+        vector.data(),
+        arr
+    );
+
+    std::vector<double> result(arr, arr + 3);
+    delete[] arr;
+
+    return result;
+}
+
+void greeter::Quaternion::applyRotationFromQuaternion(
+      const double* quaternion,
+      const double* vector,
+      double*& result
+    ) {
 
     double w = quaternion[0];
     double x = quaternion[1];
@@ -157,20 +177,21 @@ std::vector<double> greeter::Quaternion::applyRotation(
     double xz = x * z;
     double yz = y * z;
 
-    return {
-        (w2 + x2 - y2 - z2) * vx + 2 * (xy - wz) * vy + 2 * (wy + xz) * vz,
-        2 * (xy + wz) * vx + (w2 - x2 + y2 - z2) * vy + 2 * (yz - wx) * vz,
-        2 * (xz - wy) * vx + 2 * (wx + yz) * vy + (w2 - x2 - y2 + z2) * vz
-    };
+    result = new double[3];
+
+    result[0] = (w2 + x2 - y2 - z2) * vx + 2 * (xy - wz) * vy + 2 * (wy + xz) * vz;
+    result[1] = 2 * (xy + wz) * vx + (w2 - x2 + y2 - z2) * vy + 2 * (yz - wx) * vz;
+    result[2] = 2 * (xz - wy) * vx + 2 * (wx + yz) * vy + (w2 - x2 - y2 + z2) * vz;
+
 }
 
 
 std::vector<double> greeter::Quaternion::get_rotation(const std::vector<double> point) const {
-    return greeter::Quaternion::applyRotation(data, point);
+    return greeter::Quaternion::applyRotationFromQuaternion(data, point);
 }
 
 
 std::vector<double> greeter::Quaternion::get_inverse_rotation(const std::vector<double> point) const {
     std::vector<double> inverse_quaternion = getConjugateQuaternion(data);
-    return greeter::Quaternion::applyRotation(inverse_quaternion, point);
+    return greeter::Quaternion::applyRotationFromQuaternion(inverse_quaternion, point);
 }

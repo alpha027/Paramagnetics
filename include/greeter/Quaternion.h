@@ -49,9 +49,15 @@ class Quaternion {
       const std::vector<double> quaternion
     );
 
-    static std::vector<double> applyRotation(
+    static std::vector<double> applyRotationFromQuaternion(
       const std::vector<double> quaternion,
       const std::vector<double> vector
+    );
+
+    static void applyRotationFromQuaternion(
+      const double* quaternion,
+      const double* vector,
+      double*& result
     );
 
     std::vector<double> get_rotation(const std::vector<double> point) const;
