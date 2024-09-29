@@ -4,6 +4,7 @@
 #include <greeter/KokkosDefines.h>
 
 #include <greeter/MagneticFieldSimulator_i.h>
+#include <greeter/MagnetCollection.h>
 
 #include <cxxopts.hpp>
 #include <iostream>
@@ -71,7 +72,7 @@ auto main(int argc, char** argv) -> int {
   int atomCount = 100000000;
   Float3VectorView forces( "forces", atomCount );
   Float3VectorView positions("positions", atomCount);
-  Float3VectorView orientations("orientations", atomCount);
+  Float4VectorView orientations("orientations", atomCount);
   Float3VectorView magnetizations("magnetizations", atomCount);
   Float3VectorView radii("radii", atomCount);
   Float3VectorView observation_points("observation_points", atomCount);
@@ -79,13 +80,13 @@ auto main(int argc, char** argv) -> int {
 
   std::cout << "About to initialize Magnet collection simulator"  << std::endl;
 
-  greeter::MagneticFieldSimulator simulator(observation_points, orientations, magnetizations, radii, magnet_types, positions);
+  greeter::MagneticFieldSimulator the_simulator(observation_points, orientations, magnetizations, radii, magnet_types, positions);
 
-  simulator.simulate();
+  // simulator.simulate();
 
-  simulator.printValue(0);
+  // simulator.printValue(0);
 
-  simulator.printValue(254704);
+  // simulator.printValue(254704);
 
   std::cout << "Finished simulating"  << std::endl;
 
@@ -93,12 +94,67 @@ auto main(int argc, char** argv) -> int {
 
   std::vector<std::vector<float>> _positions ={ (size_t) atomCount, {1.0, 2.0, 3.0} };
 
-  simulator.fillMagnetPositions(_positions);
+  // simulator.fillMagnetPositions(_positions);
 
   std::cout << "finished positions ! " << std::endl;
 
-  simulator.printPosition(15000);
- 
+  the_simulator.printPosition(15000);
+
+  greeter::CuboidMagnet cuboid_magnet;
+
+  cuboid_magnet.setPosition(0.0, 0.0, 0.0);
+  cuboid_magnet.setMagnetization(0.0, 1.0, 0.0);
+
+  std::cout << "about to display cuboid magnet" << std::endl;
+  cuboid_magnet.display();
+
+  greeter::MagnetCollection magnet_collection;
+
+  magnet_collection.addMagnet(std::make_unique<greeter::CuboidMagnet>(cuboid_magnet));
+
+  std::cout << "magnet collection count " << magnet_collection.get_num_magnets() << std::endl;
+
+  std::vector<std::vector<float>> fov = { (size_t) 1e6, {0.0, 0.0, 0.0} };
+
+  float x_min, x_max, y_min, y_max, z_min, z_max;
+
+  x_min = 2.0;
+  x_max = 4.0;
+
+  y_min = 2.0;
+  y_max = 4.0;
+
+  z_min = 2.0;
+  z_max = 4.0;
+
+  u_int32_t n_x, n_y, n_z = 1000;
+  size_t index = 0;
+
+  for (u_int32_t i = 0; i < n_x; i++) {
+    float x = x_min + (x_max - x_min) * i / (n_x - 1);
+    for (u_int32_t j = 0; j < n_y; j++) {
+      float y = y_min + (y_max - y_min) * j / (n_y - 1);
+      for (u_int32_t k = 0; k < n_z; k++) {
+        float z = z_min + (z_max - z_min) * k / (n_z - 1);
+        fov[index][0] = x;
+        fov[index][1] = y;
+        fov[index][2] = z;
+        index++;
+      }
+    }
+  }
+
+  std::cout << "Filled FOV" << std::endl;
+
+  magnet_collection.display(0);
+
+  std::cout << "About to create simulator" << std::endl;
+
+  std::vector<std::vector<float>> results = magnet_collection.simulate(fov);
+
+  std::cout << "Finished simulating" << std::endl;
+
+
   return 0;
   Kokkos::finalize();
 }

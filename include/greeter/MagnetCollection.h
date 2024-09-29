@@ -30,10 +30,15 @@ class MagnetCollection {
 
     void computeMagneticField(const float* observation_point, float& b_x, float& b_y, float& b_z) const;
 
+    // MagnetCollection generateArray(float radius, size_t num_magnets);
+
     u_int32_t get_num_magnets() const;
+
+    void display(size_t index) const;
 
     std::unique_ptr<greeter::MagneticFieldSimulator> createSimulator() const;
 
+    std::vector<std::vector<float>> simulate(const std::vector<std::vector<float>>& fov) const;
 };
 
 }  // namespace greeter

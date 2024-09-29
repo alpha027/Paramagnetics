@@ -33,8 +33,15 @@ class CuboidMagnet: public Magnet {
 
       std::unique_ptr<Magnet> clone() const override;
 
+      void display() const override;
+
+      void setPosition(const float& x, const float& y, const float& z) override;
+      void setMagnetization(const float& x, const float& y, const float& z);
+
+      uint16_t getTypeID() override;
+
       static std::string getStaticTypeName();
-      static u_int16_t getStaticType();
+      static uint16_t getStaticType();
 
       static std::vector<float> calculateMagneticFieldForCube(
         const float* position, const float* orientation, 

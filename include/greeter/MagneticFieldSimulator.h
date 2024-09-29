@@ -10,23 +10,24 @@ class MagneticFieldSimulator {
   //std::vector<std::unique_ptr<greeter::Magnet>> magnets;
 
   Float3VectorView positions;
-  Float3VectorView orientations;
+  Float4VectorView orientations;
   Float3VectorView magnetizations;
   Float3VectorView dimensions;
   UInt32VectorView magnet_types;
   Float3VectorView observation_points;
   Float3VectorView magnetic_fields;
+  size_t num_magnets;
 
 public:
 
     MagneticFieldSimulator(Float3VectorView positions,
-      Float3VectorView orientations, Float3VectorView magnetizations,
+      Float4VectorView orientations, Float3VectorView magnetizations,
       Float3VectorView dimensions, UInt32VectorView magnet_types,
       Float3VectorView observation_points
     );
 
     //MagneticFieldSimulator();
-     //:    positions(positions), orientations(orientations), magnetizations(magnetizations), dimensions(dimensions), observation_points(observation_points) {}
+    //:    positions(positions), orientations(orientations), magnetizations(magnetizations), dimensions(dimensions), observation_points(observation_points) {}
 
     ~MagneticFieldSimulator();
 
@@ -49,10 +50,9 @@ public:
     void applyRotationFromQuaternion(const float* quaternion, const float* vector, float* result);
     void applyInverseRotationFromQuaternion(const float* quaternion, const float* vector, float* result);
 
-    u_int64_t getNumObservationPoints() const {
-        //return observation_points.extent(0);
-        return 100000000;
-    }
+    std::vector<std::vector<float>> getMagneticFields() const;
+
+    size_t getNumObservationPoints() const;
 };
 
 }  // namespace greeter

@@ -66,6 +66,8 @@ class Quaternion {
       float* result
     );
 
+    // Set rotation from axis and angle (static)
+
     std::vector<float> get_rotation(const std::vector<float> point) const;
 
     std::vector<float> get_inverse_rotation(const std::vector<float> point) const;

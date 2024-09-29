@@ -40,6 +40,25 @@ std::vector<float> greeter::SphereMagnet::getMagnetization() const {
   return theMagnetization;
 }
 
+void greeter::SphereMagnet::display() const {
+  std::cout << "------------------------------------------------------" << std::endl;
+  std::cout << "SphereMagnet:" << std::endl;
+  std::cout << "  position : (" << position[0] << ", " << position[1] << ", " << position[2] << ")" << std::endl;
+  std::cout << "  radius : " << radius << std::endl;
+  std::cout << "  magnetization : " << magnetization << std::endl;
+  std::cout << "------------------------------------------------------" << std::endl;
+}
+
+void greeter::SphereMagnet::setPosition(const float& x, const float& y, const float& z) {
+  position[0] = x;
+  position[1] = y;
+  position[2] = z;
+}
+
+void greeter::SphereMagnet::setMagnetization(const float& theMagnetization) {
+  magnetization = theMagnetization;
+}
+
 void greeter::SphereMagnet::computeMagneticField(
     const float* parameters, const float* observation_point,
     float& b_x, float& b_y, float& b_z) const {
@@ -58,7 +77,11 @@ std::string greeter::SphereMagnet::getStaticTypeName() {
   return "sphere";
 }
 
-u_int16_t greeter::SphereMagnet::getStaticType() {
+uint16_t greeter::SphereMagnet::getTypeID() {
+  return 1;
+}
+
+uint16_t greeter::SphereMagnet::getStaticType() {
   return 1;
 }
 

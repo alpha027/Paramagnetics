@@ -12,11 +12,6 @@ greeter::MagnetCollection::MagnetCollection(const MagnetCollection& other) {
     }
 }
 
-// greeter::MagnetCollection::MagnetCollection(const MagnetCollection& other) {
-//   this->magnets.clear();
-//   this->magnets = other.magnets;
-// }
-
 greeter::MagnetCollection::MagnetCollection(std::vector<std::unique_ptr<greeter::Magnet>> theMagnets):
   magnets(std::move(theMagnets)) {}
 
@@ -49,10 +44,10 @@ std::unique_ptr<greeter::MagneticFieldSimulator> greeter::MagnetCollection::crea
   u_int32_t num_magnets = get_num_magnets();
 
   Float3VectorView _positions("positions", num_magnets);
-  Float3VectorView _orientations("orientations", num_magnets);
+  Float4VectorView _orientations("orientations", num_magnets);
   Float3VectorView _magnetizations("magnetizations", num_magnets);
   Float3VectorView _radii("radii", num_magnets);
-  Float3VectorView _observation_points("observation_points", num_magnets);
+  Float3VectorView _observation_points("observation_points", 1);
   UInt32VectorView _magnet_types("magnet_types", num_magnets);
 
   std::vector<float> positions;
@@ -84,18 +79,34 @@ std::unique_ptr<greeter::MagneticFieldSimulator> greeter::MagnetCollection::crea
     _magnetizations(i, 0) = magnetizations[0];
     _magnetizations(i, 1) = magnetizations[1];
     _magnetizations(i, 2) = magnetizations[2];
-  }
 
+    _magnet_types(i) = this->magnets[i]->getTypeID();
+  }
 
   std::unique_ptr<greeter::MagneticFieldSimulator> simulator = std::make_unique<greeter::MagneticFieldSimulator>(
     _positions, _orientations, _magnetizations, _radii, _magnet_types, _observation_points
   );
 
-// simulator->fillMagnetPositions(positions);
-//   simulator->fillMagnetOrientations(orientations);
-//   simulator->fillMagnetMagnetizations(magnetizations);
-//   simulator->fillMagnetRadii(radii);
-//   simulator->fillObservationPoints(observation_points);
-
   return simulator;
+}
+
+
+std::vector<std::vector<float>> greeter::MagnetCollection::simulate(const std::vector<std::vector<float>>& fov) const {
+
+  std::unique_ptr<greeter::MagneticFieldSimulator> simulator = createSimulator();
+
+  simulator->fillObservationPoints(fov);
+
+  simulator->simulate();
+
+  std::vector<std::vector<float>> magnetic_fields = simulator->getMagneticFields();
+
+  return magnetic_fields;
+}
+
+void greeter::MagnetCollection::display(size_t index) const {
+  if (index >= this->magnets.size()) {
+    throw std::out_of_range("Index out of range");
+  }
+  this->magnets[index]->display();
 }

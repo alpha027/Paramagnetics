@@ -26,6 +26,12 @@ class Magnet {
     virtual std::vector<float> getOrientation() const = 0;
 
     virtual std::vector<float> getMagnetization() const = 0;
+
+    virtual void setPosition(const float& x, const float& y, const float& z) = 0;
+
+    virtual void display() const = 0;
+
+    virtual uint16_t getTypeID() = 0;
 };
 
 }  // namespace greeter

@@ -1,7 +1,7 @@
 #include <greeter/CubicMagnet.h>
 #include <cmath>
 
-greeter::CuboidMagnet::CuboidMagnet() : position({0, 0, 0}), orientation({1.0, 0.0, 0.0, 0.0}), magnetization({0, 0, 0}) {}
+greeter::CuboidMagnet::CuboidMagnet() : position({0, 0, 0}), orientation({1.0, 0.0, 0.0, 0.0}), dimensions({1.0, 1.0, 1.0}), magnetization({0, 1.0, 0}) {}
 greeter::CuboidMagnet::CuboidMagnet( std::vector<float> _position, std::vector<float> _dimensions, std::vector<float> _orientation,
                             std::vector<float> _magnetization
                           ) : 
@@ -36,6 +36,28 @@ std::vector<float> greeter::CuboidMagnet::getOrientation() const {
 std::vector<float> greeter::CuboidMagnet::getMagnetization() const {
   std::vector<float> theMagnetization = {magnetization[0], magnetization[1], magnetization[2]};
   return theMagnetization;
+}
+
+void greeter::CuboidMagnet::setPosition(const float& x, const float& y, const float& z) {
+  position[0] = x;
+  position[1] = y;
+  position[2] = z;
+}
+
+void greeter::CuboidMagnet::setMagnetization(const float& x, const float& y, const float& z) {
+  magnetization[0] = x;
+  magnetization[1] = y;
+  magnetization[2] = z;
+}
+
+void greeter::CuboidMagnet::display() const {
+  std::cout << "------------------------------------------------------" << std::endl;
+  std::cout << "CuboidMagnet:" << std::endl;
+  std::cout << "  position : (" << position[0] << ", " << position[1] << ", " << position[2] << ")" << std::endl;
+  std::cout << "  dimensions : (" << dimensions[0] << ", " << dimensions[1] << ", " << dimensions[2] << ")" << std::endl;
+  std::cout << "  orientation : (" << orientation[0] << ", " << orientation[1] << ", " << orientation[2] << ", " << orientation[3] << ")" << std::endl;
+  std::cout << "  magnetization : (" << magnetization[0] << ", " << magnetization[1] << ", " << magnetization[2] << ")" << std::endl;
+  std::cout << "------------------------------------------------------" << std::endl;
 }
 
 void greeter::CuboidMagnet::calculateMagneticFieldForCube(
@@ -203,9 +225,9 @@ void greeter::CuboidMagnet::computeMagneticFieldForCube(
     float& result_x, float& result_y, float& result_z ) {
 
     float position[3] = {parameters[0], parameters[1], parameters[2]};
-    float orientation[3] = {parameters[3], parameters[4], parameters[5]};
-    float dimensions[3] = {parameters[6], parameters[7], parameters[8]};
-    float magnetization[3] = {parameters[9], parameters[10], parameters[11]};
+    float orientation[4] = {parameters[3], parameters[4], parameters[5], parameters[6]};
+    float dimensions[3] = {parameters[7], parameters[8], parameters[9]};
+    float magnetization[3] = {parameters[10], parameters[11], parameters[12]};
 
     greeter::CuboidMagnet::calculateMagneticFieldForCube(
       position, orientation, dimensions, magnetization, observation_point,
@@ -217,7 +239,11 @@ std::string greeter::CuboidMagnet::getStaticTypeName() {
   return "cuboid";
 }
 
-u_int16_t greeter::CuboidMagnet::getStaticType() {
+uint16_t greeter::CuboidMagnet::getTypeID() {
+  return 0;
+}
+
+uint16_t greeter::CuboidMagnet::getStaticType() {
   return 0;
 }
 

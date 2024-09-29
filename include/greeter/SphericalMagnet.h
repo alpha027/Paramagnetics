@@ -29,6 +29,13 @@ class SphereMagnet: public Magnet {
 
       std::unique_ptr<Magnet> clone() const override;
 
+      uint16_t getTypeID() override;
+
+      void display() const override;
+
+      void setPosition(const float& x, const float& y, const float& z) override;
+      void setMagnetization(const float& x);
+
       static std::vector<float> calculateMagneticFieldForSphere(
         std::vector<float> position, float radius, float magnetization,
         std::vector<float> observation_point
