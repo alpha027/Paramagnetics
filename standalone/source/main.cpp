@@ -11,10 +11,22 @@
 #include <string>
 #include <unordered_map>
 
+#include <nlohmann/json.hpp>
+#include <fstream>
+
 //#include <Kokkos_Core.hpp>
+using json = nlohmann::json;
 
 auto main(int argc, char** argv) -> int {
   Kokkos::initialize(argc, argv);
+
+  std::ifstream f("magnets.json");
+  json data = json::parse(f);
+
+  std::cout << data.dump(4) << std::endl;
+  std::cout << "x position of first magnet: " << data["magnets"][0]["cuboid"]["parameters"]["position"] << std::endl;
+  std::cout << "Number of magnets: " << data["magnets"].size() << std::endl;
+  std::cout << "number of keys: " << data.size() << std::endl;
 
   // typedef Kokkos::Cuda ExecSpace;
   // typedef Kokkos::OpenMP ExecSpace;
@@ -153,6 +165,8 @@ auto main(int argc, char** argv) -> int {
   std::vector<std::vector<float>> results = magnet_collection.simulate(fov);
 
   std::cout << "Finished simulating" << std::endl;
+
+
 
 
   return 0;

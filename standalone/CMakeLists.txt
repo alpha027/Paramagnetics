@@ -32,3 +32,4 @@ set_target_properties(${PROJECT_NAME} PROPERTIES CXX_STANDARD 17 OUTPUT_NAME "Gr
 
 target_link_libraries(${PROJECT_NAME} Greeter::Greeter cxxopts)
 target_link_libraries(${PROJECT_NAME} Kokkos::kokkos)
+target_link_libraries(${PROJECT_NAME} nlohmann_json::nlohmann_json)
