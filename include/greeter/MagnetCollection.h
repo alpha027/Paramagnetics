@@ -1,45 +1,42 @@
-#include <greeter/KokkosDefines.h>
+#ifndef MAGNET_COLLECTION_H
+#define MAGNET_COLLECTION_H
+
+#include <greeter/Magnet.h>
+#include <greeter/MagneticFieldMethodFactory.h>
+#include <greeter/Quaternion.h>
+#include <vector>
+#include <memory>
+#include <fstream>
+#include <greeter/MagneticFieldSimulator_i.h>
 
 
 namespace greeter {
 
-class MagnetCollectionSimulator {
-  //std::vector<std::unique_ptr<greeter::Magnet>> magnets;
+class MagnetCollection {
 
-  Float3VectorView positions;
-  Float3VectorView orientations;
-  Float3VectorView magnetizations;
-  Float3VectorView radii;
-  Float3VectorView observation_points;
+  std::vector<std::unique_ptr<greeter::Magnet>> magnets;
 
-public:
+  public:
 
-    MagnetCollectionSimulator(Float3VectorView positions, Float3VectorView orientations,
-      Float3VectorView magnetizations, Float3VectorView radii,
-      Float3VectorView observation_points);
+    MagnetCollection();
+    MagnetCollection(const MagnetCollection& other);
+    MagnetCollection(std::vector<std::unique_ptr<greeter::Magnet>> magnets);
+    MagnetCollection(std::fstream& json_file);
+    // MagnetCollection()
+    ~MagnetCollection();
 
-    //MagnetCollectionSimulator();
-     //:    positions(positions), orientations(orientations), magnetizations(magnetizations), radii(radii), observation_points(observation_points) {}
+    void addMagnet(std::unique_ptr<greeter::Magnet> magnet);
+    void removeMagnet(const size_t& index);
 
-    ~MagnetCollectionSimulator();
+    void computeMagneticField(const float* observation_point, float& b_x, float& b_y, float& b_z) const;
 
-    void operator()( u_int64_t observation_point_index ) const;
+    u_int32_t get_num_magnets() const;
 
-    void simulate();
+    std::unique_ptr<greeter::MagneticFieldSimulator> createSimulator() const;
 
-    void printValue( u_int64_t observation_point_index ) const;
-    void printPosition( u_int64_t observation_point_index ) const;
-
-    void fillMagnetPositions(const std::vector<std::vector<float>>& positions);
-    void fillMagnetOrientations(const std::vector<std::vector<float>>& orientations);
-    void fillMagnetMagnetizations(const std::vector<std::vector<float>>& magnetizations);
-    void fillMagnetRadii(const std::vector<float>& radii);
-    void fillObservationPoints(const std::vector<std::vector<float>>& observation_points);
-
-    u_int64_t getNumObservationPoints() const {
-        //return observation_points.extent(0);
-        return 100000000;
-    }
 };
 
 }  // namespace greeter
+
+
+#endif // MAGNET_COLLECTION_H

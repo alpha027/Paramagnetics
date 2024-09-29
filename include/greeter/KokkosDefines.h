@@ -1,5 +1,5 @@
-#ifndef _greeter_kokkos_Defines_h_
-#define _greeter_kokkos_Defines_h_
+#ifndef KOKKOS_DEFINES_H_
+#define KOKKOS_DEFINES_H_
 
 #include <Kokkos_Core.hpp>
 #include <Kokkos_Random.hpp>

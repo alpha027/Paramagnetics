@@ -19,11 +19,19 @@ class CuboidMagnet: public Magnet {
       CuboidMagnet(std::vector<float> position, std::vector<float> dimensions,
                    std::vector<float> orientation,
                    std::vector<float> magnetization);
+      CuboidMagnet(const CuboidMagnet& other);
 
       virtual ~CuboidMagnet();
       double computeMagneticField(double x, double y, double z) const override;
       void computeMagneticField(const float* parameters, const float* observation_point,
                                 float& b_x, float& b_y, float& b_z) const override;
+
+      std::vector<float> getPosition() const override;
+      std::vector<float> getDimensions() const;
+      std::vector<float> getOrientation() const;
+      std::vector<float> getMagnetization() const;
+
+      std::unique_ptr<Magnet> clone() const override;
 
       static std::string getStaticTypeName();
       static u_int16_t getStaticType();

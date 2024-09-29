@@ -1,7 +1,7 @@
 #include <greeter/CubicMagnet.h>
 #include <cmath>
 
-greeter::CuboidMagnet::CuboidMagnet() : position({0, 0, 0}), orientation({0, 0, 0}), magnetization({0, 0, 0}) {}
+greeter::CuboidMagnet::CuboidMagnet() : position({0, 0, 0}), orientation({1.0, 0.0, 0.0, 0.0}), magnetization({0, 0, 0}) {}
 greeter::CuboidMagnet::CuboidMagnet( std::vector<float> _position, std::vector<float> _dimensions, std::vector<float> _orientation,
                             std::vector<float> _magnetization
                           ) : 
@@ -9,7 +9,34 @@ position(std::move(_position)), dimensions(std::move(_dimensions)), orientation(
 magnetization(std::move(_magnetization)) 
 {}
 
+greeter::CuboidMagnet::CuboidMagnet(const CuboidMagnet& other) :
+position(other.position), dimensions(other.dimensions), orientation(other.orientation), magnetization(other.magnetization) {}
+
 greeter::CuboidMagnet::~CuboidMagnet() {}
+
+std::unique_ptr<greeter::Magnet> greeter::CuboidMagnet::clone() const {
+  return std::make_unique<CuboidMagnet>(*this);
+}
+
+std::vector<float> greeter::CuboidMagnet::getPosition() const {
+  std::vector<float> thePosition = {position[0], position[1], position[2]};
+  return thePosition;
+}
+
+std::vector<float> greeter::CuboidMagnet::getDimensions() const {
+  std::vector<float> theDimensions = {dimensions[0], dimensions[1], dimensions[2]};
+  return theDimensions;
+}
+
+std::vector<float> greeter::CuboidMagnet::getOrientation() const {
+  std::vector<float> theOrientation = {orientation[0], orientation[1], orientation[2], orientation[3]};
+  return theOrientation;
+}
+
+std::vector<float> greeter::CuboidMagnet::getMagnetization() const {
+  std::vector<float> theMagnetization = {magnetization[0], magnetization[1], magnetization[2]};
+  return theMagnetization;
+}
 
 void greeter::CuboidMagnet::calculateMagneticFieldForCube(
         const float* position, const float* orientation, 

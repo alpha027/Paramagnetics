@@ -3,7 +3,7 @@
 #include <greeter/version.h>
 #include <greeter/KokkosDefines.h>
 
-#include <greeter/MagnetCollection_i.h>
+#include <greeter/MagneticFieldSimulator_i.h>
 
 #include <cxxopts.hpp>
 #include <iostream>
@@ -15,7 +15,7 @@
 auto main(int argc, char** argv) -> int {
   Kokkos::initialize(argc, argv);
 
-  //typedef Kokkos::Cuda ExecSpace;
+  // typedef Kokkos::Cuda ExecSpace;
   // typedef Kokkos::OpenMP ExecSpace;
   // typedef Kokkos::OpenMP MemSpace;
   // typedef Kokkos::LayoutLeft Layout;
@@ -75,10 +75,11 @@ auto main(int argc, char** argv) -> int {
   Float3VectorView magnetizations("magnetizations", atomCount);
   Float3VectorView radii("radii", atomCount);
   Float3VectorView observation_points("observation_points", atomCount);
+  UInt32VectorView magnet_types("magnet_types", atomCount);
 
   std::cout << "About to initialize Magnet collection simulator"  << std::endl;
 
-  greeter::MagnetCollectionSimulator simulator(observation_points, orientations, magnetizations, radii, positions);
+  greeter::MagneticFieldSimulator simulator(observation_points, orientations, magnetizations, radii, magnet_types, positions);
 
   simulator.simulate();
 

@@ -6,11 +6,38 @@ greeter::SphereMagnet::SphereMagnet(float _radius, float _magnetization) :
 
 greeter::SphereMagnet::SphereMagnet() : radius(0), magnetization(0) {}
 
+greeter::SphereMagnet::SphereMagnet(const SphereMagnet& other) :
+    radius(other.radius), magnetization(other.magnetization) {}
+
 greeter::SphereMagnet::~SphereMagnet() {}
 
 double greeter::SphereMagnet::
     computeMagneticField(double x, double y, double z) const {
   return 0;
+}
+
+std::unique_ptr<greeter::Magnet> greeter::SphereMagnet::clone() const {
+  return std::make_unique<SphereMagnet>(*this);
+}
+
+std::vector<float> greeter::SphereMagnet::getPosition() const {
+  std::vector<float> thePosition = {position[0], position[1], position[2]};
+  return thePosition;
+}
+
+std::vector<float> greeter::SphereMagnet::getDimensions() const {
+  std::vector<float> theDimensions = {radius};
+  return theDimensions;
+}
+
+std::vector<float> greeter::SphereMagnet::getOrientation() const {
+  std::vector<float> theOrientation = {1.0, 0.0, 0.0, 0.0};
+  return theOrientation;
+}
+
+std::vector<float> greeter::SphereMagnet::getMagnetization() const {
+  std::vector<float> theMagnetization = {magnetization};
+  return theMagnetization;
 }
 
 void greeter::SphereMagnet::computeMagneticField(
@@ -40,7 +67,7 @@ void greeter::SphereMagnet::computeMagneticFieldForSphere(
         const float* observation_point,
         float& result_x, float& result_y, float& result_z) {
 
-    // The function to fill in ----------------------------------------------
+    // The function to fill in ---------------------------------------
     float position[3] = {parameters[0], parameters[1], parameters[2]};
     float radius = parameters[3];
     float magnetization = parameters[4];

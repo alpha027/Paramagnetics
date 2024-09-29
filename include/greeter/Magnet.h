@@ -1,6 +1,10 @@
 #ifndef MAGNET_H
 #define MAGNET_H
 
+#include <memory>
+#include <vector>
+
+
 namespace greeter {
 
 class Magnet {
@@ -12,6 +16,16 @@ class Magnet {
                                       float& b_x, float& b_y, float& b_z ) const = 0;
 
     virtual ~Magnet() = 0;
+
+    virtual std::unique_ptr<Magnet> clone() const = 0;
+
+    virtual std::vector<float> getPosition() const = 0;
+
+    virtual std::vector<float> getDimensions() const = 0;
+
+    virtual std::vector<float> getOrientation() const = 0;
+
+    virtual std::vector<float> getMagnetization() const = 0;
 };
 
 }  // namespace greeter

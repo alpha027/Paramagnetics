@@ -7,23 +7,23 @@ namespace greeter {
 
 class Quaternion {
 
-  std::vector<double> data; // w, x, y, z
-  //double w;
-  //double x;
-  //double y;
-  //double z;
+  std::vector<float> data; // w, x, y, z
+  //float w;
+  //float x;
+  //float y;
+  //float z;
 
   public:
 
     Quaternion();
-    Quaternion(double w, double x, double y, double z);
+    Quaternion(float w, float x, float y, float z);
     Quaternion(const Quaternion& other);
-    Quaternion(std::vector<double> data);
+    Quaternion(std::vector<float> data);
 
-    double getW() const;
-    double getX() const;
-    double getY() const;
-    double getZ() const;
+    float getW() const;
+    float getX() const;
+    float getY() const;
+    float getZ() const;
 
     bool operator==(const Quaternion& other) const;
     bool operator!=(const Quaternion& other) const;
@@ -33,36 +33,42 @@ class Quaternion {
 
     Quaternion getConjugate() const;
 
-    static std::vector<double> getConjugateQuaternion(
-      const std::vector<double> quaternion 
+    static std::vector<float> getConjugateQuaternion(
+      const std::vector<float> quaternion 
     );
 
-    static std::vector<std::vector<double>> getRotationMatrixFromQuaternion(
-      const std::vector<double> quaternion1
+    static std::vector<std::vector<float>> getRotationMatrixFromQuaternion(
+      const std::vector<float> quaternion1
     );
 
-    static std::vector<double> get_rotation_axis(
-      const std::vector<double> quaternion
+    static std::vector<float> get_rotation_axis(
+      const std::vector<float> quaternion
     );
 
-    static double get_rotation_angle(
-      const std::vector<double> quaternion
+    static float get_rotation_angle(
+      const std::vector<float> quaternion
     );
 
-    static std::vector<double> applyRotationFromQuaternion(
-      const std::vector<double> quaternion,
-      const std::vector<double> vector
+    static std::vector<float> applyRotationFromQuaternion(
+      const std::vector<float> quaternion,
+      const std::vector<float> vector
     );
 
     static void applyRotationFromQuaternion(
-      const double* quaternion,
-      const double* vector,
-      double*& result
+      const float* quaternion,
+      const float* vector,
+      float* result
     );
 
-    std::vector<double> get_rotation(const std::vector<double> point) const;
+    static void applyInverseRotationFromQuaternion(
+      const float* quaternion,
+      const float* vector,
+      float* result
+    );
 
-    std::vector<double> get_inverse_rotation(const std::vector<double> point) const;
+    std::vector<float> get_rotation(const std::vector<float> point) const;
+
+    std::vector<float> get_inverse_rotation(const std::vector<float> point) const;
 
 };
 
