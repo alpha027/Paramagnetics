@@ -29,6 +29,8 @@ class Magnet {
 
     virtual void setPosition(const float& x, const float& y, const float& z) = 0;
 
+    virtual void translate(const float& x, const float& y, const float& z) = 0;
+
     virtual void display() const = 0;
 
     virtual uint16_t getTypeID() const = 0;

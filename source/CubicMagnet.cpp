@@ -50,6 +50,12 @@ void greeter::CuboidMagnet::setMagnetization(const float& x, const float& y, con
   magnetization[2] = z;
 }
 
+void greeter::CuboidMagnet::translate(const float& x, const float& y, const float& z) {
+  position[0] += x;
+  position[1] += y;
+  position[2] += z;
+}
+
 void greeter::CuboidMagnet::display() const {
   std::cout << "------------------------------------------------------" << std::endl;
   std::cout << "CuboidMagnet:" << std::endl;

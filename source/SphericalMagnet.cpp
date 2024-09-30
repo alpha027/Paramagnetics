@@ -59,6 +59,12 @@ void greeter::SphereMagnet::setMagnetization(const float& theMagnetization) {
   magnetization = theMagnetization;
 }
 
+void greeter::SphereMagnet::translate(const float& x, const float& y, const float& z) {
+  position[0] += x;
+  position[1] += y;
+  position[2] += z;
+}
+
 void greeter::SphereMagnet::computeMagneticField(
     const float* parameters, const float* observation_point,
     float& b_x, float& b_y, float& b_z) const {

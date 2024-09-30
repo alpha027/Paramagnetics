@@ -35,6 +35,7 @@ class SphereMagnet: public Magnet {
 
       void setPosition(const float& x, const float& y, const float& z) override;
       void setMagnetization(const float& x);
+      void translate(const float& x, const float& y, const float& z) override;
 
       static std::vector<float> calculateMagneticFieldForSphere(
         std::vector<float> position, float radius, float magnetization,

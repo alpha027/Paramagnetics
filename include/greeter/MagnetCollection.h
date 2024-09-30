@@ -28,6 +28,7 @@ class MagnetCollection {
     void addMagnet(std::unique_ptr<greeter::Magnet> magnet);
     void removeMagnet(const size_t& index);
     void clearCollection();
+    void translate(const float& x, const float& y, const float& z);
 
     void computeMagneticField(const float* observation_point, float& b_x, float& b_y, float& b_z) const;
 

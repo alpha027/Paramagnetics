@@ -37,6 +37,7 @@ class CuboidMagnet: public Magnet {
 
       void setPosition(const float& x, const float& y, const float& z) override;
       void setMagnetization(const float& x, const float& y, const float& z);
+      void translate(const float& x, const float& y, const float& z) override;
 
       uint16_t getTypeID() const override;
 

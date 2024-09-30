@@ -120,6 +120,12 @@ void greeter::MagnetCollection::clearCollection() {
   this->magnets.clear();
 }
 
+void greeter::MagnetCollection::translate(const float& x, const float& y, const float& z) {
+  for (auto& magnet : this->magnets) {
+    magnet->translate(x, y, z);
+  }
+}
+
 u_int32_t greeter::MagnetCollection::get_num_magnets() const {
   return magnets.size();
 }
