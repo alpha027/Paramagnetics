@@ -200,6 +200,37 @@ void greeter::Quaternion::applyInverseRotationFromQuaternion(
     );
 }
 
+void greeter::Quaternion::set_rotation_from_axis_angle(
+      const std::string& axis,
+      const float& angle_in_rad,
+      float* quaternion ) {
+
+    float half_angle = angle_in_rad / 2;
+    float s = sin(half_angle);
+    float c = cos(half_angle);
+    quaternion = new float[4];
+
+    if (axis == "x") {
+        quaternion[0] = c;
+        quaternion[1] = s;
+        quaternion[2] = 0;
+        quaternion[3] = 0;
+    } else if (axis == "y") {
+        quaternion[0] = c;
+        quaternion[1] = 0;
+        quaternion[2] = s;
+        quaternion[3] = 0;
+    } else if (axis == "z") {
+        quaternion[0] = c;
+        quaternion[1] = 0;
+        quaternion[2] = 0;
+        quaternion[3] = s;
+    } else {
+        throw std::invalid_argument("Axis must be one of 'x', 'y', 'z'");
+    }
+}
+
+
 std::vector<float> greeter::Quaternion::get_rotation(const std::vector<float> point) const {
     return greeter::Quaternion::applyRotationFromQuaternion(data, point);
 }

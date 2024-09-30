@@ -1,5 +1,6 @@
 #include <greeter/MagnetCollection.h>
 #include <nlohmann/json.hpp>
+#include <string>
 
 greeter::MagnetCollection::MagnetCollection() {}
 
@@ -15,11 +16,90 @@ greeter::MagnetCollection::MagnetCollection(const MagnetCollection& other) {
 greeter::MagnetCollection::MagnetCollection(std::vector<std::unique_ptr<greeter::Magnet>> theMagnets):
   magnets(std::move(theMagnets)) {}
 
-greeter::MagnetCollection::MagnetCollection(std::fstream& json_file) {
+
+bool greeter::MagnetCollection::validJsonFile(std::ifstream& json_file) const {
+
+    nlohmann::json data = nlohmann::json::parse(json_file);
+    std::vector<std::string> keys = {"magnets", "field_of_view"};
+    std::vector<std::string> magnet_types = {"cuboid", "sphere"};
+    std::vector<std::string> cuboid_keys = {"position", "dimensions", "orientation", "magnetization"};
+    std::vector<std::string> sphere_keys = {"radius", "magnetization"};
+    std::vector<std::string> fov_keys = {"x", "y", "z"};
+
+    for (auto& key : keys) {
+        if (!data.contains(key)) {
+            return false;
+        }
+    }
+
+    // Verify magnet types
+    for (auto it = data["magnets"].begin(); it != data["magnets"].end(); ++it) {
+      bool type_does_not_exist = true;
+      for (auto& magnet_type : magnet_types) {
+        if (it->contains(magnet_type)) {
+          type_does_not_exist = false;
+        }
+      }
+      if (type_does_not_exist) {
+        return false;
+      }
+    }
+
+    // Verify the field of view
+    for (auto& fov_key : fov_keys) {
+      if (!data["field_of_view"].contains(fov_key)) {
+        return false;
+      }
+    }
+
+        // if (magnet_type == "cuboid") {
+        //   for (auto& cuboid_key : cuboid_keys) {
+        //     if (!it->at("cuboid").contains(cuboid_key)) {
+        //       return false;
+        //     }
+        //   }
+        // } else if (magnet_type == "sphere") {
+        //   for (auto& sphere_key : sphere_keys) {
+        //     if (!it->at("sphere").contains(sphere_key)) {
+        //       return false;
+        //     }
+        //   }
+        // }
+    
+    std::cout << "VALID JSON FILE" << std::endl;
+    return true;
+
+}
+
+greeter::MagnetCollection::MagnetCollection(std::ifstream& json_file) {
     this->magnets.clear();
     /*
        To finish after the JSON parser is implemented 
     */
+    nlohmann::json data = nlohmann::json::parse(json_file);
+
+    if (data.contains("magnets")) {
+        for (auto& magnet : data["magnets"]) {
+            std::string type = magnet["type"];
+            if (type == "cuboid") {
+                std::vector<float> position = magnet["cuboid"]["parameters"]["position"];
+                std::vector<float> dimensions = magnet["cuboid"]["parameters"]["dimensions"];
+                std::vector<float> orientation = magnet["cuboid"]["parameters"]["orientation"];
+                std::vector<float> magnetization = magnet["cuboid"]["parameters"]["magnetization"];
+                // std::unique_ptr<greeter::Magnet> cuboid_magnet = std::make_unique<greeter::CuboidMagnet>(position, dimensions, orientation, magnetization);
+                // this->magnets.push_back(std::move(cuboid_magnet));
+            } else if (type == "sphere") {
+                float radius = magnet["sphere"]["parameters"]["radius"];
+                float magnetization = magnet["sphere"]["parameters"]["magnetization"];
+                // std::unique_ptr<greeter::Magnet> sphere_magnet = std::make_unique<greeter::SphereMagnet>(radius, magnetization);
+                // this->magnets.push_back(std::move(sphere_magnet));
+            } else {
+                throw std::invalid_argument("Invalid magnet type");
+            }
+        }
+    } else {
+        throw std::invalid_argument("Invalid JSON file");
+    }
 }
 
 greeter::MagnetCollection::~MagnetCollection() {}

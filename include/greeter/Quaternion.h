@@ -2,6 +2,7 @@
 #define QUATERNION_H
 
 #include <vector>
+#include <string>
 
 namespace greeter {
 
@@ -67,6 +68,11 @@ class Quaternion {
     );
 
     // Set rotation from axis and angle (static)
+    static void set_rotation_from_axis_angle(
+      const std::string& axis,
+      const float& angle_in_rad,
+      float* quaternion
+    );
 
     std::vector<float> get_rotation(const std::vector<float> point) const;
 

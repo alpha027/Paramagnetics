@@ -21,7 +21,7 @@ class MagnetCollection {
     MagnetCollection();
     MagnetCollection(const MagnetCollection& other);
     MagnetCollection(std::vector<std::unique_ptr<greeter::Magnet>> magnets);
-    MagnetCollection(std::fstream& json_file);
+    MagnetCollection(std::ifstream& json_file);
     // MagnetCollection()
     ~MagnetCollection();
 
@@ -29,6 +29,8 @@ class MagnetCollection {
     void removeMagnet(const size_t& index);
 
     void computeMagneticField(const float* observation_point, float& b_x, float& b_y, float& b_z) const;
+
+    bool validJsonFile(std::ifstream& json_file) const;
 
     // MagnetCollection generateArray(float radius, size_t num_magnets);
 
