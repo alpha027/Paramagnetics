@@ -31,7 +31,9 @@ class Magnet {
 
     virtual void display() const = 0;
 
-    virtual uint16_t getTypeID() = 0;
+    virtual uint16_t getTypeID() const = 0;
+
+
 };
 
 }  // namespace greeter

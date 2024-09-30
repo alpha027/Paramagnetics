@@ -239,12 +239,18 @@ std::string greeter::CuboidMagnet::getStaticTypeName() {
   return "cuboid";
 }
 
-uint16_t greeter::CuboidMagnet::getTypeID() {
+uint16_t greeter::CuboidMagnet::getTypeID() const {
+  return greeter::CuboidMagnet::getStaticTypeID();
+}
+
+uint16_t greeter::CuboidMagnet::getStaticTypeID() {
   return 0;
 }
 
-uint16_t greeter::CuboidMagnet::getStaticType() {
-  return 0;
-}
-
-static bool registerCalculateMagneticFieldForCubeToFactory __attribute__((unused)) = greeter::MagneticFieldMethodFactory::getInstance().registerComputeMagneticField(greeter::CuboidMagnet::getStaticType(), greeter::CuboidMagnet::computeMagneticFieldForCube);
+static bool registerCalculateMagneticFieldForCubeToFactory 
+__attribute__((unused)) =
+ greeter::MagneticFieldMethodFactory::getInstance().
+ registerComputeMagneticField(
+  greeter::CuboidMagnet::getStaticTypeID(),
+  greeter::CuboidMagnet::computeMagneticFieldForCube
+);

@@ -1,4 +1,5 @@
 #include <greeter/MagnetCollection.h>
+#include <greeter/CubicMagnet.h>
 #include <nlohmann/json.hpp>
 #include <string>
 
@@ -115,6 +116,10 @@ void greeter::MagnetCollection::removeMagnet(const size_t& index) {
   this->magnets.erase(this->magnets.begin() + index);
 }
 
+void greeter::MagnetCollection::clearCollection() {
+  this->magnets.clear();
+}
+
 u_int32_t greeter::MagnetCollection::get_num_magnets() const {
   return magnets.size();
 }
@@ -189,4 +194,53 @@ void greeter::MagnetCollection::display(size_t index) const {
     throw std::out_of_range("Index out of range");
   }
   this->magnets[index]->display();
+}
+
+greeter::MagnetCollection greeter::MagnetCollection::operator+(const MagnetCollection& other) const {
+  greeter::MagnetCollection new_collection(*this);
+  for (const auto& base : other.magnets) {
+    if (base) {
+      new_collection.magnets.push_back(base->clone());
+    }
+  }
+  return new_collection;
+}
+
+greeter::MagnetCollection greeter::MagnetCollection::generateCircularHalbachArray(
+      const float& radius, const std::vector<float>& magnet_dimensions,
+      const size_t& num_magnets, const std::vector<float>& magnetization ){
+
+  greeter::MagnetCollection halbach_magnet_collection;
+
+  float angle_step = 2.0f * M_PI / num_magnets;
+
+  for (size_t i = 0; i < num_magnets; i++) {
+
+    float angle_rad = i * angle_step;
+
+    float x = radius * cos(angle_rad);
+    float y = radius * sin(angle_rad);
+    float z = 0.0f;
+
+    std::vector<float> thePosition = {x, y, z};
+
+    float quaternion_rotation[4] = {1.0, 0.0, 0.0, 0.0};
+
+    greeter::Quaternion::set_rotation_from_axis_angle(
+      "z", angle_rad, quaternion_rotation
+    );
+
+    std::vector<float> magnet_orientation = {
+      quaternion_rotation[0], quaternion_rotation[1],
+      quaternion_rotation[2], quaternion_rotation[3] 
+    };
+
+    std::unique_ptr<greeter::Magnet> cuboid_magnet = std::make_unique<greeter::CuboidMagnet>(
+      thePosition, magnet_dimensions, magnet_orientation, magnetization
+    );
+
+    halbach_magnet_collection.addMagnet(std::move(cuboid_magnet));
+  }
+
+  return halbach_magnet_collection;
 }

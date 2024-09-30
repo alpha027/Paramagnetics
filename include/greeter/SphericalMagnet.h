@@ -29,7 +29,7 @@ class SphereMagnet: public Magnet {
 
       std::unique_ptr<Magnet> clone() const override;
 
-      uint16_t getTypeID() override;
+      uint16_t getTypeID() const override;
 
       void display() const override;
 
@@ -54,7 +54,7 @@ class SphereMagnet: public Magnet {
       );
 
       static std::string getStaticTypeName();
-      static u_int16_t getStaticType();
+      static u_int16_t getStaticTypeID();
   };
 
 } // namespace greeter

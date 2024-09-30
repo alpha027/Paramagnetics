@@ -77,11 +77,11 @@ std::string greeter::SphereMagnet::getStaticTypeName() {
   return "sphere";
 }
 
-uint16_t greeter::SphereMagnet::getTypeID() {
-  return 1;
+uint16_t greeter::SphereMagnet::getTypeID() const {
+  return greeter::SphereMagnet::getStaticTypeID();
 }
 
-uint16_t greeter::SphereMagnet::getStaticType() {
+uint16_t greeter::SphereMagnet::getStaticTypeID() {
   return 1;
 }
 
@@ -122,5 +122,5 @@ void greeter::SphereMagnet::calculateMagneticFieldForSphere(
 static bool registerCalculateMagneticFieldForSphereToFactory
     __attribute__((unused)) = greeter::MagneticFieldMethodFactory::getInstance().
     registerComputeMagneticField(
-        greeter::SphereMagnet::getStaticType(), 
+        greeter::SphereMagnet::getStaticTypeID(), 
         greeter::SphereMagnet::computeMagneticFieldForSphere );
