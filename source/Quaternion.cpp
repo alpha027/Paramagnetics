@@ -135,7 +135,7 @@ std::vector<float> greeter::Quaternion::applyRotationFromQuaternion(
         throw std::invalid_argument("Quaternion must be initialized with 4 values");
     }
 
-    float* arr = new float[3]{ 0.0, 0.0, 3.0 };
+    float arr[3];
 
     greeter::Quaternion::applyRotationFromQuaternion(
         quaternion.data(),
@@ -176,7 +176,7 @@ void greeter::Quaternion::applyRotationFromQuaternion(
     float xz = x * z;
     float yz = y * z;
 
-    result = new float[3];
+    //result = new float[3];
 
     result[0] = (w2 + x2 - y2 - z2) * vx + 2 * (xy - wz) * vy + 2 * (wy + xz) * vz;
     result[1] = 2 * (xy + wz) * vx + (w2 - x2 + y2 - z2) * vy + 2 * (yz - wx) * vz;
@@ -205,10 +205,9 @@ void greeter::Quaternion::set_rotation_from_axis_angle(
       const float& angle_in_rad,
       float* quaternion ) {
 
-    float half_angle = angle_in_rad / 2;
+    float half_angle = angle_in_rad / 2.0f;
     float s = sin(half_angle);
     float c = cos(half_angle);
-    quaternion = new float[4];
 
     if (axis == "x") {
         quaternion[0] = c;

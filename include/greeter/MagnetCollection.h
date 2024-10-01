@@ -41,6 +41,7 @@ class MagnetCollection {
     u_int32_t get_num_magnets() const;
 
     void display(size_t index) const;
+    void display() const;
 
     std::unique_ptr<greeter::MagneticFieldSimulator> createSimulator() const;
 

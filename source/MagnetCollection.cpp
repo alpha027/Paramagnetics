@@ -202,6 +202,12 @@ void greeter::MagnetCollection::display(size_t index) const {
   this->magnets[index]->display();
 }
 
+void greeter::MagnetCollection::display() const {
+  for (const auto& magnet : this->magnets) {
+    magnet->display();
+  }
+}
+
 greeter::MagnetCollection greeter::MagnetCollection::operator+(const MagnetCollection& other) const {
   greeter::MagnetCollection new_collection(*this);
   for (const auto& base : other.magnets) {
@@ -218,7 +224,7 @@ greeter::MagnetCollection greeter::MagnetCollection::generateCircularHalbachArra
 
   greeter::MagnetCollection halbach_magnet_collection;
 
-  float angle_step = 2.0f * M_PI / num_magnets;
+  float angle_step = 4.0f * M_PI / num_magnets;
 
   for (size_t i = 0; i < num_magnets; i++) {
 
@@ -230,7 +236,7 @@ greeter::MagnetCollection greeter::MagnetCollection::generateCircularHalbachArra
 
     std::vector<float> thePosition = {x, y, z};
 
-    float quaternion_rotation[4] = {1.0, 0.0, 0.0, 0.0};
+    float quaternion_rotation[4];
 
     greeter::Quaternion::set_rotation_from_axis_angle(
       "z", angle_rad, quaternion_rotation

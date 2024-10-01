@@ -108,7 +108,7 @@ void greeter::CuboidMagnet::calculateMagneticFieldForCube(
       }
     }
   }
-  if (observation_point[1] < 0.0) {
+  if (observation_point[1] > 0.0) {
     new_observation_point[1] = -new_observation_point[1];
     for (int i = 0; i < 3; i++) {
       for (int j = 0; j < 3; j++) {
@@ -116,7 +116,7 @@ void greeter::CuboidMagnet::calculateMagneticFieldForCube(
       }
     }
   }
-  if (observation_point[2] < 0.0) {
+  if (observation_point[2] > 0.0) {
     new_observation_point[2] = - new_observation_point[2];
     for (int i = 0; i < 3; i++) {
       for (int j = 0; j < 3; j++) {
@@ -125,18 +125,18 @@ void greeter::CuboidMagnet::calculateMagneticFieldForCube(
     }
   }
 
-  float xpa = new_observation_point[0] + dimensions[0]/2.0;
-  float xma = new_observation_point[0] - dimensions[0]/2.0;
+  float xpa = new_observation_point[0] + dimensions[0]/2.0f;
+  float xma = new_observation_point[0] - dimensions[0]/2.0f;
   float xma2 = xma * xma;
   float xpa2 = xpa * xpa;
 
-  float ypb = new_observation_point[1] + dimensions[1]/2.0;
-  float ymb = new_observation_point[1] - dimensions[1]/2.0;
+  float ypb = new_observation_point[1] + dimensions[1]/2.0f;
+  float ymb = new_observation_point[1] - dimensions[1]/2.0f;
   float ymb2 = ymb * ymb;
   float ypb2 = ypb * ypb;
 
-  float zpc = new_observation_point[2] + dimensions[2]/2.0;
-  float zmc = new_observation_point[2] - dimensions[2]/2.0;
+  float zpc = new_observation_point[2] + dimensions[2]/2.0f;
+  float zmc = new_observation_point[2] - dimensions[2]/2.0f;
   float zmc2 = zmc * zmc;
   float zpc2 = zpc * zpc;
 
@@ -156,18 +156,21 @@ void greeter::CuboidMagnet::calculateMagneticFieldForCube(
                log((-ymb+pmm)*(-ypb+mpm)*(ymb-mmp)*(ypb-ppp));
 
   float ff2z = log((-zmc+mmm)*(-zmc+ppm)*(-zpc+pmp)*(-zpc+mpp)) -
-               log((-zmc+pmm)*(zmc-mmp)*(-zpc+mmp)*(zpc-ppp));
+               log((-zmc+pmm)*(zmc-mpm)*(-zpc+mmp)*(zpc-ppp));
 
-  float ff1x = atan2(ymb*zmc, xma*mmm) - atan2(ymb*zmc, xpa*pmm) - atan2(ypb*zmc, xma*mpm) + 
-               atan2(ypb*zmc, xpa*ppm) - atan2(ymb*zpc, xma*mmp) + atan2(ymb*zpc, xpa*pmp) +
-               atan2(ypb*zpc, xma*mpp) + atan2(ypb*zpc, xpa*ppp);
+  float ff1x = atan2(ymb*zmc, xma*mmm) - atan2(ymb*zmc, xpa*pmm) - 
+               atan2(ypb*zmc, xma*mpm) + atan2(ypb*zmc, xpa*ppm) -
+               atan2(ymb*zpc, xma*mmp) + atan2(ymb*zpc, xpa*pmp) +
+               atan2(ypb*zpc, xma*mpp) - atan2(ypb*zpc, xpa*ppp);
 
-  float ff1y = atan2(xma*zmc, ymb*mmm) - atan2(xpa*zmc, ymb*pmm) - atan2(xma*zmc, ypb*mpm) +
-               atan2(xpa*zmc, ypb*ppm) - atan2(xma*zpc, ymb*mmp) + atan2(xpa*zpc, ymb*pmp) +
+  float ff1y = atan2(xma*zmc, ymb*mmm) - atan2(xpa*zmc, ymb*pmm) - 
+               atan2(xma*zmc, ypb*mpm) + atan2(xpa*zmc, ypb*ppm) -
+               atan2(xma*zpc, ymb*mmp) + atan2(xpa*zpc, ymb*pmp) +
                atan2(xma*zpc, ypb*mpp) - atan2(xpa*zpc, ypb*ppp);
 
-  float ff1z = atan2(xma*ymb, zmc*mmm) - atan2(xpa*ymb, zmc*pmm) + atan2(xma*ypb, zmc*mpm) -
-               atan2(xpa*ypb, zmc*ppm) - atan2(xma*ymb, zpc*mmp) + atan2(xpa*ymb, zpc*pmp) +
+  float ff1z = atan2(xma*ymb, zmc*mmm) - atan2(xpa*ymb, zmc*pmm) -
+               atan2(xma*ypb, zmc*mpm) + atan2(xpa*ypb, zmc*ppm) -
+               atan2(xma*ymb, zpc*mmp) + atan2(xpa*ymb, zpc*pmp) +
                atan2(xma*ypb, zpc*mpp) - atan2(xpa*ypb, zpc*ppp);
 
   float bx_pol_x = magnetization[0] * ff1x * qsigns[0][0];
