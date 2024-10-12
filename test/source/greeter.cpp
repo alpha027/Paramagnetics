@@ -1,6 +1,10 @@
 #include <doctest/doctest.h>
 #include <greeter/greeter.h>
 #include <greeter/version.h>
+//#include <greeter/MagnetCollection.h>
+//#include <greeter/MagneticFieldSimulator.h>
+//#include <greeter/CuboidMagnet.h>
+#include <greeter/SphericalMagnet.h>
 
 #include <string>
 
@@ -19,3 +23,5 @@ TEST_CASE("Greeter version") {
   static_assert(std::string_view(GREETER_VERSION) == std::string_view("1.0"));
   CHECK(std::string(GREETER_VERSION) == std::string("1.0"));
 }
+
+

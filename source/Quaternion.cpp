@@ -105,7 +105,7 @@ std::vector<float> greeter::Quaternion::
     float y = quaternion[2];
     float z = quaternion[3];
 
-    float angle = 2 * acos(quaternion[0]);
+    // float angle = 2 * acos(quaternion[0]);
     float s = sqrt(1 - quaternion[0] * quaternion[0]);
 
     if (s < 1e-6) {
@@ -144,7 +144,7 @@ std::vector<float> greeter::Quaternion::applyRotationFromQuaternion(
     );
 
     std::vector<float> result(arr, arr + 3);
-    delete[] arr;
+    //delete[] arr;
 
     return result;
 }

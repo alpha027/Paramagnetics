@@ -185,9 +185,9 @@ void greeter::CuboidMagnet::calculateMagneticFieldForCube(
   float bz_pol_y = magnetization[1] * ff2x * qsigns[1][2];
   float bz_pol_z = magnetization[2] * ff1z * qsigns[2][2];
 
-  result_x = (bx_pol_x + bx_pol_y + bx_pol_z)/(4.0 * M_PI);
-  result_y = (by_pol_x + by_pol_y + by_pol_z)/(4.0 * M_PI);
-  result_z = (bz_pol_x + bz_pol_y + bz_pol_z)/(4.0 * M_PI);
+  result_x = (bx_pol_x + bx_pol_y + bx_pol_z)/(4.0f * M_PI);
+  result_y = (by_pol_x + by_pol_y + by_pol_z)/(4.0f * M_PI);
+  result_z = (bz_pol_x + bz_pol_y + bz_pol_z)/(4.0f * M_PI);
 }
 
 std::vector<float> greeter::CuboidMagnet::calculateMagneticFieldForCube(
@@ -207,25 +207,38 @@ std::vector<float> greeter::CuboidMagnet::calculateMagneticFieldForCube(
   return {result_x, result_y, result_z};
 }
 
-double greeter::CuboidMagnet::computeMagneticField(double x, double y, double z) const {
-  return 0;
+std::vector<float> greeter::CuboidMagnet::computeMagneticField(double x, double y, double z) const {
+
+  float parameters[13] = {
+    position[0], position[1], position[2],
+    orientation[0], orientation[1], orientation[2], orientation[3],
+    dimensions[0], dimensions[1], dimensions[2],
+    magnetization[0], magnetization[1], magnetization[2]
+  };
+
+  float observation_point[3] = {(float) x, (float) y, (float) z};
+
+  float b_x, b_y, b_z;
+
+  greeter::CuboidMagnet::computeMagneticField(
+    parameters, observation_point,
+    b_x, b_y, b_z
+  );
+
+  return {b_x, b_y, b_z};
 }
 
 void greeter::CuboidMagnet::computeMagneticField(const float* parameters, const float* observation_point, 
                                         float& b_x, float& b_y, float& b_z) const {
 
   float position[3] = {parameters[0], parameters[1], parameters[2]};
-  float orientation[3] = {parameters[3], parameters[4], parameters[5]};
-  float dimensions[3] = {parameters[6], parameters[7], parameters[8]};
-  float magnetization[3] = {parameters[9], parameters[10], parameters[11]};
-
-  float result_x = 0.0;
-  float result_y = 0.0;
-  float result_z = 0.0;
+  float orientation[4] = {parameters[3], parameters[4], parameters[5], parameters[6]};
+  float dimensions[3] = {parameters[7], parameters[8], parameters[9]};
+  float magnetization[3] = {parameters[10], parameters[11], parameters[12]};
 
   greeter::CuboidMagnet::calculateMagneticFieldForCube(
     position, orientation, dimensions, magnetization, observation_point,
-    result_x, result_y, result_z
+    b_x, b_y, b_z
   );
 }
 

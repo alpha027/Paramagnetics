@@ -1,5 +1,6 @@
 #include <greeter/greeter.h>
 #include <greeter/CubicMagnet.h>
+#include <greeter/SphericalMagnet.h>
 #include <greeter/version.h>
 #include <greeter/KokkosDefines.h>
 
@@ -15,18 +16,53 @@
 #include <fstream>
 
 //#include <Kokkos_Core.hpp>
-using json = nlohmann::json;
+//using json = nlohmann::json;
 
 auto main(int argc, char** argv) -> int {
   Kokkos::initialize(argc, argv);
 
-  std::ifstream f("magnets.json");
-  json data = json::parse(f);
+  std::ifstream f("/home/anas/Documents/Master eth/my python project/Magnetics/magnets.json");
+  nlohmann::json data = nlohmann::json::parse(f);
 
-  std::cout << data.dump(4) << std::endl;
+  greeter::MagnetCollection junk_magnet_collection;
+
+  // std::cout << data.dump(4) << std::endl;
   std::cout << "x position of first magnet: " << data["magnets"][0]["cuboid"]["parameters"]["position"] << std::endl;
   std::cout << "Number of magnets: " << data["magnets"].size() << std::endl;
   std::cout << "number of keys: " << data.size() << std::endl;
+
+  std::vector<float> position = data["magnets"][0]["cuboid"]["parameters"]["position"];
+
+  std::vector<std::string> keys;
+
+  std::ifstream g("/home/anas/Documents/Master eth/my python project/Magnetics/magnets.json");
+
+  bool is_valid_file = junk_magnet_collection.validJsonFile(g);
+
+  for (auto it = data["magnets"][0]["cuboid"]["parameters"].begin(); it != data["magnets"][0]["cuboid"]["parameters"].end(); ++it) {
+      keys.push_back(it.key());
+      std::cout << "Ze Key : " << it.key() << " : " << it.value() << std::endl;
+  }
+
+  std::vector<std::string> magnet_type_names = {"cuboid", "sphere"};
+
+   for (auto it = data["magnets"].begin(); it != data["magnets"].end(); ++it) {
+      bool does_not_exist = true;
+      for (auto& magnet_type : magnet_type_names) {
+        if (it->contains(magnet_type)) {
+          std::cout << "This is a CUBOID YAAAY " << std::endl;
+        }
+      }
+    }
+
+  std::cout << "keys 0: " << keys[0] << std::endl;
+  std::cout << "keys 1: " << keys[1] << std::endl;
+  std::cout << "keys 2: " << keys[2] << std::endl; 
+
+
+  std::cout << "x position of first magnet: " << position[0] << std::endl;
+  std::cout << "y position of first magnet: " << position[1] << std::endl;
+  std::cout << "z position of first magnet: " << position[2] << std::endl;
 
   // typedef Kokkos::Cuda ExecSpace;
   // typedef Kokkos::OpenMP ExecSpace;
@@ -77,11 +113,11 @@ auto main(int argc, char** argv) -> int {
 
   greeter::CuboidMagnet magnetic_cube;
 
-  double x = magnetic_cube.computeMagneticField(0, 0, 0);
+  double x = 0.0; //magnetic_cube.computeMagneticField(0, 0, 0);
   std::cout << "Magnetic field at (0, 0, 0): " << x << std::endl;
 
   std::cout << "Kokkos related stuff"  << std::endl;
-  int atomCount = 100000000;
+  int atomCount = 10;
   Float3VectorView forces( "forces", atomCount );
   Float3VectorView positions("positions", atomCount);
   Float4VectorView orientations("orientations", atomCount);
@@ -110,7 +146,7 @@ auto main(int argc, char** argv) -> int {
 
   std::cout << "finished positions ! " << std::endl;
 
-  the_simulator.printPosition(15000);
+  the_simulator.printPosition(1);
 
   greeter::CuboidMagnet cuboid_magnet;
 
@@ -162,13 +198,86 @@ auto main(int argc, char** argv) -> int {
 
   std::cout << "About to create simulator" << std::endl;
 
-  std::vector<std::vector<float>> results = magnet_collection.simulate(fov);
+  //std::vector<std::vector<float>> results = magnet_collection.simulate(fov);
 
   std::cout << "Finished simulating" << std::endl;
 
+  std::cout << "===============================================" << std::endl;
+  std::cout << "FINALY SOME REAL TESTS !" << std::endl;
+  std::cout << "===============================================" << std::endl;
 
 
+  float halbach_array_radius = 0.3;
+  size_t halbach_array_num_magnets = 4;
+  std::vector<float> halbach_magnet_dimensions = {0.12, 0.12, 0.12};
+  std::vector<float> halbach_magnetization = {0.0, 1.0, 0.0};
 
+  greeter::MagnetCollection circular_halbach_array_test(greeter::MagnetCollection::
+                  generateCircularHalbachArray( halbach_array_radius,
+                    halbach_magnet_dimensions, halbach_array_num_magnets,
+                    halbach_magnetization ));
+
+  std::cout << "Circular Halbach Array created" << std::endl;
+
+  std::vector<std::vector<float>> fov_test = {
+    {-0.5, -0.5, 0.},
+    {-0.16666667, -0.5, 0.},
+    { 0.16666667, -0.5, 0.},
+    { 0.5, -0.5, 0.},
+    {-0.5, -0.16666667, 0.},
+    {-0.16666667, -0.16666667, 0.},
+    { 0.16666667, -0.16666667, 0.},
+    { 0.5, -0.16666667, 0.},
+    {-0.5, 0.16666667, 0.},
+    {-0.16666667, 0.16666667, 0.},
+    { 0.16666667, 0.16666667, 0.},
+    { 0.5, 0.16666667, 0.},
+    {-0.5, 0.5, 0.},
+    {-0.16666667, 0.5, 0.},
+    { 0.16666667, 0.5, 0.},
+    { 0.5, 0.5, 0}
+  };
+
+  circular_halbach_array_test.display();
+
+  std::vector<std::vector<float>> results_test = circular_halbach_array_test.simulate(fov_test);
+
+  std::cout << "Finished simulating" << std::endl;
+
+  std::cout << "===============================================" << std::endl;
+
+  for(int i = 0; i < fov_test.size(); i++) {
+    std::cout << results_test[i][0] << ", " << results_test[i][1] << ", " << results_test[i][2] << std::endl;
+  }
+
+  float quaternion_rotation[4];
+
+  greeter::Quaternion::set_rotation_from_axis_angle(
+      "z", 2.0 * M_PI/4.0, quaternion_rotation
+  );
+
+  std::cout << "Quaternion Rotation: " << quaternion_rotation[0] << ", " << quaternion_rotation[1] << ", " << quaternion_rotation[2] << ", " << quaternion_rotation[3] << std::endl;
+
+  std::cout << "log(10) : " << log(10) << std::endl;
+
+  // SPHERE TESTS$
+  greeter::SphereMagnet spherical_magnet(0.8f, 1.0f);
+
+  std::vector<std::vector<float>> sphere_position = {
+  {-2.3, 0., 1.},
+  {-0.76666667, 0., 1.},
+  { 0.76666667, 0., 1.},
+  { 2.3, 0., 1.}
+  };
+
+  std::vector<float> sphere_mag_result;
+  sphere_mag_result = spherical_magnet.computeMagneticField(-2.3, 0.0, 1.0);
+
+  std::cout << "Sphere Magnetic Field: " << sphere_mag_result[0] << ", " << sphere_mag_result[1] << ", " << sphere_mag_result[2] << std::endl;
+
+  sphere_mag_result = spherical_magnet.computeMagneticField(-0.76666667, 0., 1.);
+
+  std::cout << "Sphere Magnetic Field: " << sphere_mag_result[0] << ", " << sphere_mag_result[1] << ", " << sphere_mag_result[2] << std::endl;
   return 0;
   Kokkos::finalize();
 }

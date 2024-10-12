@@ -22,7 +22,7 @@ class CuboidMagnet: public Magnet {
       CuboidMagnet(const CuboidMagnet& other);
 
       virtual ~CuboidMagnet();
-      double computeMagneticField(double x, double y, double z) const override;
+      std::vector<float> computeMagneticField(double x, double y, double z) const override;
       void computeMagneticField(const float* parameters, const float* observation_point,
                                 float& b_x, float& b_y, float& b_z) const override;
 
