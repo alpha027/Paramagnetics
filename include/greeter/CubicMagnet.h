@@ -70,6 +70,8 @@ class CuboidMagnet: public Magnet {
         const float* observation_point,
         float& result_x, float& result_y, float& result_z
       );
+
+      static size_t numberOfParameters();
   };
 
 } // namespace greeter

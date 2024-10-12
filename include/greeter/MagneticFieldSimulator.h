@@ -39,6 +39,8 @@ public:
     void printPosition( u_int64_t observation_point_index ) const;
     void printMagneticField( u_int64_t observation_point_index ) const;
 
+    float* getTheParameters(const size_t& magnet_index) const;
+
     void fillMagnetPositions(const std::vector<std::vector<float>>& positions);
     void fillMagnetOrientations(const std::vector<std::vector<float>>& orientations);
     void fillMagnetMagnetizations(const std::vector<std::vector<float>>& magnetizations);

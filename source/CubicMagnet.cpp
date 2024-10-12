@@ -40,6 +40,10 @@ std::vector<float> greeter::CuboidMagnet::getMagnetization() const {
 }
 
 size_t greeter::CuboidMagnet::getNumOfParameters() const {
+  return greeter::CuboidMagnet::numberOfParameters();
+}
+
+size_t greeter::CuboidMagnet::numberOfParameters() {
   return 13;
 }
 

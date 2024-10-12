@@ -62,8 +62,11 @@ std::vector<float> greeter::SphereMagnet::getMagnetization() const {
   return theMagnetization;
 }
 
-
 size_t greeter::SphereMagnet::getNumOfParameters() const {
+  return greeter::SphereMagnet::numberOfParameters();
+}
+
+size_t greeter::SphereMagnet::numberOfParameters() {
   return 11;
 }
 
@@ -256,3 +259,9 @@ static bool registerCalculateMagneticFieldForSphereToFactory
     registerComputeMagneticField(
         greeter::SphereMagnet::getStaticTypeID(), 
         greeter::SphereMagnet::computeMagneticFieldForSphere );
+
+static bool registerNumberOfParametersForSphereToFactory
+    __attribute__((unused)) = greeter::MagneticFieldMethodFactory::getInstance().
+    registerNumberOfParameters(
+        greeter::SphereMagnet::getStaticTypeID(),
+        greeter::SphereMagnet::numberOfParameters );

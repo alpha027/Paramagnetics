@@ -107,66 +107,99 @@ std::vector<std::vector<float>> greeter::MagneticFieldSimulator::getMagneticFiel
     return result;
 }
 
+inline
+float* greeter::MagneticFieldSimulator::getTheParameters(const size_t& magnet_index) const {
+
+    float* result = new float[13];
+
+    result[0] = positions(magnet_index, 0);
+    result[1] = positions(magnet_index, 1);
+    result[2] = positions(magnet_index, 2);
+
+    result[3] = orientations(magnet_index, 0);
+    result[4] = orientations(magnet_index, 1);
+    result[5] = orientations(magnet_index, 2);
+    result[6] = orientations(magnet_index, 3);
+
+    result[7] = dimensions(magnet_index, 0);
+    result[8] = dimensions(magnet_index, 1);
+    result[9] = dimensions(magnet_index, 2);
+
+    result[10] = magnetizations(magnet_index, 0);
+    result[11] = magnetizations(magnet_index, 1);
+    result[12] = magnetizations(magnet_index, 2);
+
+    return result;
+}
+
 
 KOKKOS_INLINE_FUNCTION
 void greeter::MagneticFieldSimulator::operator()( u_int64_t observation_point_index ) const {
 
     for (size_t i = 0; i < num_magnets; i++) {
 
-        float translated_observation_point[3] = {
-            observation_points( observation_point_index, 0) - positions(i, 0),
-            observation_points( observation_point_index, 1) - positions(i, 1), 
-            observation_points( observation_point_index, 2) - positions(i, 2)
-        };
-
-        float rotation_quat[4] = {
-            orientations(i, 0), orientations(i, 1), 
-            orientations(i, 2), orientations(i, 3)
-        };
-
-        float rotated_observation_point[3];
-
-        greeter::Quaternion::applyInverseRotationFromQuaternion(rotation_quat, translated_observation_point, rotated_observation_point);
-
         u_int16_t magnet_type = magnet_types(i);
 
-        float parameters[13] = {
-            positions(i, 0), 
-            positions(i, 1),
-            positions(i, 2),
-            orientations(i, 0),
-            orientations(i, 1),
-            orientations(i, 2),
-            orientations(i, 3),
-            dimensions(i,0),
-            dimensions(i,1),
-            dimensions(i,2), 
-            magnetizations(i, 0),
-            magnetizations(i, 1),
-            magnetizations(i, 2)
+        float the_observation_point[3] = {
+            observation_points(observation_point_index, 0),
+            observation_points(observation_point_index, 1),
+            observation_points(observation_point_index, 2)
         };
 
-        float rotated_bx = 0.0f;
-        float rotated_by = 0.0f;
-        float rotated_bz = 0.0f;
+        float bx = 0.0f;
+        float by = 0.0f;
+        float bz = 0.0f;
 
-        greeter::MagneticFieldMethodFactory::getInstance().computeMagneticField(
+        if (magnet_type == 0) { // Case of CuboidMagnet
+            float magnet_parameters[13] = {
+                positions(i, 0), 
+                positions(i, 1),
+                positions(i, 2),
+                orientations(i, 0),
+                orientations(i, 1),
+                orientations(i, 2),
+                orientations(i, 3),
+                dimensions(i,0),
+                dimensions(i,1),
+                dimensions(i,2), 
+                magnetizations(i, 0),
+                magnetizations(i, 1),
+                magnetizations(i, 2) 
+            };
+
+            greeter::MagneticFieldMethodFactory::getInstance().computeMagneticField(
             magnet_type,
-            parameters,
-            rotated_observation_point,
-            rotated_bx, rotated_by, rotated_bz
-        );
+            magnet_parameters,
+            the_observation_point,
+            bx, by, bz
+            );
+        } else if (magnet_type == 1) // Case of SphereMagnet
+        {
+            float magnet_parameters[11] = {
+                positions(i, 0), 
+                positions(i, 1),
+                positions(i, 2),
+                orientations(i, 0),
+                orientations(i, 1),
+                orientations(i, 2),
+                orientations(i, 3),
+                dimensions(i,0),
+                magnetizations(i, 0),
+                magnetizations(i, 1),
+                magnetizations(i, 2)
+            };
 
-        float rotated_field[3] = {rotated_bx, rotated_by, rotated_bz};
+            greeter::MagneticFieldMethodFactory::getInstance().computeMagneticField(
+            magnet_type,
+            magnet_parameters,
+            the_observation_point,
+            bx, by, bz
+            );
+        }
 
-        float final_field[3];
-
-        greeter::Quaternion::applyRotationFromQuaternion(rotation_quat, rotated_field, final_field);
-
-        magnetic_fields(observation_point_index, 0) += final_field[0];
-        magnetic_fields(observation_point_index, 1) += final_field[1];
-        magnetic_fields(observation_point_index, 2) += final_field[2];
-
+        magnetic_fields(observation_point_index, 0) += bx;
+        magnetic_fields(observation_point_index, 1) += by;
+        magnetic_fields(observation_point_index, 2) += bz;
     }
 
 }

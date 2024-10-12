@@ -72,6 +72,15 @@ bool greeter::MagnetCollection::validJsonFile(std::ifstream& json_file) const {
 
 }
 
+
+size_t greeter::MagnetCollection::getTotalNumOfParameters() const {
+    size_t total = 0;
+    for (const auto& magnet : magnets) {
+        total += magnet->getNumOfParameters();
+    }
+    return total;
+}
+
 greeter::MagnetCollection::MagnetCollection(std::ifstream& json_file) {
     this->magnets.clear();
     /*

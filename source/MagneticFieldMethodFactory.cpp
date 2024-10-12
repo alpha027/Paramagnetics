@@ -8,13 +8,17 @@ void greeter::MagneticFieldMethodFactory::displayRegistered() const {
     }
 }
 
-
 bool greeter::MagneticFieldMethodFactory::registerComputeMagneticField(
     const u_int16_t& key, MethodFunction _method) {
     registry[key] = _method;
     return true;
 }
 
+bool greeter::MagneticFieldMethodFactory::registerNumberOfParameters(
+    const u_int16_t& key, NumerOfParametersFunction _method) {
+    registry_parameters[key] = _method;
+    return true;
+}
 
 void greeter::MagneticFieldMethodFactory::computeMagneticField(
     const u_int16_t& key, const float* parameters, 
