@@ -122,7 +122,7 @@ auto main(int argc, char** argv) -> int {
   Float3VectorView positions("positions", atomCount);
   Float4VectorView orientations("orientations", atomCount);
   Float3VectorView magnetizations("magnetizations", atomCount);
-  Float3VectorView radii("radii", atomCount);
+  FloatVectorView radii("radii", 3*atomCount);
   Float3VectorView observation_points("observation_points", atomCount);
   UInt32VectorView magnet_types("magnet_types", atomCount);
 

@@ -12,8 +12,9 @@ class MagneticFieldSimulator {
   Float3VectorView positions;
   Float4VectorView orientations;
   Float3VectorView magnetizations;
-  Float3VectorView dimensions;
+  FloatVectorView dimensions;
   UInt32VectorView magnet_types;
+  UInt32VectorView dimensionParameterCumulativeCount;
   Float3VectorView observation_points;
   Float3VectorView magnetic_fields;
   size_t num_magnets;
@@ -22,7 +23,7 @@ public:
 
     MagneticFieldSimulator(Float3VectorView positions,
       Float4VectorView orientations, Float3VectorView magnetizations,
-      Float3VectorView dimensions, UInt32VectorView magnet_types,
+      FloatVectorView dimensions, UInt32VectorView magnet_types,
       Float3VectorView observation_points
     );
 
@@ -46,6 +47,7 @@ public:
     void fillMagnetMagnetizations(const std::vector<std::vector<float>>& magnetizations);
     void fillMagnetdimensions(const std::vector<float>& dimensions);
     void fillObservationPoints(const std::vector<std::vector<float>>& observation_points);
+    void fillDimensionParameterCumulativeCount();
 
     void computeMagneticField(const u_int16_t& key, const float* parameters, 
                               const float* observation_point, float& a, float& b, float& c);

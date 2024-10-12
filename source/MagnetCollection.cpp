@@ -143,10 +143,12 @@ std::unique_ptr<greeter::MagneticFieldSimulator> greeter::MagnetCollection::crea
 
   u_int32_t num_magnets = get_num_magnets();
 
+  size_t tot_num_parameters = getTotalNumOfParameters();
+
   Float3VectorView _positions("positions", num_magnets);
   Float4VectorView _orientations("orientations", num_magnets);
   Float3VectorView _magnetizations("magnetizations", num_magnets);
-  Float3VectorView _radii("radii", num_magnets);
+  FloatVectorView _radii("radii", tot_num_parameters);
   Float3VectorView _observation_points("observation_points", 1);
   UInt32VectorView _magnet_types("magnet_types", num_magnets);
 
@@ -155,6 +157,9 @@ std::unique_ptr<greeter::MagneticFieldSimulator> greeter::MagnetCollection::crea
   std::vector<float> magnetizations;
   std::vector<float> radii;
   std::vector<float> observation_points;
+
+  std::vector<float> geom_dimensions;
+  size_t cum_index = 0;
 
   for (u_int32_t i = 0; i < num_magnets; i++) {
 
@@ -172,15 +177,18 @@ std::unique_ptr<greeter::MagneticFieldSimulator> greeter::MagnetCollection::crea
     _orientations(i, 2) = orientations[2];
     _orientations(i, 3) = orientations[3];
 
-    _radii(i, 0) = radii[0];
-    _radii(i, 1) = radii[1];
-    _radii(i, 2) = radii[2];
-
     _magnetizations(i, 0) = magnetizations[0];
     _magnetizations(i, 1) = magnetizations[1];
     _magnetizations(i, 2) = magnetizations[2];
 
     _magnet_types(i) = this->magnets[i]->getTypeID();
+
+    size_t num_parameters = this->magnets[i]->getNumOfParameters();
+    geom_dimensions = this->magnets[i]->getDimensions();
+    for (size_t j = 0; j < num_parameters; j++) {
+      _radii(cum_index  + j) = geom_dimensions[j];
+    }
+    cum_index += num_parameters;
   }
 
   std::unique_ptr<greeter::MagneticFieldSimulator> simulator = std::make_unique<greeter::MagneticFieldSimulator>(

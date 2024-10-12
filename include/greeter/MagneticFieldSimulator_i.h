@@ -8,14 +8,14 @@
 inline
 greeter::MagneticFieldSimulator::MagneticFieldSimulator(
     Float3VectorView _positions, Float4VectorView _orientations,
-    Float3VectorView _magnetizations, Float3VectorView _dimensions,
+    Float3VectorView _magnetizations, FloatVectorView _dimensions,
     UInt32VectorView _magnet_types,
     Float3VectorView _observation_points) :
     positions(_positions), orientations(_orientations),
-    magnetizations(_magnetizations), dimensions(_dimensions),
+    magnetizations(_magnetizations),
+    dimensions(_dimensions),
     magnet_types(_magnet_types),
     observation_points(_observation_points) {
-
 
         u_int64_t N = observation_points.extent(0);
         Float3VectorView magnetic_fields("magnetic_fields", N);
@@ -98,7 +98,7 @@ std::vector<std::vector<float>> greeter::MagneticFieldSimulator::getMagneticFiel
 
     std::vector<std::vector<float>> result(N, std::vector<float>(3, 0.0f));
 
-    for(int i = 0; i < N; i++) {
+    for(u_int64_t i = 0; i < N; i++) {
         result[i][0] = magnetic_fields(i, 0);
         result[i][1] = magnetic_fields(i, 1);
         result[i][2] = magnetic_fields(i, 2);
@@ -109,6 +109,8 @@ std::vector<std::vector<float>> greeter::MagneticFieldSimulator::getMagneticFiel
 
 inline
 float* greeter::MagneticFieldSimulator::getTheParameters(const size_t& magnet_index) const {
+
+
 
     float* result = new float[13];
 
@@ -121,9 +123,9 @@ float* greeter::MagneticFieldSimulator::getTheParameters(const size_t& magnet_in
     result[5] = orientations(magnet_index, 2);
     result[6] = orientations(magnet_index, 3);
 
-    result[7] = dimensions(magnet_index, 0);
-    result[8] = dimensions(magnet_index, 1);
-    result[9] = dimensions(magnet_index, 2);
+    result[7] = dimensions(0);
+    result[8] = dimensions(1);
+    result[9] = dimensions(2);
 
     result[10] = magnetizations(magnet_index, 0);
     result[11] = magnetizations(magnet_index, 1);
@@ -150,6 +152,10 @@ void greeter::MagneticFieldSimulator::operator()( u_int64_t observation_point_in
         float by = 0.0f;
         float bz = 0.0f;
 
+        size_t num_parameters = greeter::MagneticFieldMethodFactory::getInstance().getNumberOfParameters(magnet_type);
+
+        size_t start_index = dimensionParameterCumulativeCount(i) - num_parameters;
+
         if (magnet_type == 0) { // Case of CuboidMagnet
             float magnet_parameters[13] = {
                 positions(i, 0), 
@@ -159,9 +165,9 @@ void greeter::MagneticFieldSimulator::operator()( u_int64_t observation_point_in
                 orientations(i, 1),
                 orientations(i, 2),
                 orientations(i, 3),
-                dimensions(i,0),
-                dimensions(i,1),
-                dimensions(i,2), 
+                dimensions(start_index),
+                dimensions(start_index + 1),
+                dimensions(start_index + 2), 
                 magnetizations(i, 0),
                 magnetizations(i, 1),
                 magnetizations(i, 2) 
@@ -183,7 +189,7 @@ void greeter::MagneticFieldSimulator::operator()( u_int64_t observation_point_in
                 orientations(i, 1),
                 orientations(i, 2),
                 orientations(i, 3),
-                dimensions(i,0),
+                dimensions(start_index),
                 magnetizations(i, 0),
                 magnetizations(i, 1),
                 magnetizations(i, 2)
@@ -202,6 +208,25 @@ void greeter::MagneticFieldSimulator::operator()( u_int64_t observation_point_in
         magnetic_fields(observation_point_index, 2) += bz;
     }
 
+}
+
+inline
+void greeter::MagneticFieldSimulator::fillDimensionParameterCumulativeCount(){
+
+    size_t N = (size_t) num_magnets;
+
+    dimensionParameterCumulativeCount = UInt32VectorView("dimensionParameterCumulativeCount", N);
+
+    for (size_t i = 0; i < N; i++) {
+        if ( i == 0 ) {
+            dimensionParameterCumulativeCount(i) = greeter::MagneticFieldMethodFactory::getInstance()
+                .getNumberOfParameters(magnet_types(i));
+        } else {
+            dimensionParameterCumulativeCount(i) = greeter::MagneticFieldMethodFactory::getInstance()
+            .getNumberOfParameters(magnet_types(i)) + dimensionParameterCumulativeCount(i-1);
+        }
+        
+    }
 }
 
 KOKKOS_INLINE_FUNCTION

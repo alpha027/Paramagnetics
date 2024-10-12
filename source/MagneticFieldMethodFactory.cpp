@@ -31,3 +31,13 @@ void greeter::MagneticFieldMethodFactory::computeMagneticField(
         std::cout << "Unknown child type '" << key << "'" << std::endl;
     }
 }
+
+size_t greeter::MagneticFieldMethodFactory::getNumberOfParameters(const u_int16_t& key) const {
+    auto it = registry_parameters.find(key);
+    if (it != registry_parameters.end()) {
+        return it->second();
+    } else {
+        std::cout << "Unknown child type '" << key << "'" << std::endl;
+        return 0;
+    }
+}
