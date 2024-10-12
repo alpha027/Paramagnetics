@@ -45,10 +45,6 @@ void greeter::MagneticFieldSimulator::simulate() {
 
     std::cout << "End simulation !" << std::endl;
 
-    //print magnetic fields
-    // for (size_t i = 0; i < num_samples; i++) {
-    //     printMagneticField(i);
-    // }
 }
 
 inline
@@ -111,6 +107,7 @@ std::vector<std::vector<float>> greeter::MagneticFieldSimulator::getMagneticFiel
     return result;
 }
 
+
 KOKKOS_INLINE_FUNCTION
 void greeter::MagneticFieldSimulator::operator()( u_int64_t observation_point_index ) const {
 
@@ -137,7 +134,10 @@ void greeter::MagneticFieldSimulator::operator()( u_int64_t observation_point_in
             positions(i, 0), 
             positions(i, 1),
             positions(i, 2),
-            1.0, 0.0, 0.0, 0.0,
+            orientations(i, 0),
+            orientations(i, 1),
+            orientations(i, 2),
+            orientations(i, 3),
             dimensions(i,0),
             dimensions(i,1),
             dimensions(i,2), 

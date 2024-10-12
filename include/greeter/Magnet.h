@@ -35,6 +35,7 @@ class Magnet {
 
     virtual uint16_t getTypeID() const = 0;
 
+    virtual size_t getNumOfParameters() const = 0;
 
 };
 

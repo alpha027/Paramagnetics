@@ -62,6 +62,11 @@ std::vector<float> greeter::SphereMagnet::getMagnetization() const {
   return theMagnetization;
 }
 
+
+size_t greeter::SphereMagnet::getNumOfParameters() const {
+  return 11;
+}
+
 void greeter::SphereMagnet::display() const {
   std::cout << "------------------------------------------------------" << std::endl;
   std::cout << "SphereMagnet:" << std::endl;

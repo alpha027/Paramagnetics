@@ -40,6 +40,7 @@ class CuboidMagnet: public Magnet {
       void translate(const float& x, const float& y, const float& z) override;
 
       uint16_t getTypeID() const override;
+      size_t getNumOfParameters() const override;
 
       static std::string getStaticTypeName();
       static uint16_t getStaticTypeID();

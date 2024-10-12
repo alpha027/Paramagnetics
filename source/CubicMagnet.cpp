@@ -39,6 +39,10 @@ std::vector<float> greeter::CuboidMagnet::getMagnetization() const {
   return theMagnetization;
 }
 
+size_t greeter::CuboidMagnet::getNumOfParameters() const {
+  return 13;
+}
+
 void greeter::CuboidMagnet::setPosition(const float& x, const float& y, const float& z) {
   position[0] = x;
   position[1] = y;
