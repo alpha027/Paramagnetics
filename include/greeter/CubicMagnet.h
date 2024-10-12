@@ -58,13 +58,13 @@ class CuboidMagnet: public Magnet {
       );
 
       static void calculateMagneticFieldForAxisAlignedCube(
-        const float* position, const float* dimensions,
+        const float* dimensions,
         const float* magnetization,
         const float* observation_point,
         float& result_x, float& result_y, float& result_z
       );
 
-       static void computeMagneticFieldForCube(
+      static void computeMagneticFieldForCube(
         const float* parameters,
         const float* observation_point,
         float& result_x, float& result_y, float& result_z

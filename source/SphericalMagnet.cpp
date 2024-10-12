@@ -1,4 +1,5 @@
 #include <greeter/SphericalMagnet.h>
+#include <greeter/Quaternion.h>
 #include <cmath>
 
 
@@ -88,16 +89,14 @@ void greeter::SphereMagnet::translate(const float& x, const float& y, const floa
 
 void greeter::SphereMagnet::computeMagneticField(
     const float* parameters, const float* observation_point,
-    float& b_x, float& b_y, float& b_z) const {
+    float& b_x, float& b_y, float& b_z
+  ) const {
 
-  float position[3] = {parameters[0], parameters[1], parameters[2]};
-  float orientation[3] = {parameters[3], parameters[4], parameters[5]};
-  float radius = parameters[6];
-  float magnetization[3] = {parameters[7], parameters[8], parameters[9]};
+  greeter::SphereMagnet::computeMagneticFieldForSphere(
+    parameters, observation_point,
+    b_x, b_y, b_z
+  );
 
-  float result_x = 0.0;
-  float result_y = 0.0;
-  float result_z = 0.0;
 }
 
 std::string greeter::SphereMagnet::getStaticTypeName() {
@@ -112,22 +111,22 @@ uint16_t greeter::SphereMagnet::getStaticTypeID() {
   return 1;
 }
 
-void greeter::SphereMagnet::computeMagneticFieldForSphere(
-        const float* parameters,
-        const float* observation_point,
-        float& result_x, float& result_y, float& result_z ) {
 
-    // The function to fill in ---------------------------------------
-    float position[3] = {parameters[0], parameters[1], parameters[2]};
-    float orientation[4] = {1.0, 0.0, 0.0, 0.0}; 
-    float radius = parameters[7];
-    float magnetization_x = parameters[8];
-    float magnetization_y = parameters[9];
-    float magnetization_z = parameters[10];
-
+void greeter::SphereMagnet::
+  calculateMagneticFieldForAxisAlignedSphere(
+      const float radius,
+      const float* magnetization,
+      const float* observation_point,
+      float& result_x, float& result_y, float& result_z
+    )
+{
     float x = observation_point[0];
     float y = observation_point[1];
     float z = observation_point[2];
+
+    float magnetization_x = magnetization[0];
+    float magnetization_y = magnetization[1];
+    float magnetization_z = magnetization[2];
 
     float r = sqrt(x*x + y*y + z*z);
 
@@ -137,18 +136,63 @@ void greeter::SphereMagnet::computeMagneticFieldForSphere(
 
     float dot_product = x*magnetization_x + y*magnetization_y + z*magnetization_z;
 
-    float first_factor = - 1.0f / (r*r*r);
-    float second_factor = 3.0f * dot_product / (r*r*r*r*r);
-
     result_x = ((3.0f * dot_product * x - magnetization_x * r * r)
                 / r5 * (radius3/3.0f));
     result_y = ((3.0f * dot_product * y - magnetization_y * r * r)
                 / r5 * (radius3/3.0f));
     result_z = ((3.0f * dot_product * z - magnetization_z * r * r)
                 / r5 * (radius3/3.0f));
-    //result_x = (first_factor * magnetization_x + second_factor * x)/1.0f; //(4.0f * M_PI);
-    //result_y = (first_factor * magnetization_y + second_factor * y)/1.0f; //(4.0f * M_PI);
-    //result_z = (first_factor * magnetization_z + second_factor * z)/1.0f; //(4.0f * M_PI);
+}
+
+
+void greeter::SphereMagnet::computeMagneticFieldForSphere(
+        const float* parameters,
+        const float* observation_point,
+        float& result_x, float& result_y, float& result_z
+      ) {
+
+    // The function to fill in ---------------------------------------
+    float position[3] = {parameters[0], parameters[1], parameters[2]};
+    float orientation[4] = {parameters[3], parameters[4], parameters[5], parameters[6]};
+    float radius = parameters[7];
+
+    float magnetization[3] = {parameters[8], parameters[9], parameters[10]};
+
+    float translated_observation_point[3] = {
+        observation_point[0] - position[0],
+        observation_point[1] - position[1],
+        observation_point[2] - position[2]
+    };
+
+    float rotated_observation_point[3];
+
+    greeter::Quaternion::applyInverseRotationFromQuaternion(
+        orientation,
+        translated_observation_point,
+        rotated_observation_point
+    );
+
+    float rotated_B_x, rotated_B_y, rotated_B_z;
+
+    greeter::SphereMagnet::calculateMagneticFieldForAxisAlignedSphere(
+        radius, magnetization,
+        rotated_observation_point,
+        rotated_B_x, rotated_B_y, rotated_B_z
+    );
+
+    float rotated_field[3] = {rotated_B_x, rotated_B_y, rotated_B_z};
+
+    float final_field[3];
+
+    greeter::Quaternion::applyRotationFromQuaternion(
+        orientation,
+        rotated_field,
+        final_field
+    );
+
+    result_x = final_field[0];
+    result_y = final_field[1];
+    result_z = final_field[2];
 }
 
 
@@ -160,7 +204,7 @@ void greeter::SphereMagnet::calculateMagneticFieldForSphere(
 
         float parameters[11] = {
             position[0], position[1], position[2],
-            orientation[0], orientation[1], orientation[2],
+            orientation[0], orientation[1], orientation[2], orientation[3],
             radius, magnetization[0], magnetization[1], magnetization[2]
         };
 

@@ -10,10 +10,11 @@ class SphereMagnet: public Magnet {
 
     /* Spherical magnet with default magnetization orientation according to e_z */
 
-    std::vector<float> position;
-    std::vector<float> orientation;
-    float radius;
-    float magnetization;
+    private:
+      float radius;
+      float magnetization;
+      std::vector<float> position;
+      std::vector<float> orientation;
 
     public:
       SphereMagnet(float radius, float magnetization);
@@ -63,6 +64,13 @@ class SphereMagnet: public Magnet {
 
       static void computeMagneticFieldForSphere(
         const float* parameters,
+        const float* observation_point,
+        float& result_x, float& result_y, float& result_z
+      );
+
+      static void calculateMagneticFieldForAxisAlignedSphere(
+        const float radius,
+        const float* magnetization,
         const float* observation_point,
         float& result_x, float& result_y, float& result_z
       );

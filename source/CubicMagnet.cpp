@@ -92,7 +92,7 @@ void greeter::CuboidMagnet::calculateMagneticFieldForCube(
   float rotated_B_x, rotated_B_y, rotated_B_z;
 
   greeter::CuboidMagnet::calculateMagneticFieldForAxisAlignedCube(
-    position, dimensions, magnetization,
+    dimensions, magnetization,
     rotated_observation_point,
     rotated_B_x, rotated_B_y, rotated_B_z
   );
@@ -114,7 +114,7 @@ void greeter::CuboidMagnet::calculateMagneticFieldForCube(
 
 
 void greeter::CuboidMagnet::calculateMagneticFieldForAxisAlignedCube(
-        const float* position, const float* dimensions,
+        const float* dimensions,
         const float* magnetization,
         const float* observation_point,
         float& result_x, float& result_y, float& result_z
