@@ -19,7 +19,7 @@ TEST_CASE("Axis aligned Cuboid magnet magnetic field") {
     orientation, magnetization
   );
 
-  std::vector<std::vector<float>> sphere_position = {
+  std::vector<std::vector<float>> observation_points = {
     {-2.3, 0., 1.},
     {-0.76666667, 0., 1.},
     { 0.76666667, 0., 1.},
@@ -27,9 +27,9 @@ TEST_CASE("Axis aligned Cuboid magnet magnetic field") {
   };
 
   std::vector<float> cuboid_mag_result = cubic_magnet.computeMagneticField(
-    sphere_position[0][0],
-    sphere_position[0][1],
-    sphere_position[0][2] 
+    observation_points[0][0],
+    observation_points[0][1],
+    observation_points[0][2] 
   );
 
   CHECK(cuboid_mag_result[0] == doctest::Approx(-0.011591485));

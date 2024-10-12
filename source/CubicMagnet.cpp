@@ -1,4 +1,5 @@
 #include <greeter/CubicMagnet.h>
+#include <greeter/Quaternion.h>
 #include <cmath>
 
 greeter::CuboidMagnet::CuboidMagnet() : position({0, 0, 0}), orientation({1.0, 0.0, 0.0, 0.0}), dimensions({1.0, 1.0, 1.0}), magnetization({0, 1.0, 0}) {}
@@ -69,6 +70,52 @@ void greeter::CuboidMagnet::display() const {
 void greeter::CuboidMagnet::calculateMagneticFieldForCube(
         const float* position, const float* orientation, 
         const float* dimensions, const float* magnetization,
+        const float* observation_point,
+        float& result_x, float& result_y, float& result_z
+      )
+{
+
+  float translated_observation_point[3] = {
+    observation_point[0] - position[0],
+    observation_point[1] - position[1],
+    observation_point[2] - position[2]
+  };
+
+  float rotated_observation_point[3];
+
+  greeter::Quaternion::applyInverseRotationFromQuaternion(
+    orientation,
+    translated_observation_point,
+    rotated_observation_point
+  );
+
+  float rotated_B_x, rotated_B_y, rotated_B_z;
+
+  greeter::CuboidMagnet::calculateMagneticFieldForAxisAlignedCube(
+    position, dimensions, magnetization,
+    rotated_observation_point,
+    rotated_B_x, rotated_B_y, rotated_B_z
+  );
+
+  float rotated_field[3] = {rotated_B_x, rotated_B_y, rotated_B_z};
+
+  float final_magnetic_field[3];
+
+  greeter::Quaternion::applyRotationFromQuaternion(
+    orientation,
+    rotated_field,
+    final_magnetic_field
+  );
+
+  result_x = final_magnetic_field[0];
+  result_y = final_magnetic_field[1];
+  result_z = final_magnetic_field[2];
+}
+
+
+void greeter::CuboidMagnet::calculateMagneticFieldForAxisAlignedCube(
+        const float* position, const float* dimensions,
+        const float* magnetization,
         const float* observation_point,
         float& result_x, float& result_y, float& result_z
       )
@@ -189,6 +236,7 @@ void greeter::CuboidMagnet::calculateMagneticFieldForCube(
   result_y = (by_pol_x + by_pol_y + by_pol_z)/(4.0f * M_PI);
   result_z = (bz_pol_x + bz_pol_y + bz_pol_z)/(4.0f * M_PI);
 }
+
 
 std::vector<float> greeter::CuboidMagnet::calculateMagneticFieldForCube(
        const float* position, const float* orientation, 
