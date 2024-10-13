@@ -35,7 +35,7 @@ class MagnetCollection {
     bool validJsonFile(std::ifstream& json_file) const;
 
     size_t getTotalNumOfParameters() const;
-
+    size_t getTotalNumOfGeoParameters() const;
     //void setCircularHalbachArray(float radius, size_t num_magnets, float magnetization, float magnetization_angle);
 
     // MagnetCollection generateArray(float radius, size_t num_magnets);

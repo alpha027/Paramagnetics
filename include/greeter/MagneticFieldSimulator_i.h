@@ -110,8 +110,6 @@ std::vector<std::vector<float>> greeter::MagneticFieldSimulator::getMagneticFiel
 inline
 float* greeter::MagneticFieldSimulator::getTheParameters(const size_t& magnet_index) const {
 
-
-
     float* result = new float[13];
 
     result[0] = positions(magnet_index, 0);
@@ -152,7 +150,7 @@ void greeter::MagneticFieldSimulator::operator()( u_int64_t observation_point_in
         float by = 0.0f;
         float bz = 0.0f;
 
-        size_t num_parameters = greeter::MagneticFieldMethodFactory::getInstance().getNumberOfParameters(magnet_type);
+        size_t num_parameters = greeter::MagneticFieldMethodFactory::getInstance().getNumberOfParameters(magnet_type) - 10;
 
         size_t start_index = dimensionParameterCumulativeCount(i) - num_parameters;
 
@@ -219,11 +217,11 @@ void greeter::MagneticFieldSimulator::fillDimensionParameterCumulativeCount(){
 
     for (size_t i = 0; i < N; i++) {
         if ( i == 0 ) {
-            dimensionParameterCumulativeCount(i) = greeter::MagneticFieldMethodFactory::getInstance()
-                .getNumberOfParameters(magnet_types(i));
+            dimensionParameterCumulativeCount(i) = (u_int32_t) greeter::MagneticFieldMethodFactory::getInstance()
+                .getNumberOfParameters(magnet_types(i)) - 10;
         } else {
-            dimensionParameterCumulativeCount(i) = greeter::MagneticFieldMethodFactory::getInstance()
-            .getNumberOfParameters(magnet_types(i)) + dimensionParameterCumulativeCount(i-1);
+            dimensionParameterCumulativeCount(i) = (u_int32_t) greeter::MagneticFieldMethodFactory::getInstance()
+            .getNumberOfParameters(magnet_types(i)) + dimensionParameterCumulativeCount(i-1) - 10;
         }
         
     }

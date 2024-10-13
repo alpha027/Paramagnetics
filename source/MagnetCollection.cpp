@@ -81,6 +81,14 @@ size_t greeter::MagnetCollection::getTotalNumOfParameters() const {
     return total;
 }
 
+size_t greeter::MagnetCollection::getTotalNumOfGeoParameters() const {
+    size_t total = 0;
+    for (const auto& magnet : magnets) {
+        total += magnet->getNumOfParameters() - 10;
+    }
+    return total;
+}
+
 greeter::MagnetCollection::MagnetCollection(std::ifstream& json_file) {
     this->magnets.clear();
     /*
@@ -143,7 +151,7 @@ std::unique_ptr<greeter::MagneticFieldSimulator> greeter::MagnetCollection::crea
 
   u_int32_t num_magnets = get_num_magnets();
 
-  size_t tot_num_parameters = getTotalNumOfParameters();
+  size_t tot_num_parameters = getTotalNumOfGeoParameters();
 
   Float3VectorView _positions("positions", num_magnets);
   Float4VectorView _orientations("orientations", num_magnets);
@@ -183,8 +191,9 @@ std::unique_ptr<greeter::MagneticFieldSimulator> greeter::MagnetCollection::crea
 
     _magnet_types(i) = this->magnets[i]->getTypeID();
 
-    size_t num_parameters = this->magnets[i]->getNumOfParameters();
+    size_t num_parameters = this->magnets[i]->getNumOfParameters() - 10;
     geom_dimensions = this->magnets[i]->getDimensions();
+
     for (size_t j = 0; j < num_parameters; j++) {
       _radii(cum_index  + j) = geom_dimensions[j];
     }
@@ -204,6 +213,8 @@ std::vector<std::vector<float>> greeter::MagnetCollection::simulate(const std::v
   std::unique_ptr<greeter::MagneticFieldSimulator> simulator = createSimulator();
 
   simulator->fillObservationPoints(fov);
+
+  simulator->fillDimensionParameterCumulativeCount();
 
   simulator->simulate();
 

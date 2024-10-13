@@ -332,3 +332,12 @@ __attribute__((unused)) =
   greeter::CuboidMagnet::getStaticTypeID(),
   greeter::CuboidMagnet::computeMagneticFieldForCube
 );
+
+
+static bool registerNumberOfParametersForCubeToFactory
+__attribute__((unused)) =
+greeter::MagneticFieldMethodFactory::getInstance().
+registerNumberOfParameters(
+  greeter::CuboidMagnet::getStaticTypeID(),
+  greeter::CuboidMagnet::numberOfParameters
+);
