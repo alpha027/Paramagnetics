@@ -10,12 +10,12 @@ namespace greeter {
 
   class FieldOfView {
 
-    std::vector<std::vector<float>> fov;
+    std::vector<float> fov;
 
     public:
 
         FieldOfView();
-        FieldOfView(std::vector<std::vector<float>> fov);
+        FieldOfView(std::vector<float> fov);
         FieldOfView(
             std::vector<float> xxyyzz,
             std::vector<int32_t> num_points
@@ -25,7 +25,7 @@ namespace greeter {
 
         ~FieldOfView();
 
-        std::vector<std::vector<float>> getFOV() const;
+        std::vector<float> getFOV() const;
 
         void setFOV(std::vector<std::vector<float>> fov);
 
@@ -35,13 +35,7 @@ namespace greeter {
 
         std::vector<float> getPosition() const;
 
-        std::vector<float> getOrientation() const;
-
-        std::vector<float> getMagnetization() const;
-
         std::unique_ptr<FieldOfView> clone() const;
-
-        uint16_t getTypeID() const;
 
         void setPosition(const float& x, const float& y, const float& z);
 

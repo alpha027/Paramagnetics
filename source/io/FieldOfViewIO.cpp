@@ -33,3 +33,11 @@ std::vector<float> greeter::FieldOfViewIO::readSubdivisionCounts(const nlohmann:
 
     return counts;
 }
+
+std::unique_ptr<greeter::FieldOfView> greeter::FieldOfViewIO::createFOV(const nlohmann::json& fov) {
+
+    std::vector<float> ranges = readRanges(fov);
+    std::vector<float> counts = readSubdivisionCounts(fov);
+
+    return std::make_unique<greeter::FieldOfView>(ranges, counts);
+}
