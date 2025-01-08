@@ -12,6 +12,8 @@
 #include <string>
 #include <unordered_map>
 
+#include <greeter/io/CubicMagnetIO.h>
+
 #include <nlohmann/json.hpp>
 #include <fstream>
 
@@ -31,8 +33,14 @@ auto main(int argc, char** argv) -> int {
   std::cout << "Number of magnets: " << data["magnets"].size() << std::endl;
   std::cout << "number of keys: " << data.size() << std::endl;
 
-  std::vector<float> position = data["magnets"][0]["cuboid"]["parameters"]["position"];
+  std::vector<float> position = data["magnets"][0]["cuboid"]["parameters"]["position"].get<std::vector<float>>();
+  std::cout << "The position from JSON is :" << position[0] << ", " << position[1] << ", " << position[2] << std::endl;
+  nlohmann::json sub_data = data["magnets"][0]["cuboid"];
 
+  greeter::CubicMagnetIO cubic_magnet_reader;
+  std::cout << "About to read using IO class" << std::endl;
+  std::unique_ptr<greeter::Magnet> cuboid_magnet_read = cubic_magnet_reader.createMagnet(sub_data);
+  std::cout << "There is no problem here:" << std::endl;
   std::vector<std::string> keys;
 
   std::ifstream g("/home/anas/Documents/Master eth/my python project/Magnetics/magnets.json");
