@@ -10,12 +10,12 @@ namespace greeter {
 
   class FieldOfView {
 
-    std::vector<float> fov;
+    std::vector<std::vector<float>> fov;
 
     public:
 
         FieldOfView();
-        FieldOfView(std::vector<float> fov);
+        FieldOfView(std::vector<std::vector<float>> fov);
         FieldOfView(
             std::vector<float> xxyyzz,
             std::vector<u_int32_t> num_points
@@ -24,15 +24,11 @@ namespace greeter {
 
         ~FieldOfView();
 
-        std::vector<float> getFOV() const;
+        std::vector<std::vector<float>> getFOV() const;
 
-        void setFOV(std::vector<std::vector<float>> fov);
+        void setFOV(const std::vector<std::vector<float>>& fov);
 
         void display() const;
-
-        std::vector<float> getDimensions() const;
-
-        std::vector<float> getPosition() const;
 
         std::unique_ptr<FieldOfView> clone() const;
 
@@ -43,19 +39,6 @@ namespace greeter {
         void translate(const float& x, const float& y, const float& z);
 
         size_t getNumOfParameters() const;
-
-        static std::vector<float> calculateMagneticFieldForFOV(
-          std::vector<float> position, std::vector<float> orientation,
-          std::vector<float> dimensions, std::vector<float> magnetization,
-          std::vector<float> observation_point
-        );
-
-        static void calculateMagneticFieldForFOV(
-          const float* position, const float* orientation, 
-          const float* dimensions, const float* magnetization,
-          const float* observation_point,
-          float& result_x, float& result_y, float& result_z
-        );
 
   };
 }  // namespace greeter

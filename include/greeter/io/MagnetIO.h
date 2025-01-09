@@ -4,6 +4,7 @@
 #include <greeter/Magnet.h>
 #include <nlohmann/json.hpp>
 #include <greeter/MagnetCollection.h>
+#include <greeter/FieldOfView.h>
 #include <vector>
 #include <memory>
 
@@ -28,6 +29,8 @@ class MagnetIO {
 
         //void read(const nlohmann::json& magnet, greeter::MagnetCollection& collection);
         static greeter::MagnetCollection read(const nlohmann::json& magnet);
+
+        static greeter::FieldOfView readFieldOfView(const nlohmann::json& fov);
 };
 
 

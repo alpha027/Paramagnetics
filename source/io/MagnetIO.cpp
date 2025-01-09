@@ -47,9 +47,9 @@ namespace greeter {
 
         // Verify the field of view
         for (auto& fov_key : fov_keys) {
-        if (!data["field_of_view"].contains(fov_key)) {
-            return false;
-        }
+            if (!data["field_of_view"].contains(fov_key)) {
+                return false;
+                }
         };
 
             // if (magnet_type == "cuboid") {
@@ -88,24 +88,34 @@ namespace greeter {
             );
             }
 
-        // for (auto& magnet : data["magnets"]) {
-        //     std::string type = magnet["type"];
-        //     if (type == "cuboid") {
-        //         std::vector<float> position = magnet["cuboid"]["parameters"]["position"];
-        //         std::vector<float> dimensions = magnet["cuboid"]["parameters"]["dimensions"];
-        //         std::vector<float> orientation = magnet["cuboid"]["parameters"]["orientation"];
-        //         std::vector<float> magnetization = magnet["cuboid"]["parameters"]["magnetization"];
-        //         std::unique_ptr<greeter::Magnet> cuboid_magnet = std::make_unique<greeter::CuboidMagnet>(position, dimensions, orientation, magnetization);
-        //         magnet_collection.addMagnet(std::move(cuboid_magnet));
-        //     } else if (type == "sphere") {
-        //         float radius = magnet["sphere"]["parameters"]["radius"];
-        //         float magnetization = magnet["sphere"]["parameters"]["magnetization"];
-        //         std::unique_ptr<greeter::Magnet> sphere_magnet = std::make_unique<greeter::SphereMagnet>(radius, magnetization);
-        //         magnet_collection.addMagnet(std::move(sphere_magnet));
-        //     } else {
-        //         throw std::invalid_argument("Invalid magnet type");
-        //     }
-        // }
         return magnet_collection;
+    }
+
+    greeter::FieldOfView MagnetIO::readFieldOfView(const nlohmann::json& fov) {
+
+        std::vector<std::string> keys = {"x", "y", "z"};
+
+        for (auto& key : keys) {
+            if (!fov.contains(key)) {
+                throw std::invalid_argument("Invalid field of view");
+            }
+        }
+
+        std::vector<float> xxyyzz = {
+            fov["x"]["min"],
+            fov["x"]["max"],
+            fov["y"]["min"],
+            fov["y"]["max"],
+            fov["z"]["min"],
+            fov["z"]["max"]
+        };
+
+        std::vector<u_int32_t> nnn = {
+            fov["x"]["n"],
+            fov["y"]["n"],
+            fov["z"]["n"]
+        };
+
+        return greeter::FieldOfView(xxyyzz, nnn);
     }
 }  // namespace greeter

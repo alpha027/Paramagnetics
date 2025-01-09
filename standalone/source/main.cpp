@@ -34,6 +34,11 @@ auto main(int argc, char** argv) -> int {
   greeter::MagnetCollection my_magnet_collection = greeter::MagnetIO::read(data);
   std::cout << "Magnet collection created using newly implemented class" << std::endl;
 
+  greeter::FieldOfView the_read_fov = greeter::MagnetIO::readFieldOfView(data["field_of_view"]);
+
+  std::cout << "Field of view created using newly implemented class" << std::endl;
+  the_read_fov.display();
+
   auto mag_count = my_magnet_collection.get_num_magnets();
   std::cout << "Number of magnets in collection: " << mag_count << std::endl;
   greeter::MagnetCollection junk_magnet_collection;
