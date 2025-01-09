@@ -31,6 +31,11 @@ auto main(int argc, char** argv) -> int {
   bool valid_json = greeter::MagnetIO::validateJSON(data);
   std::cout << "Validate JSON using newly implemented class: " << valid_json << std::endl;
 
+  greeter::MagnetCollection my_magnet_collection = greeter::MagnetIO::read(data);
+  std::cout << "Magnet collection created using newly implemented class" << std::endl;
+
+  auto mag_count = my_magnet_collection.get_num_magnets();
+  std::cout << "Number of magnets in collection: " << mag_count << std::endl;
   greeter::MagnetCollection junk_magnet_collection;
 
   // std::cout << data.dump(4) << std::endl;

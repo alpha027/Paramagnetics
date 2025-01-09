@@ -1,13 +1,14 @@
 {
   "magnets": [
-    {"cuboid": {
+    {
       "id": 1,
+      "type": "cuboid",
       "parameters": {
         "dimensions": [1, 1, 1],
         "magnetization": [0, 1, 0],
         "position": [0, 0, 0],
-        "orientation": [1, 0, 0, 0] }
-      }
+        "orientation": [1, 0, 0, 0] 
+        }
     }
   ],
    "field_of_view": {

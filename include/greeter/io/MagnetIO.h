@@ -3,6 +3,7 @@
 
 #include <greeter/Magnet.h>
 #include <nlohmann/json.hpp>
+#include <greeter/MagnetCollection.h>
 #include <vector>
 #include <memory>
 
@@ -24,6 +25,9 @@ class MagnetIO {
         // void writeMagnetization(nlohmann::json& magnet, const std::vector<float>& magnetization);
 
         static std::unique_ptr<Magnet> createMagnet(const nlohmann::json& magnet);
+
+        //void read(const nlohmann::json& magnet, greeter::MagnetCollection& collection);
+        static greeter::MagnetCollection read(const nlohmann::json& magnet);
 };
 
 
