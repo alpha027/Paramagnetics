@@ -9,13 +9,13 @@ namespace greeter {
 
   FieldOfView::FieldOfView(
       std::vector<float> xxyyzz,
-      std::vector<int32_t> num_points
+      std::vector<u_int32_t> num_points
   ) {
 
-    for (uint8_t dim=0; dim<3; dim++) {
+    // for (uint8_t dim=0; dim<3; dim++) {
       
-      //fov.push_back(xxyyzz[d]);
-    }
+    //   //fov.push_back(xxyyzz[d]);
+    // }
     // fov.reserve(6 + 3);
     // fov.insert(fov.end(), xxyyzz.begin(), xxyyzz.end());
     // fov.insert(fov.end(), num_points.begin(), num_points.end());

@@ -19,7 +19,7 @@ namespace greeter {
         ~FieldOfViewIO();
 
         std::vector<float> readRanges(const nlohmann::json& fov);
-        std::vector<float> readSubdivisionCounts(const nlohmann::json& fov);
+        std::vector<u_int32_t> readSubdivisionCounts(const nlohmann::json& fov);
 
         std::unique_ptr<FieldOfView> createFOV(const nlohmann::json& fov);
     };

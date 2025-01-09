@@ -18,10 +18,9 @@ namespace greeter {
         FieldOfView(std::vector<float> fov);
         FieldOfView(
             std::vector<float> xxyyzz,
-            std::vector<int32_t> num_points
+            std::vector<u_int32_t> num_points
         );
         FieldOfView(const FieldOfView& other);
-        FieldOfView();
 
         ~FieldOfView();
 
@@ -60,3 +59,5 @@ namespace greeter {
 
   };
 }  // namespace greeter
+
+#endif // FIELD_OF_VIEW_H

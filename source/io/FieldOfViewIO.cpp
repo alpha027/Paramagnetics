@@ -21,14 +21,14 @@ std::vector<float> greeter::FieldOfViewIO::readRanges(const nlohmann::json& fov)
     return ranges;
 }
 
-std::vector<float> greeter::FieldOfViewIO::readSubdivisionCounts(const nlohmann::json& fov) {
+std::vector<u_int32_t> greeter::FieldOfViewIO::readSubdivisionCounts(const nlohmann::json& fov) {
 
     std::vector<int32_t> x_count = fov["x"]["n"];
     std::vector<int32_t> y_count = fov["y"]["n"];
     std::vector<int32_t> z_count = fov["z"]["n"];
 
-    std::vector<float> counts = {
-        (float) x_count[0], (float) y_count[0], (float) z_count[0]
+    std::vector<u_int32_t> counts = {
+        (u_int32_t) x_count[0], (u_int32_t) y_count[0], (u_int32_t) z_count[0]
     };
 
     return counts;
@@ -37,7 +37,7 @@ std::vector<float> greeter::FieldOfViewIO::readSubdivisionCounts(const nlohmann:
 std::unique_ptr<greeter::FieldOfView> greeter::FieldOfViewIO::createFOV(const nlohmann::json& fov) {
 
     std::vector<float> ranges = readRanges(fov);
-    std::vector<float> counts = readSubdivisionCounts(fov);
+    std::vector<u_int32_t> counts = readSubdivisionCounts(fov);
 
     return std::make_unique<greeter::FieldOfView>(ranges, counts);
 }

@@ -1,9 +1,15 @@
 #include <greeter/Quaternion.h>
 #include <greeter/CubicMagnet.h>
 #include <greeter/io/CubicMagnetIO.h>
+#include <greeter/io/MethodFactoryIO.h>
+
 
 greeter::CubicMagnetIO::CubicMagnetIO() {}
 greeter::CubicMagnetIO::~CubicMagnetIO() {}
+
+std::string greeter::CubicMagnetIO::getTypeName() {
+  return "cuboid";
+}
 
 std::vector<float> greeter::CubicMagnetIO::readPosition(const nlohmann::json& magnet) {
   std::vector<float> position = magnet["parameters"]["position"].get<std::vector<float>>();
@@ -37,3 +43,11 @@ std::unique_ptr<greeter::Magnet> greeter::CubicMagnetIO::createMagnet(const nloh
   std::cout << "extracted all data from JSON" << std::endl;
   return std::make_unique<greeter::CuboidMagnet>(position, dimensions, orientation, magnetization);
 }
+
+
+static bool registerCreateCubicMagnet
+    __attribute__((unused)) = greeter::MethodFactoryIO::getInstance().
+    registerGetMagnet(
+        greeter::CubicMagnetIO::getTypeName(), 
+        greeter::CubicMagnetIO::createMagnet 
+      );
