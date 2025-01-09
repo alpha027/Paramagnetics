@@ -17,6 +17,8 @@
 #include <nlohmann/json.hpp>
 #include <fstream>
 
+#include <greeter/io/MagnetIO.h>
+
 //#include <Kokkos_Core.hpp>
 //using json = nlohmann::json;
 
@@ -25,6 +27,9 @@ auto main(int argc, char** argv) -> int {
 
   std::ifstream f("/home/anas/Documents/Master eth/my python project/Magnetics/magnets.json");
   nlohmann::json data = nlohmann::json::parse(f);
+
+  bool valid_json = greeter::MagnetIO::validateJSON(data);
+  std::cout << "Validate JSON using newly implemented class: " << valid_json << std::endl;
 
   greeter::MagnetCollection junk_magnet_collection;
 
