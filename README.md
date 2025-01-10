@@ -20,6 +20,8 @@ Stands for parallel magnetic field simulations. This repository offers a user fr
 
 ## Features
 
+- Elementary magnets: Cubic and spherical magnets
+- Easy and seamless workflow using a JSON parameter file
 - [Modern CMake practices](https://pabloariasal.github.io/2018/02/19/its-time-to-do-cmake-right/)
 - Suited for single header libraries and projects of any scale
 - Clean separation of library and executable code
