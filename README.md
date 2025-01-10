@@ -11,13 +11,12 @@
 
 
 <div align="center" style="text-align: center;">
-  <img src="magnet.webp" alt="Description of image" width="175">
+  <img src="magnet.webp" alt="Description of image" width="245">
 </div>
 
-# ParaMagbetics
+# ParaMagneticS
 
-Setting up a new C++ project usually requires a significant amount of preparation and boilerplate code, even more so for modern C++ projects with tests, executables and continuous integration.
-This template is the result of learnings from many previous projects and should help reduce the work required to setup up a modern C++ project.
+Stands for parallel magnetic field simulations. This repository offers a user friendly tool to efficiently simulate the magnetic field stemming from simple magnet geometries: cube and sphere. ParaMagneticS is implemented in C++ and allows to explore the magnetic field for a combination of magnets. The simulations are performed in a parallel manner to reduce the design iteration time for different magnet configurations.
 
 ## Features
 
