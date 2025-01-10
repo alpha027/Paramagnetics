@@ -11,7 +11,7 @@
 
 
 <div style="text-align: center;">
-  <img src="magnet.png" alt="Description of image" width="300">
+  <img src="magnet.webp" alt="Description of image" width="300">
 </div>
 
 # ModernCppStarter
