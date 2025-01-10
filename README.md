@@ -9,9 +9,11 @@
   <img src="https://repository-images.githubusercontent.com/254842585/4dfa7580-7ffb-11ea-99d0-46b8fe2f4170" height="175" width="auto" />
 </p>
 
-<p align="center">
-![Alt text](magnet.png)
-</p>
+
+<div style="text-align: center;">
+  <img src="magnet.png" alt="Description of image" width="300">
+</div>
+
 # ModernCppStarter
 
 Setting up a new C++ project usually requires a significant amount of preparation and boilerplate code, even more so for modern C++ projects with tests, executables and continuous integration.
