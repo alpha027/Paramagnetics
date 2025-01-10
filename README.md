@@ -10,7 +10,7 @@
 </p>
 
 
-<div style="text-align: center;">
+<div align="center" style="text-align: center;">
   <img src="magnet.webp" alt="Description of image" width="300">
 </div>
 
