@@ -223,6 +223,21 @@ std::vector<std::vector<float>> greeter::MagnetCollection::simulate(const std::v
   return magnetic_fields;
 }
 
+std::vector<std::vector<float>> greeter::MagnetCollection::simulate(const greeter::FieldOfView& fov) const {
+
+  std::unique_ptr<greeter::MagneticFieldSimulator> simulator = createSimulator();
+
+  simulator->fillObservationPoints(fov.getFOV());
+
+  simulator->fillDimensionParameterCumulativeCount();
+
+  simulator->simulate();
+
+  std::vector<std::vector<float>> magnetic_fields = simulator->getMagneticFields();
+
+  return magnetic_fields;
+}
+
 void greeter::MagnetCollection::display(size_t index) const {
   if (index >= this->magnets.size()) {
     throw std::out_of_range("Index out of range");

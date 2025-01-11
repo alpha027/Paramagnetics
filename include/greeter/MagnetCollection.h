@@ -4,6 +4,7 @@
 #include <greeter/Magnet.h>
 #include <greeter/MagneticFieldMethodFactory.h>
 #include <greeter/Quaternion.h>
+#include <greeter/FieldOfView.h>
 #include <vector>
 #include <memory>
 #include <fstream>
@@ -48,6 +49,7 @@ class MagnetCollection {
     std::unique_ptr<greeter::MagneticFieldSimulator> createSimulator() const;
 
     std::vector<std::vector<float>> simulate(const std::vector<std::vector<float>>& fov) const;
+    std::vector<std::vector<float>> simulate(const greeter::FieldOfView& fov) const;
 
     MagnetCollection operator+(const MagnetCollection& other) const;
 

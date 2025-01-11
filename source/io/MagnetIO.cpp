@@ -65,10 +65,8 @@ namespace greeter {
             //     }
             //   }
             // }
-        
-        std::cout << "VALID JSON FILE" << std::endl;
-        return true;
 
+        return true;
     };
 
     greeter::MagnetCollection MagnetIO::read(const nlohmann::json& data) {
@@ -82,11 +80,12 @@ namespace greeter {
         greeter::MagnetCollection magnet_collection;
 
         for (auto& magnet : data["magnets"]) {
-            std::string magnetType = magnet["type"];
+            std::string magnetType = (std::string) magnet["type"].get<std::string>();
+            std::cout << "magnet type in read: " << magnetType << std::endl;
             magnet_collection.addMagnet(
                 MethodFactoryIO::getInstance().createMagnet(magnetType, magnet)
             );
-            }
+        }
 
         return magnet_collection;
     }

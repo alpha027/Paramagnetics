@@ -37,17 +37,17 @@ Stands for parallel magnetic field simulations. This repository offers a user fr
 
 ### Build and run the standalone target
 
-Use the following command to build and run the executable target.
+Use the compiling script *compile.sh*:
+```bash
+./compile.sh
+```
+
+or use the following command to build and run the executable target.
 
 ```bash
 cmake -S standalone -B build/standalone -DCMAKE_BUILD_TYPE=Release -DKokkos_ENABLE_OPENMP=On -DCMAKE_CXX_COMPILER=g++
 cmake -S test -B build/test -DCMAKE_BUILD_TYPE=Release -DKokkos_ENABLE_OPENMP=On -DCMAKE_CXX_COMPILER=g++
 ./build/standalone/Greeter --help
-```
-
-Or use the compiling script *compile.sh*:
-```bash
-./compile.sh
 ```
 
 ### Build and run test suite
@@ -99,8 +99,7 @@ The input data is a *.json* file that has the following format:
        "max": 10,
        "n": 11
     }
-   },
-  "boolean": true
+   }
 }
 
 ```
@@ -120,7 +119,7 @@ open build/doc/doxygen/html/index.html
 
 To build the documentation locally, you will need Doxygen, jinja2 and Pygments installed on your system.
 
-### Build everything at once
+<!-- ### Build everything at once
 
 The project also includes an `all` directory that allows building all targets at the same time.
 This is useful during development, as it exposes all subprojects to your IDE and avoids redundant builds of the library.
@@ -137,7 +136,7 @@ cmake --build build --target fix-format
 ./build/standalone/Greeter --help
 # build docs
 cmake --build build --target GenerateDocs
-```
+``` -->
 
 ### Additional tools
 
@@ -215,6 +214,6 @@ Perhaps the [MiniCppStarter](https://github.com/TheLartians/MiniCppStarter) is s
 - [**filipdutescu/modern-cpp-template**](https://github.com/filipdutescu/modern-cpp-template): A recent starter using a more traditional approach for CMake structure and dependency management.
 - [**vector-of-bool/pitchfork**](https://github.com/vector-of-bool/pitchfork/): Pitchfork is a Set of C++ Project Conventions.
 
-## Star History
+<!-- ## Star History
 
-[![Star History Chart](https://api.star-history.com/svg?repos=TheLartians/ModernCppStarter,cpp-best-practices/gui_starter_template,filipdutescu/modern-cpp-template&type=Date)](https://star-history.com/#TheLartians/ModernCppStarter&cpp-best-practices/gui_starter_template&filipdutescu/modern-cpp-template&Date)
+[![Star History Chart](https://api.star-history.com/svg?repos=TheLartians/ModernCppStarter,cpp-best-practices/gui_starter_template,filipdutescu/modern-cpp-template&type=Date)](https://star-history.com/#TheLartians/ModernCppStarter&cpp-best-practices/gui_starter_template&filipdutescu/modern-cpp-template&Date) -->
