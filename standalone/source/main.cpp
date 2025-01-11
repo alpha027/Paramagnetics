@@ -22,8 +22,30 @@
 //#include <Kokkos_Core.hpp>
 //using json = nlohmann::json;
 
+std::vector<std::filesystem::path> getJSONFiles();
+std::string getDataPath();
+
 auto main(int argc, char** argv) -> int {
   Kokkos::initialize(argc, argv);
+
+  std::filesystem::path source_file = __FILE__;
+
+  std::filesystem::path current_path = std::filesystem::current_path();
+
+  std::filesystem::path repo_root = source_file.parent_path().parent_path().parent_path();
+
+  std::string data_path = getDataPath();
+  std::filesystem::path data_path_fs = getDataPath();
+
+  std::cout << "First JSON file: " << getJSONFiles()[0] << std::endl;
+  
+  std::cout << "Data path: " << data_path << std::endl;
+
+  std::cout << "Source file: " << source_file << std::endl;
+    // Construct the relative path to the file
+  // std::filesystem::path file_path = current_path / "magnets.json";
+  std::cout << "Full path: " << current_path << std::endl;
+  std::cout << "Full path to the file: " << repo_root << std::endl;
 
   std::ifstream f("/home/anas/Documents/Master eth/my python project/Magnetics/magnets.json");
   nlohmann::json data = nlohmann::json::parse(f);
@@ -303,4 +325,22 @@ auto main(int argc, char** argv) -> int {
   std::cout << "Sphere Magnetic Field: " << sphere_mag_result[0] << ", " << sphere_mag_result[1] << ", " << sphere_mag_result[2] << std::endl;
   return 0;
   Kokkos::finalize();
+}
+
+std::string getDataPath() {
+  std::filesystem::path source_file = __FILE__;
+  std::filesystem::path current_path = std::filesystem::current_path();
+  std::filesystem::path repo_root = source_file.parent_path().parent_path().parent_path();
+  return repo_root / "data";
+}
+
+std::vector<std::filesystem::path> getJSONFiles() {
+  std::string data_path = getDataPath();
+  std::vector<std::filesystem::path> json_files;
+  for (const auto& entry : std::filesystem::directory_iterator(data_path)) {
+    if (entry.path().extension() == ".json") {
+      json_files.push_back(entry.path());
+    }
+  }
+  return json_files;
 }

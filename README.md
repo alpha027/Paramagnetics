@@ -45,13 +45,18 @@ cmake -S test -B build/test -DCMAKE_BUILD_TYPE=Release -DKokkos_ENABLE_OPENMP=On
 ./build/standalone/Greeter --help
 ```
 
+Or use the compiling script *compile.sh*:
+```bash
+./compile.sh
+```
+
 ### Build and run test suite
 
 Use the following commands from the project's root directory to run the test suite.
 
 ```bash
-cmake -S test -B build/test
-cmake --build build/test
+cmake -S test -B build/test -DCMAKE_BUILD_TYPE=Release -DKokkos_ENABLE_OPENMP=On -DCMAKE_CXX_COMPILER=g++
+cmake --build build/test -DCMAKE_BUILD_TYPE=Release -DKokkos_ENABLE_OPENMP=On -DCMAKE_CXX_COMPILER=g++
 CTEST_OUTPUT_ON_FAILURE=1 cmake --build build/test --target test
 
 # or simply call the executable: 
@@ -60,27 +65,46 @@ CTEST_OUTPUT_ON_FAILURE=1 cmake --build build/test --target test
 
 To collect code coverage information, run CMake with the `-DENABLE_TEST_COVERAGE=1` option.
 
-### Run clang-format
+### Input Data
 
-Use the following commands from the project's root directory to check and fix C++ and CMake source style.
-This requires _clang-format_, _cmake-format_ and _pyyaml_ to be installed on the current system.
+The input data is a *.json* file that has the following format:
 
-```bash
-cmake -S test -B build/test
+```txt
+{
+  "magnets": [
+    {
+      "id": 1,
+      "type": "cuboid",
+      "parameters": {
+        "dimensions": [1, 1, 1],
+        "magnetization": [0, 1, 0],
+        "position": [0, 0, 0],
+        "orientation": [1, 0, 0, 0] 
+        }
+    }
+  ],
+   "field_of_view": {
+     "x": {
+       "min": 2,
+       "max": 4,
+       "n": 3
+    },
+     "y": {
+       "min": 0,
+       "max": 3,
+       "n": 4
+    },
+     "z": {
+       "min": 0,
+       "max": 10,
+       "n": 11
+    }
+   },
+  "boolean": true
+}
 
-# view changes
-cmake --build build/test --target format
-
-# apply changes
-cmake --build build/test --target fix-format
 ```
 
-See [Format.cmake](https://github.com/TheLartians/Format.cmake) for details.
-These dependencies can be easily installed using pip.
-
-```bash
-pip install clang-format==14.0.6 cmake_format==0.6.11 pyyaml
-```
 
 ### Build the documentation
 
