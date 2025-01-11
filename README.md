@@ -102,7 +102,7 @@ The input data is a *.json* file that has the following format:
    }
 }
 
-Note that the **orientation** field in the JSON parameter file represents a quaternion.
+Note that the <strong>orientation</strong> field in the JSON parameter file represents a quaternion.
 
 ```
 
