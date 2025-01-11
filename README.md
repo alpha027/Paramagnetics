@@ -102,8 +102,13 @@ The input data is a *.json* file that has the following format:
    }
 }
 
+Note that the **orientation** field in the JSON parameter file represents a quaternion.
+
 ```
 
+### Output Data
+
+The main script generates a *.csv* file containing the values of the magnetic field resulting from the provided magnets in the input JSON file.
 
 ### Build the documentation
 
@@ -159,7 +164,7 @@ Ccache can be enabled by configuring with `-DUSE_CCACHE=<ON | OFF>`.
 
 ## FAQ
 
-> Can I use this for header-only libraries?
+<!-- > Can I use this for header-only libraries?
 
 Yes, however you will need to change the library type to an `INTERFACE` library as documented in the [CMakeLists.txt](CMakeLists.txt).
 See [here](https://github.com/TheLartians/StaticTypeInfo) for an example header-only library based on the template.
@@ -205,7 +210,7 @@ As there are a lot of possible options and configurations, this is not (yet) in 
 
 > This is too much, I just want to play with C++ code and test some libraries.
 
-Perhaps the [MiniCppStarter](https://github.com/TheLartians/MiniCppStarter) is something for you!
+Perhaps the [MiniCppStarter](https://github.com/TheLartians/MiniCppStarter) is something for you! -->
 
 ## Related projects and alternatives
 
