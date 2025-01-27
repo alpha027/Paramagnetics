@@ -65,6 +65,14 @@ CTEST_OUTPUT_ON_FAILURE=1 cmake --build build/test --target test
 
 To collect code coverage information, run CMake with the `-DENABLE_TEST_COVERAGE=1` option.
 
+### Build with Docker
+
+To build a Docker image of the ParaMagneticS toolkit, run the following command:
+
+```bash
+docker build -t paramagnetics .
+```
+
 ### Input Data
 
 The input data is a *.json* file that has the following format:
