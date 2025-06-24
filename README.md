@@ -172,6 +172,8 @@ Ccache can be enabled by configuring with `-DUSE_CCACHE=<ON | OFF>`.
 
 - **[MagPyLib](https://www.sciencedirect.com/science/article/pii/S2352711020300170)**, [repo](https://github.com/magpylib/magpylib)
 
+- **[MagTetris](https://www.sciencedirect.com/science/article/abs/pii/S1090780723000988?via%3Dihub)**, [repo](https://github.com/BioMed-EM-Lab/MagTetris)
+
 ## FAQ
 
 <!-- > Can I use this for header-only libraries?
