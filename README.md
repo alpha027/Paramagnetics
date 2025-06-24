@@ -168,6 +168,10 @@ Additional arguments can be passed to the analyzers by setting the `CLANG_TIDY_A
 
 Ccache can be enabled by configuring with `-DUSE_CCACHE=<ON | OFF>`.
 
+## References
+
+- **[MagPyLib](https://www.sciencedirect.com/science/article/pii/S2352711020300170)**, [repo](https://github.com/magpylib/magpylib)
+
 ## FAQ
 
 <!-- > Can I use this for header-only libraries?
