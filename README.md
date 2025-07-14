@@ -35,6 +35,28 @@ Stands for parallel magnetic field simulations. This repository offers a user fr
 
 ## Usage
 
+### Build and run with Docker (Recommended)
+
+To build a Docker image of the ParaMagneticS toolkit, run the following command:
+
+```bash
+docker build -t paramagnetics .
+```
+
+The command above builds the docker image. To run a simulation using the built Docker image, run the followin command:
+
+```bash
+OMP_PROC_BIND=true;
+docker run --rm \
+           -v /full_dir_path_to_data_input:/app/data:ro \
+           -v /full_dir_path_to_data_output:/app/output \
+           paramagnetics
+```
+
+The `/full_dir_path_to_data_input` is the full directory to the `input_data.json` file (see **Input Data** section), it should contain a single file.
+The `/full_dir_path_to_data_output` is the directory in which the simulation results will be saved.
+
+
 ### Build and run the standalone target
 
 Use the compiling script *compile.sh*:
@@ -65,26 +87,6 @@ CTEST_OUTPUT_ON_FAILURE=1 cmake --build build/test --target test
 
 To collect code coverage information, run CMake with the `-DENABLE_TEST_COVERAGE=1` option.
 
-### Build and run with Docker
-
-To build a Docker image of the ParaMagneticS toolkit, run the following command:
-
-```bash
-docker build -t paramagnetics .
-```
-
-The command above builds the docker image. To run a simulation using the built Docker image, run the followin command:
-
-```bash
-OMP_PROC_BIND=true;
-docker run --rm \
-           -v /full_dir_path_to_data_input:/app/data:ro \
-           -v /full_dir_path_to_data_output:/app/output \
-           paramagnetics
-```
-
-The `/full_dir_path_to_data_input` is the full directory to the `input_data.json` file (see Input Data), it should contain a single file.
-The `/full_dir_path_to_data_output` is the directory in which the simulation results will be saved.
 
 ### Input Data
 
