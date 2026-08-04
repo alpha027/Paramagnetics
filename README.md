@@ -21,6 +21,7 @@ Stands for parallel magnetic field simulations. This repository offers a user fr
 ## Features
 
 - Elementary magnets: Cubic and spherical magnets
+- Parallel magnetic force and torque simulation between magnets
 - Easy and seamless workflow using a JSON parameter file
 - [Modern CMake practices](https://pabloariasal.github.io/2018/02/19/its-time-to-do-cmake-right/)
 - Clean separation of library and executable code
@@ -125,11 +126,73 @@ The input data is a *.json* file that has the following format:
    }
 }
 ```
-Note that the **orientation** field in the JSON parameter file represents a quaternion.
+Note that the **orientation** field in the JSON parameter file represents a quaternion, given as `[w, x, y, z]`.
+The **magnetization** field is the magnetic polarization **J** of the magnet, in Tesla.
+
+### Force and torque simulation
+
+Add an optional `force` section to the input file to compute the magnetic force (in Newton) and the
+torque (in Newton metre) that the magnets exert on each other:
+
+```txt
+"force": {
+  "targets": [2],
+  "meshing": 1000
+}
+```
+
+Every target is split into cells that carry a magnetic moment. The field of the sources and its
+gradient are evaluated at each cell by finite differences, which gives the force
+`F = (grad B) . m` and the torque `T = m x B + (r - pivot) x F` of the cell. The cell contributions
+are then summed per target. This is the scheme of the
+[magpylib](https://github.com/magpylib/magpylib) `getFT` function, and the cells are distributed
+over the available threads in the same way as the observation points of a field simulation.
+
+The fields of the `force` section are:
+
+| Field | Default | Meaning |
+| --- | --- | --- |
+| `targets` | `"all"` | Magnet ids the force acts on. Either `"all"`, a list of ids, or a list of target objects (see below). |
+| `sources` | every other magnet | Magnet ids that generate the field. A target never acts on itself. |
+| `meshing` | `1` | Number of cells per target, or `[n1, n2, n3]` cells along the local axes. A spherical magnet is exactly a point dipole and is never split. |
+| `pivot` | `"centroid"` | Point through which the force contributes to the torque, either `"centroid"` or `[x, y, z]`. |
+| `eps` | `1e-3 * magnet size` | Finite difference step in metre used for the field gradient. |
+
+`meshing`, `sources` and `pivot` can also be set per target, by listing target objects instead of
+plain ids:
+
+```txt
+"force": {
+  "targets": [
+    {"id": 2, "meshing": [4, 4, 4], "sources": [1]},
+    {"id": 3, "meshing": 500, "pivot": [0, 0, 0]}
+  ],
+  "eps": 1e-4
+}
+```
+
+A larger `meshing` gives a more accurate force, at a cost that grows linearly with the number of
+cells. A single cell reduces the target to a point dipole in its center, which is already exact for
+a spherical magnet.
+
+The kernels of this library run in single precision, so `eps` cannot be made arbitrarily small
+without drowning the finite difference in round-off. The default of one thousandth of the magnet
+size keeps both the round-off and the truncation error small; values below `1e-5 * magnet size` are
+not recommended.
 
 ### Output Data
 
-The main script generates a *.csv* file containing the values of the magnetic field resulting from the provided magnets in the input JSON file.
+The main script generates a *.csv* file containing the values of the magnetic field resulting from
+the provided magnets in the input JSON file.
+
+When the input file has a `force` section, a second *.csv* file `force_results.csv` is written, with
+one row per target and the columns
+
+```txt
+magnet_id, Fx, Fy, Fz, Tx, Ty, Tz
+```
+
+where the force is given in Newton and the torque in Newton metre.
 
 ### Build the documentation
 

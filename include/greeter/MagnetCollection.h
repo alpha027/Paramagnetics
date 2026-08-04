@@ -9,6 +9,8 @@
 #include <memory>
 #include <fstream>
 #include <greeter/MagneticFieldSimulator_i.h>
+#include <greeter/ForceSimulator_i.h>
+#include <greeter/TargetMeshFactory.h>
 
 
 namespace greeter {
@@ -50,6 +52,14 @@ class MagnetCollection {
 
     std::vector<std::vector<float>> simulate(const std::vector<std::vector<float>>& fov) const;
     std::vector<std::vector<float>> simulate(const greeter::FieldOfView& fov) const;
+
+    std::vector<float> getMagnetParameters(const size_t& index) const;
+
+    std::unique_ptr<greeter::ForceSimulator> createForceSimulator() const;
+
+    std::vector<greeter::ForceResult> computeForces(const greeter::ForceConfig& config) const;
+
+    std::vector<std::vector<float>> simulateForces(const greeter::ForceConfig& config) const;
 
     MagnetCollection operator+(const MagnetCollection& other) const;
 

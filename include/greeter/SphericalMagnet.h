@@ -3,6 +3,7 @@
 
 #include <greeter/Magnet.h>
 #include <greeter/MagneticFieldMethodFactory.h>
+#include <greeter/TargetMesh.h>
 
 namespace greeter {
 
@@ -80,6 +81,11 @@ class SphereMagnet: public Magnet {
       static std::string getStaticTypeName();
       static u_int16_t getStaticTypeID();
       static size_t numberOfParameters();
+
+      static greeter::TargetMeshData generateTargetMesh(
+        const float* parameters,
+        const greeter::MeshingSpec& meshing
+      );
   };
 
 } // namespace greeter

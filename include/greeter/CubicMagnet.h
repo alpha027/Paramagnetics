@@ -3,6 +3,7 @@
 
 #include <greeter/Magnet.h>
 #include <greeter/MagneticFieldMethodFactory.h>
+#include <greeter/TargetMesh.h>
 #include <vector>
 
 namespace greeter {
@@ -72,6 +73,11 @@ class CuboidMagnet: public Magnet {
       );
 
       static size_t numberOfParameters();
+
+      static greeter::TargetMeshData generateTargetMesh(
+        const float* parameters,
+        const greeter::MeshingSpec& meshing
+      );
   };
 
 } // namespace greeter

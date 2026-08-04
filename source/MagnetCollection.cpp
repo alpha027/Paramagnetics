@@ -1,6 +1,8 @@
 #include <greeter/MagnetCollection.h>
 #include <greeter/CubicMagnet.h>
 #include <nlohmann/json.hpp>
+#include <algorithm>
+#include <cmath>
 #include <string>
 
 greeter::MagnetCollection::MagnetCollection() {}
@@ -236,6 +238,200 @@ std::vector<std::vector<float>> greeter::MagnetCollection::simulate(const greete
   std::vector<std::vector<float>> magnetic_fields = simulator->getMagneticFields();
 
   return magnetic_fields;
+}
+
+std::vector<float> greeter::MagnetCollection::getMagnetParameters(const size_t& index) const {
+
+  if (index >= this->magnets.size()) {
+    throw std::out_of_range("Index out of range");
+  }
+
+  const greeter::Magnet& magnet = *this->magnets[index];
+
+  // Layout expected by the field kernels and by the target meshers:
+  // position (3), orientation (4), geometric dimensions (n), magnetization (3).
+  std::vector<float> parameters;
+  parameters.reserve(magnet.getNumOfParameters());
+
+  for (const auto& value : magnet.getPosition()) {
+    parameters.push_back(value);
+  }
+  for (const auto& value : magnet.getOrientation()) {
+    parameters.push_back(value);
+  }
+  for (const auto& value : magnet.getDimensions()) {
+    parameters.push_back(value);
+  }
+  for (const auto& value : magnet.getMagnetization()) {
+    parameters.push_back(value);
+  }
+
+  return parameters;
+}
+
+std::unique_ptr<greeter::ForceSimulator> greeter::MagnetCollection::createForceSimulator() const {
+
+  const u_int32_t num_magnets = get_num_magnets();
+  const size_t tot_num_geo_parameters = getTotalNumOfGeoParameters();
+
+  Float3VectorView _positions("positions", num_magnets);
+  Float4VectorView _orientations("orientations", num_magnets);
+  Float3VectorView _magnetizations("magnetizations", num_magnets);
+  FloatVectorView _dimensions("dimensions", tot_num_geo_parameters);
+  UInt32VectorView _magnet_types("magnet_types", num_magnets);
+  UInt32VectorView _geometry_offsets("geometry_offsets", num_magnets);
+
+  size_t cum_index = 0;
+
+  for (u_int32_t i = 0; i < num_magnets; i++) {
+
+    const std::vector<float> position = this->magnets[i]->getPosition();
+    const std::vector<float> orientation = this->magnets[i]->getOrientation();
+    const std::vector<float> magnetization = this->magnets[i]->getMagnetization();
+    const std::vector<float> geom_dimensions = this->magnets[i]->getDimensions();
+
+    _positions(i, 0) = position[0];
+    _positions(i, 1) = position[1];
+    _positions(i, 2) = position[2];
+
+    _orientations(i, 0) = orientation[0];
+    _orientations(i, 1) = orientation[1];
+    _orientations(i, 2) = orientation[2];
+    _orientations(i, 3) = orientation[3];
+
+    _magnetizations(i, 0) = magnetization[0];
+    _magnetizations(i, 1) = magnetization[1];
+    _magnetizations(i, 2) = magnetization[2];
+
+    _magnet_types(i) = this->magnets[i]->getTypeID();
+
+    _geometry_offsets(i) = (u_int32_t) cum_index;
+
+    for (size_t j = 0; j < geom_dimensions.size(); j++) {
+      _dimensions(cum_index + j) = geom_dimensions[j];
+    }
+    cum_index += geom_dimensions.size();
+  }
+
+  return std::make_unique<greeter::ForceSimulator>(
+    _positions, _orientations, _magnetizations, _dimensions,
+    _magnet_types, _geometry_offsets
+  );
+}
+
+std::vector<greeter::ForceResult> greeter::MagnetCollection::computeForces(
+    const greeter::ForceConfig& config) const {
+
+  const u_int32_t num_magnets = get_num_magnets();
+
+  std::unique_ptr<greeter::ForceSimulator> simulator = createForceSimulator();
+
+  std::vector<greeter::TargetSpec> targets;
+  targets.reserve(config.targets.size());
+
+  float characteristic_length = 0.0f;
+
+  for (size_t t = 0; t < config.targets.size(); t++) {
+
+    const uint32_t magnet_index = config.targets[t];
+
+    if (magnet_index >= num_magnets) {
+      throw std::out_of_range("Force target index out of range");
+    }
+
+    const greeter::Magnet& magnet = *this->magnets[magnet_index];
+
+    const std::vector<float> parameters = getMagnetParameters(magnet_index);
+    const std::vector<float> position = magnet.getPosition();
+    const std::vector<float> orientation = magnet.getOrientation();
+
+    greeter::MeshingSpec meshing;
+    if (t < config.meshing.size()) {
+      meshing = config.meshing[t];
+    }
+
+    greeter::TargetSpec target;
+    target.magnet_index = magnet_index;
+
+    target.position[0] = position[0];
+    target.position[1] = position[1];
+    target.position[2] = position[2];
+
+    target.orientation[0] = orientation[0];
+    target.orientation[1] = orientation[1];
+    target.orientation[2] = orientation[2];
+    target.orientation[3] = orientation[3];
+
+    // The centroid of the elementary magnets of this library is their position.
+    // A not-a-number pivot entry means "use the centroid of this target".
+    if (config.centroid_pivot || t >= config.pivots.size()
+        || std::isnan(config.pivots[t][0])) {
+      target.pivot[0] = position[0];
+      target.pivot[1] = position[1];
+      target.pivot[2] = position[2];
+    } else {
+      target.pivot[0] = config.pivots[t][0];
+      target.pivot[1] = config.pivots[t][1];
+      target.pivot[2] = config.pivots[t][2];
+    }
+
+    if (t < config.sources.size()) {
+      target.sources = config.sources[t];
+    }
+
+    target.mesh = greeter::TargetMeshFactory::getInstance().generateTargetMesh(
+      magnet.getTypeID(), parameters.data(), meshing
+    );
+
+    if (target.mesh.empty()) {
+      throw std::invalid_argument("No target mesher registered for this magnet type");
+    }
+
+    for (const auto& dimension : magnet.getDimensions()) {
+      characteristic_length = std::max(characteristic_length, dimension);
+    }
+
+    targets.push_back(std::move(target));
+  }
+
+  simulator->fillTargets(targets);
+
+  // The field kernels are evaluated in single precision, so the finite
+  // difference step cannot be as small as the 1e-5 * size of magpylib without
+  // drowning the gradient in round-off. 1e-3 * size keeps both the round-off
+  // and the truncation error of the central difference small.
+  float eps = config.eps;
+  if (eps <= 0.0f) {
+    eps = 1e-3f * characteristic_length;
+    if (eps <= 0.0f) {
+      eps = 1e-6f;
+    }
+  }
+  simulator->setFiniteDifferenceStep(eps);
+
+  if (config.mesh_report) {
+    simulator->printMeshReport();
+  }
+
+  simulator->simulate();
+
+  return simulator->getResults();
+}
+
+std::vector<std::vector<float>> greeter::MagnetCollection::simulateForces(
+    const greeter::ForceConfig& config) const {
+
+  std::vector<std::vector<float>> matrix;
+
+  for (const auto& result : computeForces(config)) {
+    matrix.push_back({
+      (float) result.target_index,
+      result.force[0], result.force[1], result.force[2],
+      result.torque[0], result.torque[1], result.torque[2]
+    });
+  }
+
+  return matrix;
 }
 
 void greeter::MagnetCollection::display(size_t index) const {

@@ -6,9 +6,6 @@
 
 TEST_CASE("Circular Halbach Array made of cuboid magnets") {
 
-  Kokkos::initialize();
-  {
-
   float halbach_array_radius = 0.3;
   size_t halbach_array_num_magnets = 4;
   std::vector<float> halbach_magnet_dimensions = {0.12, 0.12, 0.12};
@@ -48,6 +45,4 @@ TEST_CASE("Circular Halbach Array made of cuboid magnets") {
    CHECK(results_test[4][0] == doctest::Approx(0.05888743));
    CHECK(results_test[4][1] == doctest::Approx(0.0107326));
    CHECK(results_test[4][2] == doctest::Approx(0.0));
-   }
-   Kokkos::finalize();
 }

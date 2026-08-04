@@ -11,12 +11,18 @@ namespace greeter {
 
     bool MagnetIO::validateJSON(const nlohmann::json& data) {
 
-        std::set<std::string> keys = {"magnets", "field_of_view"};
+        std::set<std::string> keys = {"magnets"};
         std::set<std::string> magnet_types = {"cuboid", "sphere"};
 
         std::set<std::string> cuboid_keys = {"position", "dimensions", "orientation", "magnetization"};
         std::set<std::string> sphere_keys = {"radius", "magnetization"};
         std::set<std::string> fov_keys = {"x", "y", "z"};
+
+        // A field of view is only needed for a magnetic field simulation, an
+        // input file that only asks for forces may leave it out.
+        if (!data.contains("force")) {
+            keys.insert("field_of_view");
+        }
 
         for (auto& key : keys) {
             if (!data.contains(key)) {
@@ -46,10 +52,12 @@ namespace greeter {
 
 
         // Verify the field of view
-        for (auto& fov_key : fov_keys) {
-            if (!data["field_of_view"].contains(fov_key)) {
-                return false;
+        if (data.contains("field_of_view")) {
+            for (auto& fov_key : fov_keys) {
+                if (!data["field_of_view"].contains(fov_key)) {
+                    return false;
                 }
+            };
         };
 
             // if (magnet_type == "cuboid") {

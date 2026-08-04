@@ -36,3 +36,33 @@ TEST_CASE("Axis aligned Cuboid magnet magnetic field") {
   CHECK(cuboid_mag_result[1] == doctest::Approx(0.0));
   CHECK(cuboid_mag_result[2] == doctest::Approx(-0.0038766933));
 }
+
+
+TEST_CASE("Cuboid magnet magnetic field off the symmetry planes") {
+
+  // The observation points above lie in the y = 0 plane, where the y component
+  // of the field of a z-magnetized cuboid vanishes. The points below probe the
+  // components that are hidden by that symmetry. Reference values from magpylib.
+
+  greeter::CuboidMagnet cubic_magnet(
+    {0.0, 0.0, 0.0}, {1.0, 1.0, 1.0},
+    {1.0, 0.0, 0.0, 0.0}, {0.0, 0.0, 1.0}
+  );
+
+  std::vector<float> result = cubic_magnet.computeMagneticField(0.7, 0.4, 1.2);
+
+  CHECK(result[0] == doctest::Approx(0.031840754));
+  CHECK(result[1] == doctest::Approx(0.017724238));
+  CHECK(result[2] == doctest::Approx(0.029423465));
+
+  greeter::CuboidMagnet y_magnetized_magnet(
+    {0.0, 0.0, 0.0}, {1.0, 1.0, 1.0},
+    {1.0, 0.0, 0.0, 0.0}, {0.0, 1.0, 0.0}
+  );
+
+  std::vector<float> y_result = y_magnetized_magnet.computeMagneticField(0.7, 0.4, 1.2);
+
+  CHECK(y_result[0] == doctest::Approx(0.0099710666));
+  CHECK(y_result[1] == doctest::Approx(-0.0205961516));
+  CHECK(y_result[2] == doctest::Approx(0.0177242384));
+}

@@ -19,6 +19,7 @@
 #include <fstream>
 
 #include <greeter/io/MagnetIO.h>
+#include <greeter/io/ForceIO.h>
 
 //#include <Kokkos_Core.hpp>
 //using json = nlohmann::json;
@@ -41,15 +42,39 @@ auto main(int argc, char** argv) -> int {
 
   greeter::MagnetCollection my_read_magnet_collection = greeter::MagnetIO::read(magnetics_data);
 
-  greeter::FieldOfView my_read_fov = greeter::MagnetIO::readFieldOfView(magnetics_data["field_of_view"]);
+  if (magnetics_data.contains("field_of_view")) {
 
-  auto simulation_results_1 = my_read_magnet_collection.simulate(my_read_fov);
+    greeter::FieldOfView my_read_fov = greeter::MagnetIO::readFieldOfView(magnetics_data["field_of_view"]);
 
-  std::string output_file_path = getRepoRoot() + "/output/simulation_results_1.csv";
-  writeMatrixToCSV(simulation_results_1, output_file_path);
+    auto simulation_results_1 = my_read_magnet_collection.simulate(my_read_fov);
+
+    std::string output_file_path = getRepoRoot() + "/output/simulation_results_1.csv";
+    writeMatrixToCSV(simulation_results_1, output_file_path);
+  }
+
+  if (greeter::ForceIO::hasForceSection(magnetics_data)) {
+
+    greeter::ForceConfig force_config = greeter::ForceIO::read(magnetics_data);
+
+    auto force_results = my_read_magnet_collection.simulateForces(force_config);
+
+    // Report the magnet ids of the input file rather than the collection indices
+    const std::vector<int64_t> magnet_ids = greeter::ForceIO::readMagnetIds(magnetics_data);
+
+    for (auto& row : force_results) {
+      const size_t index = (size_t) row[0];
+      if (index < magnet_ids.size()) {
+        row[0] = (float) magnet_ids[index];
+      }
+    }
+
+    std::string force_output_file_path = getRepoRoot() + "/output/force_results.csv";
+    writeMatrixToCSV(force_results, force_output_file_path);
+  }
+
+  Kokkos::finalize();
 
   return 0;
-  Kokkos::finalize();
 }
 
 std::string getRepoRoot() {
