@@ -12,9 +12,10 @@ namespace greeter {
 /*
   Registry of the meshing methods of the magnet classes, keyed by type ID.
 
-  Mirrors MagneticFieldMethodFactory: every magnet class registers its own
-  meshing method from its translation unit, so that the force simulator can
-  mesh a target without knowing its concrete type.
+  Mirrors MagneticFieldMethodFactory: the force simulator meshes a target
+  without knowing its concrete type. The magnet classes of this library are
+  registered by the constructor, see MagneticFieldMethodFactory for why they
+  cannot register themselves.
 */
 class TargetMeshFactory {
 
@@ -39,7 +40,7 @@ public:
 
 private:
 
-    TargetMeshFactory() = default;  // Private constructor
+    TargetMeshFactory();            // Private constructor, registers the built in magnets
     ~TargetMeshFactory() = default; // Destructor
     TargetMeshFactory(const TargetMeshFactory&) = delete; // Prevent copying
     TargetMeshFactory& operator=(const TargetMeshFactory&) = delete; // Prevent assignment

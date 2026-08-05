@@ -1,6 +1,4 @@
 #include <greeter/greeter.h>
-#include <greeter/CubicMagnet.h>
-#include <greeter/SphericalMagnet.h>
 #include <greeter/version.h>
 #include <greeter/KokkosDefines.h>
 
@@ -12,8 +10,6 @@
 #include <string>
 #include <unordered_map>
 
-#include <greeter/io/CubicMagnetIO.h>
-#include <greeter/io/SphericalMagnetIO.h>
 
 #include <nlohmann/json.hpp>
 #include <fstream>
@@ -31,9 +27,6 @@ std::string getRepoRoot();
 
 auto main(int argc, char** argv) -> int {
   Kokkos::initialize(argc, argv);
-
-  greeter::CubicMagnetIO cubic_magnet_reader;
-  greeter::SphericalMagnetIO sphere_magnet_reader;
 
   std::filesystem::path JSON_path_str = getJSONFiles()[0];
 

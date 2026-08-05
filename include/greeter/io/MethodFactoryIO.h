@@ -12,6 +12,12 @@
 
 namespace greeter {
 
+/*
+  Registry of the JSON readers of the magnet classes, keyed by the "type" of
+  the input file. The readers of this library are registered by the
+  constructor, see MagneticFieldMethodFactory for why they cannot register
+  themselves.
+*/
 class MethodFactoryIO {
 
 public:
@@ -43,7 +49,7 @@ public:
 
 private:
 
-    MethodFactoryIO() = default;  // Private constructor
+    MethodFactoryIO();            // Private constructor, registers the built in readers
     ~MethodFactoryIO() = default; // Destructor
     MethodFactoryIO(const MethodFactoryIO&) = delete; // Prevent copying
     MethodFactoryIO& operator=(const MethodFactoryIO&) = delete; // Prevent assignment

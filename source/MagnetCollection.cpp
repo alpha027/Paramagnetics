@@ -1,5 +1,6 @@
 #include <greeter/MagnetCollection.h>
 #include <greeter/CubicMagnet.h>
+#include <greeter/io/MagnetIO.h>
 #include <nlohmann/json.hpp>
 #include <algorithm>
 #include <cmath>
@@ -22,56 +23,9 @@ greeter::MagnetCollection::MagnetCollection(std::vector<std::unique_ptr<greeter:
 
 bool greeter::MagnetCollection::validJsonFile(std::ifstream& json_file) const {
 
-    nlohmann::json data = nlohmann::json::parse(json_file);
-    std::vector<std::string> keys = {"magnets", "field_of_view"};
-    std::vector<std::string> magnet_types = {"cuboid", "sphere"};
-    std::vector<std::string> cuboid_keys = {"position", "dimensions", "orientation", "magnetization"};
-    std::vector<std::string> sphere_keys = {"radius", "magnetization"};
-    std::vector<std::string> fov_keys = {"x", "y", "z"};
-
-    for (auto& key : keys) {
-        if (!data.contains(key)) {
-            return false;
-        }
-    }
-
-    // Verify magnet types
-    for (auto it = data["magnets"].begin(); it != data["magnets"].end(); ++it) {
-      bool type_does_not_exist = true;
-      for (auto& magnet_type : magnet_types) {
-        if (it->contains(magnet_type)) {
-          type_does_not_exist = false;
-        }
-      }
-      if (type_does_not_exist) {
-        return false;
-      }
-    }
-
-    // Verify the field of view
-    for (auto& fov_key : fov_keys) {
-      if (!data["field_of_view"].contains(fov_key)) {
-        return false;
-      }
-    }
-
-        // if (magnet_type == "cuboid") {
-        //   for (auto& cuboid_key : cuboid_keys) {
-        //     if (!it->at("cuboid").contains(cuboid_key)) {
-        //       return false;
-        //     }
-        //   }
-        // } else if (magnet_type == "sphere") {
-        //   for (auto& sphere_key : sphere_keys) {
-        //     if (!it->at("sphere").contains(sphere_key)) {
-        //       return false;
-        //     }
-        //   }
-        // }
-    
-    std::cout << "VALID JSON FILE" << std::endl;
-    return true;
-
+    // The magnet types this library knows are listed by the readers themselves,
+    // in MethodFactoryIO, and the schema is checked in a single place.
+    return greeter::MagnetIO::validateJSON(nlohmann::json::parse(json_file));
 }
 
 
@@ -92,34 +46,13 @@ size_t greeter::MagnetCollection::getTotalNumOfGeoParameters() const {
 }
 
 greeter::MagnetCollection::MagnetCollection(std::ifstream& json_file) {
-    this->magnets.clear();
-    /*
-       To finish after the JSON parser is implemented 
-    */
-    nlohmann::json data = nlohmann::json::parse(json_file);
 
-    if (data.contains("magnets")) {
-        for (auto& magnet : data["magnets"]) {
-            std::string type = magnet["type"];
-            if (type == "cuboid") {
-                std::vector<float> position = magnet["cuboid"]["parameters"]["position"];
-                std::vector<float> dimensions = magnet["cuboid"]["parameters"]["dimensions"];
-                std::vector<float> orientation = magnet["cuboid"]["parameters"]["orientation"];
-                std::vector<float> magnetization = magnet["cuboid"]["parameters"]["magnetization"];
-                // std::unique_ptr<greeter::Magnet> cuboid_magnet = std::make_unique<greeter::CuboidMagnet>(position, dimensions, orientation, magnetization);
-                // this->magnets.push_back(std::move(cuboid_magnet));
-            } else if (type == "sphere") {
-                float radius = magnet["sphere"]["parameters"]["radius"];
-                float magnetization = magnet["sphere"]["parameters"]["magnetization"];
-                // std::unique_ptr<greeter::Magnet> sphere_magnet = std::make_unique<greeter::SphereMagnet>(radius, magnetization);
-                // this->magnets.push_back(std::move(sphere_magnet));
-            } else {
-                throw std::invalid_argument("Invalid magnet type");
-            }
-        }
-    } else {
-        throw std::invalid_argument("Invalid JSON file");
-    }
+    // Every magnet type is built by its own reader, which MagnetIO dispatches
+    // on, so that a new type does not have to be listed here as well.
+    greeter::MagnetCollection parsed =
+      greeter::MagnetIO::read(nlohmann::json::parse(json_file));
+
+    this->magnets = std::move(parsed.magnets);
 }
 
 greeter::MagnetCollection::~MagnetCollection() {}
@@ -362,13 +295,15 @@ std::vector<greeter::ForceResult> greeter::MagnetCollection::computeForces(
     target.orientation[2] = orientation[2];
     target.orientation[3] = orientation[3];
 
-    // The centroid of the elementary magnets of this library is their position.
-    // A not-a-number pivot entry means "use the centroid of this target".
+    // A not-a-number pivot entry means "use the centroid of this target". That
+    // is the position for a shape that is symmetric around it, but not for a
+    // tetrahedron, whose barycenter is wherever its vertices put it.
     if (config.centroid_pivot || t >= config.pivots.size()
         || std::isnan(config.pivots[t][0])) {
-      target.pivot[0] = position[0];
-      target.pivot[1] = position[1];
-      target.pivot[2] = position[2];
+      const std::vector<float> centroid = magnet.getCentroid();
+      target.pivot[0] = centroid[0];
+      target.pivot[1] = centroid[1];
+      target.pivot[2] = centroid[2];
     } else {
       target.pivot[0] = config.pivots[t][0];
       target.pivot[1] = config.pivots[t][1];
@@ -387,8 +322,10 @@ std::vector<greeter::ForceResult> greeter::MagnetCollection::computeForces(
       throw std::invalid_argument("No target mesher registered for this magnet type");
     }
 
+    // The vertices of a tetrahedron may well be negative, so the size of a
+    // magnet is read off the magnitude of its geometric parameters.
     for (const auto& dimension : magnet.getDimensions()) {
-      characteristic_length = std::max(characteristic_length, dimension);
+      characteristic_length = std::max(characteristic_length, std::fabs(dimension));
     }
 
     targets.push_back(std::move(target));

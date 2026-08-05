@@ -107,32 +107,6 @@ std::vector<std::vector<float>> greeter::MagneticFieldSimulator::getMagneticFiel
     return result;
 }
 
-inline
-float* greeter::MagneticFieldSimulator::getTheParameters(const size_t& magnet_index) const {
-
-    float* result = new float[13];
-
-    result[0] = positions(magnet_index, 0);
-    result[1] = positions(magnet_index, 1);
-    result[2] = positions(magnet_index, 2);
-
-    result[3] = orientations(magnet_index, 0);
-    result[4] = orientations(magnet_index, 1);
-    result[5] = orientations(magnet_index, 2);
-    result[6] = orientations(magnet_index, 3);
-
-    result[7] = dimensions(0);
-    result[8] = dimensions(1);
-    result[9] = dimensions(2);
-
-    result[10] = magnetizations(magnet_index, 0);
-    result[11] = magnetizations(magnet_index, 1);
-    result[12] = magnetizations(magnet_index, 2);
-
-    return result;
-}
-
-
 KOKKOS_INLINE_FUNCTION
 void greeter::MagneticFieldSimulator::operator()( u_int64_t observation_point_index ) const {
 
@@ -188,6 +162,31 @@ void greeter::MagneticFieldSimulator::operator()( u_int64_t observation_point_in
                 orientations(i, 2),
                 orientations(i, 3),
                 dimensions(start_index),
+                magnetizations(i, 0),
+                magnetizations(i, 1),
+                magnetizations(i, 2)
+            };
+
+            greeter::MagneticFieldMethodFactory::getInstance().computeMagneticField(
+            magnet_type,
+            magnet_parameters,
+            the_observation_point,
+            bx, by, bz
+            );
+        } else if (magnet_type == 2) // Case of TetrahedronMagnet
+        {
+            float magnet_parameters[22] = {
+                positions(i, 0),
+                positions(i, 1),
+                positions(i, 2),
+                orientations(i, 0),
+                orientations(i, 1),
+                orientations(i, 2),
+                orientations(i, 3),
+                dimensions(start_index), dimensions(start_index + 1), dimensions(start_index + 2),
+                dimensions(start_index + 3), dimensions(start_index + 4), dimensions(start_index + 5),
+                dimensions(start_index + 6), dimensions(start_index + 7), dimensions(start_index + 8),
+                dimensions(start_index + 9), dimensions(start_index + 10), dimensions(start_index + 11),
                 magnetizations(i, 0),
                 magnetizations(i, 1),
                 magnetizations(i, 2)

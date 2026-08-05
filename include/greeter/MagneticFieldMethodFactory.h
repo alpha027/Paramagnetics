@@ -11,6 +11,15 @@
 
 namespace greeter {
 
+/*
+  Registry of the field kernels of the magnet classes, keyed by type ID.
+
+  The magnet classes of this library are registered by the constructor rather
+  than by a static object in each of their translation units. A linker drops a
+  translation unit of a static library when nothing else in it is referenced,
+  which silently emptied the registry and is why the registration lives here.
+  Anything outside this library still registers itself with the methods below.
+*/
 class MagneticFieldMethodFactory {
 
 public:
@@ -41,7 +50,7 @@ public:
 
 private:
 
-    MagneticFieldMethodFactory() = default;  // Private constructor
+    MagneticFieldMethodFactory();            // Private constructor, registers the built in magnets
     ~MagneticFieldMethodFactory() = default; // Destructor
     MagneticFieldMethodFactory(const MagneticFieldMethodFactory&) = delete; // Prevent copying
     MagneticFieldMethodFactory& operator=(const MagneticFieldMethodFactory&) = delete; // Prevent assignment

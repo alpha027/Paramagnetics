@@ -1,4 +1,24 @@
 #include <greeter/TargetMeshFactory.h>
+#include <greeter/CubicMagnet.h>
+#include <greeter/SphericalMagnet.h>
+#include <greeter/TetrahedronMagnet.h>
+
+
+// See MagneticFieldMethodFactory for why the built in magnets are registered here.
+greeter::TargetMeshFactory::TargetMeshFactory() {
+
+    registerGenerateTargetMesh(
+        greeter::CuboidMagnet::getStaticTypeID(),
+        greeter::CuboidMagnet::generateTargetMesh);
+
+    registerGenerateTargetMesh(
+        greeter::SphereMagnet::getStaticTypeID(),
+        greeter::SphereMagnet::generateTargetMesh);
+
+    registerGenerateTargetMesh(
+        greeter::TetrahedronMagnet::getStaticTypeID(),
+        greeter::TetrahedronMagnet::generateTargetMesh);
+}
 
 
 void greeter::TargetMeshFactory::displayRegistered() const {

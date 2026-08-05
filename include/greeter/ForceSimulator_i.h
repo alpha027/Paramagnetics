@@ -4,6 +4,7 @@
 #include <greeter/ForceSimulator.h>
 #include <greeter/CubicMagnet.h>
 #include <greeter/SphericalMagnet.h>
+#include <greeter/TetrahedronMagnet.h>
 #include <greeter/Quaternion.h>
 
 inline
@@ -343,6 +344,43 @@ void greeter::ForceSimulator::operator()( u_int64_t cell_index ) const {
                 float bx = 0.0f, by = 0.0f, bz = 0.0f;
 
                 greeter::SphereMagnet::computeMagneticFieldForSphere(
+                    magnet_parameters, observation_point, bx, by, bz);
+
+                b_field[s][0] += bx;
+                b_field[s][1] += by;
+                b_field[s][2] += bz;
+            }
+
+        } else if (magnet_type == 2) { // Case of TetrahedronMagnet
+
+            const float magnet_parameters[22] = {
+                positions(i, 0),
+                positions(i, 1),
+                positions(i, 2),
+                orientations(i, 0),
+                orientations(i, 1),
+                orientations(i, 2),
+                orientations(i, 3),
+                dimensions(start_index), dimensions(start_index + 1), dimensions(start_index + 2),
+                dimensions(start_index + 3), dimensions(start_index + 4), dimensions(start_index + 5),
+                dimensions(start_index + 6), dimensions(start_index + 7), dimensions(start_index + 8),
+                dimensions(start_index + 9), dimensions(start_index + 10), dimensions(start_index + 11),
+                magnetizations(i, 0),
+                magnetizations(i, 1),
+                magnetizations(i, 2)
+            };
+
+            for (int s = 0; s < 7; s++) {
+
+                const float observation_point[3] = {
+                    cell_point[0] + fd_offsets[s][0],
+                    cell_point[1] + fd_offsets[s][1],
+                    cell_point[2] + fd_offsets[s][2]
+                };
+
+                float bx = 0.0f, by = 0.0f, bz = 0.0f;
+
+                greeter::TetrahedronMagnet::computeMagneticFieldForTetrahedron(
                     magnet_parameters, observation_point, bx, by, bz);
 
                 b_field[s][0] += bx;

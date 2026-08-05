@@ -1,4 +1,38 @@
 # include <greeter/MagneticFieldMethodFactory.h>
+# include <greeter/CubicMagnet.h>
+# include <greeter/SphericalMagnet.h>
+# include <greeter/TetrahedronMagnet.h>
+
+
+/*
+  The magnets that ship with this library. Naming their kernels here is what
+  pulls their translation units out of the static library, so a new magnet
+  class of this library has to be added to this list to be reachable through
+  the registry. A magnet defined outside of it registers itself instead.
+*/
+greeter::MagneticFieldMethodFactory::MagneticFieldMethodFactory() {
+
+    registerComputeMagneticField(
+        greeter::CuboidMagnet::getStaticTypeID(),
+        greeter::CuboidMagnet::computeMagneticFieldForCube);
+    registerNumberOfParameters(
+        greeter::CuboidMagnet::getStaticTypeID(),
+        greeter::CuboidMagnet::numberOfParameters);
+
+    registerComputeMagneticField(
+        greeter::SphereMagnet::getStaticTypeID(),
+        greeter::SphereMagnet::computeMagneticFieldForSphere);
+    registerNumberOfParameters(
+        greeter::SphereMagnet::getStaticTypeID(),
+        greeter::SphereMagnet::numberOfParameters);
+
+    registerComputeMagneticField(
+        greeter::TetrahedronMagnet::getStaticTypeID(),
+        greeter::TetrahedronMagnet::computeMagneticFieldForTetrahedron);
+    registerNumberOfParameters(
+        greeter::TetrahedronMagnet::getStaticTypeID(),
+        greeter::TetrahedronMagnet::numberOfParameters);
+}
 
 
 void greeter::MagneticFieldMethodFactory::displayRegistered() const {

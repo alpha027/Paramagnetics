@@ -21,6 +21,13 @@ class Magnet {
 
     virtual std::vector<float> getPosition() const = 0;
 
+    /*
+      Geometric center of the magnet, which is the pivot a torque refers to by
+      default. It is the position of every magnet whose shape is symmetric
+      around it, so only the shapes that are not have to override this.
+    */
+    virtual std::vector<float> getCentroid() const { return getPosition(); }
+
     virtual std::vector<float> getDimensions() const = 0;
 
     virtual std::vector<float> getOrientation() const = 0;

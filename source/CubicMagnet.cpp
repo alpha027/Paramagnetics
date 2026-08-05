@@ -377,29 +377,3 @@ greeter::TargetMeshData greeter::CuboidMagnet::generateTargetMesh(
 
   return mesh;
 }
-
-static bool registerCalculateMagneticFieldForCubeToFactory
-__attribute__((unused)) =
- greeter::MagneticFieldMethodFactory::getInstance().
- registerComputeMagneticField(
-  greeter::CuboidMagnet::getStaticTypeID(),
-  greeter::CuboidMagnet::computeMagneticFieldForCube
-);
-
-
-static bool registerNumberOfParametersForCubeToFactory
-__attribute__((unused)) =
-greeter::MagneticFieldMethodFactory::getInstance().
-registerNumberOfParameters(
-  greeter::CuboidMagnet::getStaticTypeID(),
-  greeter::CuboidMagnet::numberOfParameters
-);
-
-
-static bool registerGenerateTargetMeshForCubeToFactory
-__attribute__((unused)) =
-greeter::TargetMeshFactory::getInstance().
-registerGenerateTargetMesh(
-  greeter::CuboidMagnet::getStaticTypeID(),
-  greeter::CuboidMagnet::generateTargetMesh
-);

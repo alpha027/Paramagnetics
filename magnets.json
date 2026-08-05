@@ -19,6 +19,16 @@
         "position": [0, 0, 2],
         "orientation": [1, 0, 0, 0]
         }
+    },
+    {
+      "id": 3,
+      "type": "tetrahedron",
+      "parameters": {
+        "vertices": [[0, 0, 0], [1, 0, 0], [0, 1, 0], [0, 0, 1]],
+        "magnetization": [0, 1, 0],
+        "position": [0, 0, -2],
+        "orientation": [1, 0, 0, 0]
+        }
     }
   ],
    "field_of_view": {

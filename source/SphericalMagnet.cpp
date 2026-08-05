@@ -285,21 +285,3 @@ greeter::TargetMeshData greeter::SphereMagnet::generateTargetMesh(
 
   return greeter::TargetMeshData{cell};
 }
-
-static bool registerCalculateMagneticFieldForSphereToFactory
-    __attribute__((unused)) = greeter::MagneticFieldMethodFactory::getInstance().
-    registerComputeMagneticField(
-        greeter::SphereMagnet::getStaticTypeID(), 
-        greeter::SphereMagnet::computeMagneticFieldForSphere );
-
-static bool registerNumberOfParametersForSphereToFactory
-    __attribute__((unused)) = greeter::MagneticFieldMethodFactory::getInstance().
-    registerNumberOfParameters(
-        greeter::SphereMagnet::getStaticTypeID(),
-        greeter::SphereMagnet::numberOfParameters );
-
-static bool registerGenerateTargetMeshForSphereToFactory
-    __attribute__((unused)) = greeter::TargetMeshFactory::getInstance().
-    registerGenerateTargetMesh(
-        greeter::SphereMagnet::getStaticTypeID(),
-        greeter::SphereMagnet::generateTargetMesh );

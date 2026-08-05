@@ -1,7 +1,6 @@
 #include <greeter/Quaternion.h>
 #include <greeter/CubicMagnet.h>
 #include <greeter/io/CubicMagnetIO.h>
-#include <greeter/io/MethodFactoryIO.h>
 
 
 greeter::CubicMagnetIO::CubicMagnetIO() {}
@@ -43,11 +42,3 @@ std::unique_ptr<greeter::Magnet> greeter::CubicMagnetIO::createMagnet(const nloh
   std::cout << "extracted all data from JSON" << std::endl;
   return std::make_unique<greeter::CuboidMagnet>(position, dimensions, orientation, magnetization);
 }
-
-
-static bool registerCreateCubicMagnet
-    __attribute__((unused)) = greeter::MethodFactoryIO::getInstance().
-    registerGetMagnet(
-        greeter::CubicMagnetIO::getTypeName(), 
-        greeter::CubicMagnetIO::createMagnet 
-      );

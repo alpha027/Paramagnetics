@@ -1,0 +1,25 @@
+[dev 3669cb3] Adding force sim, needs further tests & comp with other open source solutions
+ Committer: root <root@vmi3211310.contaboserver.net>
+Your name and email address were configured automatically based
+on your username and hostname. Please check that they are accurate.
+You can suppress this message by setting them explicitly. Run the
+following command and follow the instructions in your editor to edit
+your configuration file:
+
+    git config --global --edit
+
+After doing this, you may fix the identity used for this commit with:
+
+    git commit --amend --reset-author
+
+ 23 files changed, 1885 insertions(+), 24 deletions(-)
+ create mode 100644 include/greeter/ForceConfig.h
+ create mode 100644 include/greeter/ForceSimulator.h
+ create mode 100644 include/greeter/ForceSimulator_i.h
+ create mode 100644 include/greeter/TargetMesh.h
+ create mode 100644 include/greeter/TargetMeshFactory.h
+ create mode 100644 include/greeter/io/ForceIO.h
+ create mode 100644 source/TargetMeshFactory.cpp
+ create mode 100644 source/io/ForceIO.cpp
+ create mode 100644 test/source/forceIO.cpp
+ create mode 100644 test/source/forceSimulator.cpp

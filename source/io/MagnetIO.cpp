@@ -12,7 +12,7 @@ namespace greeter {
     bool MagnetIO::validateJSON(const nlohmann::json& data) {
 
         std::set<std::string> keys = {"magnets"};
-        std::set<std::string> magnet_types = {"cuboid", "sphere"};
+        std::set<std::string> magnet_types = {"cuboid", "sphere", "tetrahedron"};
 
         std::set<std::string> cuboid_keys = {"position", "dimensions", "orientation", "magnetization"};
         std::set<std::string> sphere_keys = {"radius", "magnetization"};

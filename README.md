@@ -16,11 +16,11 @@
 
 # ParaMagneticS
 
-Stands for parallel magnetic field simulations. This repository offers a user friendly tool to efficiently simulate the magnetic field stemming from simple magnet geometries: cube and sphere. ParaMagneticS is implemented in C++ and allows to explore the magnetic field for a combination of magnets. The simulations are performed in a parallel manner to reduce the design iteration time for different magnet configurations.
+Stands for parallel magnetic field simulations. This repository offers a user friendly tool to efficiently simulate the magnetic field stemming from simple magnet geometries: cuboid, sphere and tetrahedron. ParaMagneticS is implemented in C++ and allows to explore the magnetic field for a combination of magnets. The simulations are performed in a parallel manner to reduce the design iteration time for different magnet configurations.
 
 ## Features
 
-- Elementary magnets: Cubic and spherical magnets
+- Elementary magnets: cuboids, spheres and tetrahedra
 - Parallel magnetic force and torque simulation between magnets
 - Easy and seamless workflow using a JSON parameter file
 - [Modern CMake practices](https://pabloariasal.github.io/2018/02/19/its-time-to-do-cmake-right/)
@@ -129,6 +129,52 @@ The input data is a *.json* file that has the following format:
 Note that the **orientation** field in the JSON parameter file represents a quaternion, given as `[w, x, y, z]`.
 The **magnetization** field is the magnetic polarization **J** of the magnet, in Tesla.
 
+A magnet is a `cuboid`, a `sphere` or a `tetrahedron`. They differ in how their geometry is given:
+
+| `type` | geometry | `magnetization` |
+| --- | --- | --- |
+| `cuboid` | `dimensions`: `[a, b, c]`, the side lengths in metre | `[Jx, Jy, Jz]` in Tesla |
+| `sphere` | `dimensions`: the radius in metre, as a number or as `[r]` | `J` along the local z axis, as a number or as `[0, 0, J]` |
+| `tetrahedron` | `vertices`: four points in the local frame, in metre | `[Jx, Jy, Jz]` in Tesla |
+
+A sphere is magnetized along its own z axis, so a magnetization that points elsewhere is expressed
+by rotating the sphere with its `orientation` rather than by giving a transverse component.
+
+```txt
+{
+  "id": 2,
+  "type": "sphere",
+  "parameters": {
+    "dimensions": 0.5,
+    "magnetization": 1.0,
+    "position": [0, 0, 0],
+    "orientation": [1, 0, 0, 0]
+    }
+}
+```
+
+The four vertices of a tetrahedron are given in its own frame, and `position` and `orientation`
+then place it. They are written either as four points or as a flat list of twelve numbers, and
+they must not be coplanar. Their winding does not matter.
+
+```txt
+{
+  "id": 3,
+  "type": "tetrahedron",
+  "parameters": {
+    "vertices": [[0, 0, 0], [1, 0, 0], [0, 1, 0], [0, 0, 1]],
+    "magnetization": [0.3, -0.7, 0.5],
+    "position": [0, 0, 0],
+    "orientation": [1, 0, 0, 0]
+    }
+}
+```
+
+The field of a tetrahedron is the sum of the fields of its four magnetically charged faces, plus
+the polarization itself inside the body, following Guptasarma, *Geophysics* 64(1), 1999. Unlike a
+cuboid or a sphere, its barycenter is not its position, and it is the barycenter that a torque
+refers to by default.
+
 ### Force and torque simulation
 
 Add an optional `force` section to the input file to compute the magnetic force (in Newton) and the
@@ -154,7 +200,7 @@ The fields of the `force` section are:
 | --- | --- | --- |
 | `targets` | `"all"` | Magnet ids the force acts on. Either `"all"`, a list of ids, or a list of target objects (see below). |
 | `sources` | every other magnet | Magnet ids that generate the field. A target never acts on itself. |
-| `meshing` | `1` | Number of cells per target, or `[n1, n2, n3]` cells along the local axes. A spherical magnet is exactly a point dipole and is never split. |
+| `meshing` | `1` | Number of cells per target, or `[n1, n2, n3]` cells along the local axes. A spherical magnet is exactly a point dipole and is never split. A tetrahedron is split on a barycentric grid, so it takes a cell count and reads `[n1, n2, n3]` as their product. |
 | `pivot` | `"centroid"` | Point through which the force contributes to the torque, either `"centroid"` or `[x, y, z]`. |
 | `eps` | `1e-3 * magnet size` | Finite difference step in metre used for the field gradient. |
 
