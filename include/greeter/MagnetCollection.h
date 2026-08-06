@@ -26,6 +26,11 @@ class MagnetCollection {
     MagnetCollection(std::vector<std::unique_ptr<greeter::Magnet>> magnets);
     MagnetCollection(std::ifstream& json_file);
 
+    // A collection is copied by cloning every magnet in it, which a reader
+    // handing one back has no reason to pay for.
+    MagnetCollection(MagnetCollection&& other) noexcept = default;
+    MagnetCollection& operator=(MagnetCollection&& other) noexcept = default;
+
     ~MagnetCollection();
 
     void addMagnet(std::unique_ptr<greeter::Magnet> magnet);

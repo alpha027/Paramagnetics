@@ -38,6 +38,10 @@ public:
 
     std::unique_ptr<Magnet> createMagnet(const std::string& key, const nlohmann::json& magnet) const;
 
+    // Whether a magnet type can be read, which is what the schema check asks
+    // rather than carrying a list of the types of its own.
+    bool isRegistered(const std::string& key) const;
+
     // bool registerNumberOfParameters(const std::string& key, NumerOfParametersFunction _method);
 
     // void computeMagneticField(const std::string& key, const float* parameters,

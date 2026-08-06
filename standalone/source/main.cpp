@@ -16,6 +16,7 @@
 
 #include <greeter/io/MagnetIO.h>
 #include <greeter/io/ForceIO.h>
+#include <greeter/io/SceneIO.h>
 
 //#include <Kokkos_Core.hpp>
 //using json = nlohmann::json;
@@ -33,7 +34,11 @@ auto main(int argc, char** argv) -> int {
   std::ifstream fileJson(JSON_path_str);
   nlohmann::json magnetics_data = nlohmann::json::parse(fileJson);
 
-  greeter::MagnetCollection my_read_magnet_collection = greeter::MagnetIO::read(magnetics_data);
+  // The magnets and the id each of them answers to come out of one pass, so
+  // that the magnets an arrangement generated are named like any other.
+  greeter::Scene scene = greeter::SceneIO::read(magnetics_data);
+
+  const greeter::MagnetCollection& my_read_magnet_collection = scene.collection;
 
   if (magnetics_data.contains("field_of_view")) {
 
@@ -47,17 +52,16 @@ auto main(int argc, char** argv) -> int {
 
   if (greeter::ForceIO::hasForceSection(magnetics_data)) {
 
-    greeter::ForceConfig force_config = greeter::ForceIO::read(magnetics_data);
+    greeter::ForceConfig force_config = greeter::ForceIO::read(
+      magnetics_data, scene.magnet_ids, scene.arrangements);
 
     auto force_results = my_read_magnet_collection.simulateForces(force_config);
 
-    // Report the magnet ids of the input file rather than the collection indices
-    const std::vector<int64_t> magnet_ids = greeter::ForceIO::readMagnetIds(magnetics_data);
-
+    // Report the magnet ids of the scene rather than the collection indices
     for (auto& row : force_results) {
       const size_t index = (size_t) row[0];
-      if (index < magnet_ids.size()) {
-        row[0] = (float) magnet_ids[index];
+      if (index < scene.magnet_ids.size()) {
+        row[0] = (float) scene.magnet_ids[index];
       }
     }
 

@@ -21,6 +21,7 @@ Stands for parallel magnetic field simulations. This repository offers a user fr
 ## Features
 
 - Elementary magnets: cuboids, spheres, tetrahedra and cylinders
+- Parametrised arrangements of them, built from the parameter file rather than written out one by one
 - Parallel magnetic force and torque simulation between magnets
 - Easy and seamless workflow using a JSON parameter file
 - [Modern CMake practices](https://pabloariasal.github.io/2018/02/19/its-time-to-do-cmake-right/)
@@ -199,6 +200,110 @@ axis follows Caciagli, *Journal of Magnetism and Magnetic Materials* 456, 2018. 
 Bulirsch's complete elliptic integral, which is the only special function the cylinder needs. The
 field is not defined on the rim where the hull meets a base, and is reported as zero there.
 
+### Arrangements
+
+A group of identical magnets does not have to be written out one by one. An optional
+`arrangements` section describes it by its parameters instead, and the reader turns it into
+ordinary magnets that the rest of the library cannot tell apart from listed ones. A file may hold
+`magnets`, `arrangements`, or both.
+
+```txt
+{
+  "arrangements": [
+    {
+      "id": 100,
+      "type": "linear_array",
+      "parameters": {
+        "count": [4, 2, 1],
+        "spacing": [0.03, 0.03, 0.03],
+        "alternating": "x",
+        "position": [0, 0, 0],
+        "orientation": [1, 0, 0, 0],
+        "element": {
+          "type": "cuboid",
+          "parameters": {
+            "dimensions": [0.02, 0.02, 0.02],
+            "magnetization": [0, 0, 1]
+          }
+        }
+      }
+    },
+    {
+      "id": 200,
+      "type": "halbach_ring",
+      "parameters": {
+        "radius": 0.3,
+        "count": 16,
+        "order": 1,
+        "element": {
+          "type": "cuboid",
+          "parameters": {
+            "dimensions": [0.1, 0.1, 0.1],
+            "magnetization": [0, 1, 0]
+          }
+        }
+      }
+    }
+  ]
+}
+```
+
+The `element` is the magnet the arrangement repeats, written in the schema of that magnet minus
+its `position` and `orientation`, which the arrangement is what decides. It goes through the
+reader of its own type, so any magnet type works as an element, and an element that places itself
+is refused rather than quietly overwritten. Its `magnetization` is read in its own frame and is
+carried along when the arrangement turns it, so a member moves as a rigid body, its geometry and
+its polarization together.
+
+The `position` and `orientation` of an arrangement place the assembly as a whole and are both
+optional, defaulting to the origin and no rotation. A member is placed in the frame of the
+arrangement first and carried into the world second.
+
+| `type` | parameters |
+| --- | --- |
+| `linear_array` | `count`: members along the local x, y and z as `[nx, ny, nz]`, or a single number for a row. `spacing`: the distance between neighbours in metre as `[dx, dy, dz]`, or a single number for all three. `centered`: optional, `true` by default, so the lattice sits on `position` rather than starting there. `alternating`: optional, `"x"`, `"y"` or `"z"`, turning every other member half a turn about that local axis. |
+| `circular_array` | `radius`: of the circle the members sit on, in metre. `count`: members round it. `face`: optional, `"axis"` by default, leaving every member pointing the same way, or `"center"`, carrying the frame of a member round the ring with it. |
+| `halbach_ring` | `radius` and `count` as above. `order`: optional, `1` by default, turning the member at the angle `t` by `(order + 1) * t` about the axis of the ring. |
+| `halbach_linear` | `count`: members in the row. `spacing`: the distance between neighbours in metre. `steps_per_period`: members per full turn of the polarization, or `wavelength`: the same thing as a length, exactly one of the two. `centered`: optional, `true` by default. |
+
+The members of a lattice come out with x running fastest and z slowest, so the member at
+`(ix, iy, iz)` is number `ix + nx * (iy + ny * iz)`. The members of a ring come out in the order
+they sit round it, starting on the local x axis and turning towards the local y axis.
+
+`alternating` is a rotation rather than a sign change on the magnetization, which is what keeps a
+member a rigid body; naming the axis the magnetization already lies along therefore leaves that
+member as it was.
+
+A Halbach ring of order 1 is the dipole ring, whose field is uniform inside it and cancels
+outside. Order 2 is the quadrupole, and order -1 leaves every member pointing the same way, which
+is what makes a `circular_array` the same ring without the turning: `"face": "axis"` is order -1
+and `"face": "center"` is order 0. The order is a whole number, because the polarization has to
+come back to itself after a full turn round the ring, and it may be negative.
+
+The axis the field of a ring lies along is set by the element, whose magnetization is read in its
+own frame, so a ring of order 1 built from an element polarized along its local y makes a field
+along y. Which way along that axis is decided by the ring rather than by the element: an element
+polarized along `+y` gives a field along `-y`.
+
+A linear Halbach row turns each member a little further about the local y axis than the one
+before, so a polarization along the local z axis sweeps round in the local xz plane and the field
+of the row is strong on one side and nearly cancels on the other. Four members to a period is the
+usual choice. With a positive `steps_per_period` and an element polarized along its local z, the
+strong side is local `-z`; negating `steps_per_period` or `wavelength` mirrors the row and swaps
+the two sides. The turn of member `i` is counted off `i` rather than off where it sits, so the
+first member is never turned however the row is placed.
+
+Note that `face: "center"` decides which way the *frame* of a member points, and it is the
+element that decides what lies along that frame: its magnetization is read in its own frame, so
+`[J, 0, 0]` ends up radial and `[0, J, 0]` tangential. An element cannot be given a rotation of its
+own, so a shape whose geometry rather than its magnetization has to point at the middle of a ring,
+such as a cylinder lying on its side, is not expressible yet.
+
+The magnets an arrangement generates are numbered on from the highest `id` the file uses, so
+adding an arrangement never renames a magnet that was already there. They can be named
+individually by those ids, or all at once by the arrangement they belong to, see below. See
+`arrangements.json` for a complete example.
+
 ### Force and torque simulation
 
 Add an optional `force` section to the input file to compute the magnetic force (in Newton) and the
@@ -224,6 +329,7 @@ The fields of the `force` section are:
 | --- | --- | --- |
 | `targets` | `"all"` | Magnet ids the force acts on. Either `"all"`, a list of ids, or a list of target objects (see below). |
 | `sources` | every other magnet | Magnet ids that generate the field. A target never acts on itself. |
+| | | An id in either list may be replaced by `{"arrangement": id}`, which names every member of that arrangement at once. `"all"` covers the generated magnets as well. |
 | `meshing` | `1` | Number of cells per target, or `[n1, n2, n3]` cells along the local axes. A spherical magnet is exactly a point dipole and is never split. A tetrahedron is split on a barycentric grid and a cylinder into rings, so both take a cell count and read `[n1, n2, n3]` as their product. A cylinder never yields fewer than two cells, because its split is apportioned over circumference, radius and height. |
 | `pivot` | `"centroid"` | Point through which the force contributes to the torque, either `"centroid"` or `[x, y, z]`. |
 | `eps` | `1e-3 * magnet size` | Finite difference step in metre used for the field gradient. |
@@ -240,6 +346,22 @@ plain ids:
   "eps": 1e-4
 }
 ```
+
+A target object may name an arrangement instead of a single magnet, in which case every member of
+it becomes a target and they share what the object says:
+
+```txt
+"force": {
+  "targets": [
+    {"id": 1, "meshing": 500},
+    {"arrangement": 100, "meshing": 8, "sources": [1]}
+  ]
+}
+```
+
+Note that a whole arrangement is as many targets as it has members, and the cost of a force
+simulation is the number of targets times the cells each is split into times the number of
+sources, so an arrangement of any size is where that cost starts to be felt.
 
 A larger `meshing` gives a more accurate force, at a cost that grows linearly with the number of
 cells. A single cell reduces the target to a point dipole in its center, which is already exact for

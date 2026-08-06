@@ -1,0 +1,98 @@
+{
+ "magnets": [
+  {
+   "id": 1,
+   "type": "cuboid",
+   "parameters": {
+    "dimensions": [0.02, 0.02, 0.02],
+    "magnetization": [0, 0, 1],
+    "position": [0, 0, 0.05],
+    "orientation": [1, 0, 0, 0]
+   }
+  }
+ ],
+ "arrangements": [
+  {
+   "id": 100,
+   "type": "linear_array",
+   "parameters": {
+    "count": [4, 2, 1],
+    "spacing": [0.03, 0.03, 0.03],
+    "alternating": "x",
+    "position": [0, 0, 0],
+    "orientation": [1, 0, 0, 0],
+    "element": {
+     "type": "cuboid",
+     "parameters": {
+      "dimensions": [0.02, 0.02, 0.02],
+      "magnetization": [0, 0, 1]
+     }
+    }
+   }
+  },
+  {
+   "id": 200,
+   "type": "halbach_ring",
+   "parameters": {
+    "radius": 0.3,
+    "count": 16,
+    "order": 1,
+    "position": [0, 0, 0.5],
+    "element": {
+     "type": "cuboid",
+     "parameters": {
+      "dimensions": [0.1, 0.1, 0.1],
+      "magnetization": [0, 1, 0]
+     }
+    }
+   }
+  },
+  {
+   "id": 300,
+   "type": "halbach_linear",
+   "parameters": {
+    "count": 12,
+    "spacing": 0.02,
+    "steps_per_period": 4,
+    "position": [0, 0, -0.3],
+    "element": {
+     "type": "cuboid",
+     "parameters": {
+      "dimensions": [0.02, 0.02, 0.02],
+      "magnetization": [0, 0, 1]
+     }
+    }
+   }
+  },
+  {
+   "id": 400,
+   "type": "circular_array",
+   "parameters": {
+    "radius": 0.15,
+    "count": 6,
+    "face": "center",
+    "position": [0, 0, -0.6],
+    "element": {
+     "type": "cylinder",
+     "parameters": {
+      "dimensions": [0.04, 0.06],
+      "magnetization": [1, 0, 0]
+     }
+    }
+   }
+  }
+ ],
+ "field_of_view": {
+  "x": {"min": -0.06, "max": 0.06, "n": 13},
+  "y": {"min": -0.06, "max": 0.06, "n": 13},
+  "z": {"min": 0.02, "max": 0.1, "n": 9}
+ },
+ "force": {
+  "targets": [
+   1,
+   {"arrangement": 100, "meshing": 8},
+   {"arrangement": 400, "meshing": 8}
+  ],
+  "meshing": 64
+ }
+}

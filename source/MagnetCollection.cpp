@@ -1,5 +1,6 @@
 #include <greeter/MagnetCollection.h>
 #include <greeter/CubicMagnet.h>
+#include <greeter/arrangements/HalbachRingArrangement.h>
 #include <greeter/io/MagnetIO.h>
 #include <nlohmann/json.hpp>
 #include <algorithm>
@@ -394,37 +395,25 @@ greeter::MagnetCollection greeter::MagnetCollection::generateCircularHalbachArra
       const float& radius, const std::vector<float>& magnet_dimensions,
       const size_t& num_magnets, const std::vector<float>& magnetization ){
 
-  greeter::MagnetCollection halbach_magnet_collection;
+  // A ring of cuboids turned by twice the angle at which they sit is a Halbach
+  // ring of order one, which the input file can now ask for by name. This is
+  // that arrangement, so that there is one place the ring is laid out in.
+  const nlohmann::json arrangement = {
+    {"type", greeter::HalbachRingArrangement::getTypeName()},
+    {"parameters", {
+      {"radius", radius},
+      {"count", num_magnets},
+      {"order", 1},
+      {"element", {
+        {"type", "cuboid"},
+        {"parameters", {
+          {"dimensions", magnet_dimensions},
+          {"magnetization", magnetization}
+        }}
+      }}
+    }}
+  };
 
-  float angle_step = 2.0f * M_PI / num_magnets;
-
-  for (size_t i = 0; i < num_magnets; i++) {
-
-    float angle_rad = i * angle_step;
-
-    float x = radius * cos(angle_rad);
-    float y = radius * sin(angle_rad);
-    float z = 0.0f;
-
-    std::vector<float> thePosition = {x, y, z};
-
-    float quaternion_rotation[4];
-
-    greeter::Quaternion::set_rotation_from_axis_angle(
-      "z", 2.0f*angle_rad, quaternion_rotation
-    );
-
-    std::vector<float> magnet_orientation = {
-      quaternion_rotation[0], quaternion_rotation[1],
-      quaternion_rotation[2], quaternion_rotation[3] 
-    };
-
-    std::unique_ptr<greeter::Magnet> cuboid_magnet = std::make_unique<greeter::CuboidMagnet>(
-      thePosition, magnet_dimensions, magnet_orientation, magnetization
-    );
-
-    halbach_magnet_collection.addMagnet(std::move(cuboid_magnet));
-  }
-
-  return halbach_magnet_collection;
+  return greeter::MagnetCollection(
+    greeter::HalbachRingArrangement::expand(arrangement));
 }

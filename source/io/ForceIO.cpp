@@ -1,4 +1,5 @@
 #include <greeter/io/ForceIO.h>
+#include <array>
 #include <cmath>
 #include <limits>
 #include <stdexcept>
@@ -83,6 +84,46 @@ namespace greeter {
             return it->second;
         }
 
+        bool namesAnArrangement(const nlohmann::json& reference) {
+            return reference.is_object() && reference.contains("arrangement");
+        }
+
+        const std::vector<uint32_t>& resolveArrangementId(
+            const std::vector<greeter::ArrangementMembers>& arrangements,
+            const nlohmann::json& id) {
+
+            const int64_t wanted = id.get<int64_t>();
+
+            for (const auto& arrangement : arrangements) {
+                if (arrangement.id == wanted) {
+                    return arrangement.members;
+                }
+            }
+
+            throw std::invalid_argument(
+                "Force section refers to the unknown arrangement id " + id.dump());
+        }
+
+        /*
+          One entry of a "targets" or "sources" list, which names either a
+          single magnet by its id or every member of an arrangement at once.
+        */
+        void appendReference(const std::unordered_map<int64_t, uint32_t>& index_of_id,
+                             const std::vector<greeter::ArrangementMembers>& arrangements,
+                             const nlohmann::json& reference,
+                             std::vector<uint32_t>& indices) {
+
+            if (namesAnArrangement(reference)) {
+                for (const auto& member :
+                     resolveArrangementId(arrangements, reference["arrangement"])) {
+                    indices.push_back(member);
+                }
+                return;
+            }
+
+            indices.push_back(resolveMagnetId(index_of_id, reference));
+        }
+
         std::array<float, 3> readPivot(const nlohmann::json& pivot) {
 
             if (pivot.is_string()) {
@@ -105,13 +146,30 @@ namespace greeter {
 
     greeter::ForceConfig ForceIO::read(const nlohmann::json& data) {
 
+        // The ids of a file that lists every magnet are the ids of its
+        // "magnets" array. As soon as an arrangement generates magnets that
+        // are in no array of the file, that stops being true, and reading the
+        // force section against a short id map would quietly leave the
+        // generated magnets out of "all" and mislabel them in the output.
+        if (data.contains("arrangements") && !data["arrangements"].empty()) {
+            throw std::invalid_argument(
+                "A file with arrangements has to be read through SceneIO, so that the "
+                "generated magnets are part of the id map");
+        }
+
+        return read(data, readMagnetIds(data), {});
+    }
+
+    greeter::ForceConfig ForceIO::read(
+        const nlohmann::json& data,
+        const std::vector<int64_t>& ids,
+        const std::vector<greeter::ArrangementMembers>& arrangements) {
+
         if (!hasForceSection(data)) {
             throw std::invalid_argument("The JSON file has no force section");
         }
 
         const nlohmann::json& force = data["force"];
-
-        const std::vector<int64_t> ids = readMagnetIds(data);
 
         std::unordered_map<int64_t, uint32_t> index_of_id;
         for (size_t i = 0; i < ids.size(); i++) {
@@ -131,8 +189,8 @@ namespace greeter {
 
         std::vector<uint32_t> default_sources;
         if (force.contains("sources") && !force["sources"].is_string()) {
-            for (const auto& id : force["sources"]) {
-                default_sources.push_back(resolveMagnetId(index_of_id, id));
+            for (const auto& source : force["sources"]) {
+                appendReference(index_of_id, arrangements, source, default_sources);
             }
         }
 
@@ -161,37 +219,53 @@ namespace greeter {
 
             for (const auto& target : force["targets"]) {
 
+                // An entry names one magnet or, for an arrangement, all of its
+                // members at once, and they then share what the entry says
+                // about meshing, pivot and sources.
+                std::vector<uint32_t> indices;
+                greeter::MeshingSpec meshing = default_meshing;
+                std::array<float, 3> pivot = default_pivot;
+                std::vector<uint32_t> sources = default_sources;
+
                 if (target.is_object()) {
 
-                    if (!target.contains("id")) {
-                        throw std::invalid_argument("A force target object needs an id");
+                    if (namesAnArrangement(target)) {
+                        for (const auto& member :
+                             resolveArrangementId(arrangements, target["arrangement"])) {
+                            indices.push_back(member);
+                        }
+                    } else if (target.contains("id")) {
+                        indices.push_back(resolveMagnetId(index_of_id, target["id"]));
+                    } else {
+                        throw std::invalid_argument(
+                            "A force target object needs an id or an arrangement");
                     }
 
-                    config.targets.push_back(resolveMagnetId(index_of_id, target["id"]));
+                    if (target.contains("meshing")) {
+                        meshing = readMeshing(target["meshing"]);
+                    }
 
-                    config.meshing.push_back(
-                        target.contains("meshing") ? readMeshing(target["meshing"])
-                                                   : default_meshing);
-
-                    config.pivots.push_back(
-                        target.contains("pivot") ? readPivot(target["pivot"]) : default_pivot);
+                    if (target.contains("pivot")) {
+                        pivot = readPivot(target["pivot"]);
+                    }
 
                     if (target.contains("sources") && !target["sources"].is_string()) {
-                        std::vector<uint32_t> sources;
-                        for (const auto& id : target["sources"]) {
-                            sources.push_back(resolveMagnetId(index_of_id, id));
+                        sources.clear();
+                        for (const auto& source : target["sources"]) {
+                            appendReference(index_of_id, arrangements, source, sources);
                         }
-                        config.sources.push_back(sources);
-                    } else {
-                        config.sources.push_back(default_sources);
                     }
 
                 } else {
 
-                    config.targets.push_back(resolveMagnetId(index_of_id, target));
-                    config.meshing.push_back(default_meshing);
-                    config.pivots.push_back(default_pivot);
-                    config.sources.push_back(default_sources);
+                    indices.push_back(resolveMagnetId(index_of_id, target));
+                }
+
+                for (const auto& index : indices) {
+                    config.targets.push_back(index);
+                    config.meshing.push_back(meshing);
+                    config.pivots.push_back(pivot);
+                    config.sources.push_back(sources);
                 }
             }
 
