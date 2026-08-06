@@ -149,8 +149,6 @@ std::vector<std::vector<float>> greeter::MagnetCollection::simulate(const std::v
 
   simulator->fillObservationPoints(fov);
 
-  simulator->fillDimensionParameterCumulativeCount();
-
   simulator->simulate();
 
   std::vector<std::vector<float>> magnetic_fields = simulator->getMagneticFields();
@@ -163,8 +161,6 @@ std::vector<std::vector<float>> greeter::MagnetCollection::simulate(const greete
   std::unique_ptr<greeter::MagneticFieldSimulator> simulator = createSimulator();
 
   simulator->fillObservationPoints(fov.getFOV());
-
-  simulator->fillDimensionParameterCumulativeCount();
 
   simulator->simulate();
 

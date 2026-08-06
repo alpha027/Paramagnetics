@@ -14,8 +14,6 @@ namespace greeter {
         std::set<std::string> keys = {"magnets"};
         std::set<std::string> magnet_types = {"cuboid", "sphere", "tetrahedron"};
 
-        std::set<std::string> cuboid_keys = {"position", "dimensions", "orientation", "magnetization"};
-        std::set<std::string> sphere_keys = {"radius", "magnetization"};
         std::set<std::string> fov_keys = {"x", "y", "z"};
 
         // A field of view is only needed for a magnetic field simulation, an
@@ -37,20 +35,6 @@ namespace greeter {
             }
         };
 
-        // Verify magnet types
-        // for (auto it = data["magnets"].begin(); it != data["magnets"].end(); ++it) {
-        // bool type_does_not_exist = true;
-        //     for (auto& magnet_type : magnet_types) {
-        //         if (it->contains(magnet_type)) {
-        //         type_does_not_exist = false;
-        //         }
-        //     }
-        //     if (type_does_not_exist) {
-        //         return false;
-        //     }
-        // };
-
-
         // Verify the field of view
         if (data.contains("field_of_view")) {
             for (auto& fov_key : fov_keys) {
@@ -60,20 +44,8 @@ namespace greeter {
             };
         };
 
-            // if (magnet_type == "cuboid") {
-            //   for (auto& cuboid_key : cuboid_keys) {
-            //     if (!it->at("cuboid").contains(cuboid_key)) {
-            //       return false;
-            //     }
-            //   }
-            // } else if (magnet_type == "sphere") {
-            //   for (auto& sphere_key : sphere_keys) {
-            //     if (!it->at("sphere").contains(sphere_key)) {
-            //       return false;
-            //     }
-            //   }
-            // }
-
+        // The parameters of a magnet are checked by the reader of its own type,
+        // which is the only place that knows what its shape takes.
         return true;
     };
 

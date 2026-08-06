@@ -7,6 +7,13 @@
 
 namespace greeter {
 
+/*
+  Upper bound on getNumOfParameters() of any magnet class, so that a simulator
+  can pack the parameters of a magnet into a stack array without knowing its
+  shape. The registry rejects a magnet class that needs more.
+*/
+constexpr size_t MAX_MAGNET_PARAMETERS = 32;
+
 class Magnet {
 
   public:

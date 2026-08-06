@@ -1,10 +1,10 @@
 #ifndef MAGNETICFIELDMETHODFACTORY_H
 #define MAGNETICFIELDMETHODFACTORY_H
 
-#include <functional>
 #include <memory>
 #include <string>
 #include <unordered_map>
+#include <greeter/KokkosDefines.h>
 #include <greeter/Magnet.h>
 #include <iostream>
 
@@ -30,19 +30,25 @@ public:
         return instance;
     }
 
-    using MethodFunction = std::function<void(const float* parameters, 
-                                           const float* observation_point,
-                                           float& a, float& b, float& c)>;
+    using MethodFunction = FieldKernel;
 
-    using NumerOfParametersFunction = std::function<size_t()>;
+    using NumerOfParametersFunction = size_t (*)();
 
     // Method to register a class with a key
     bool registerComputeMagneticField(const u_int16_t& key, MethodFunction _method);
 
     bool registerNumberOfParameters(const u_int16_t& key, NumerOfParametersFunction _method);
 
-    void computeMagneticField(const u_int16_t& key, const float* parameters, 
+    void computeMagneticField(const u_int16_t& key, const float* parameters,
                               const float* observation_point, float& a, float& b, float& c) const;
+
+    /*
+      The kernel itself, for a caller that is about to run it many times and
+      does not want to pay for a lookup each time. Throws on an unknown type,
+      where computeMagneticField above only complains and leaves the field at
+      whatever the caller passed in.
+    */
+    MethodFunction getComputeMagneticField(const u_int16_t& key) const;
 
     size_t getNumberOfParameters(const u_int16_t& key) const;
     // Method to display all registered types

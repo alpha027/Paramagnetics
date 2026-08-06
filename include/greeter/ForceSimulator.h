@@ -41,6 +41,11 @@ class ForceSimulator {
   UInt32VectorView geometry_offsets;  // start of each magnet inside `dimensions`
   size_t num_magnets;
 
+  // Kernel and geometry layout of each magnet, resolved once from `magnet_types`.
+  MagnetKernelView magnet_kernels;
+
+  void resolveMagnetTypes();
+
   // Mesh cells of all targets, tiled into a single array
   Float3VectorView mesh_points;          // cell centers, global frame
   Float3VectorView mesh_moments;         // cell moments, global frame [A*m^2]

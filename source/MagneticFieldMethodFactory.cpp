@@ -2,6 +2,7 @@
 # include <greeter/CubicMagnet.h>
 # include <greeter/SphericalMagnet.h>
 # include <greeter/TetrahedronMagnet.h>
+# include <stdexcept>
 
 
 /*
@@ -50,6 +51,18 @@ bool greeter::MagneticFieldMethodFactory::registerComputeMagneticField(
 
 bool greeter::MagneticFieldMethodFactory::registerNumberOfParameters(
     const u_int16_t& key, NumerOfParametersFunction _method) {
+
+    // The simulators pack the parameters of a magnet into a stack array of this
+    // size, so a shape that needs more has to be caught here rather than by
+    // walking off the end of that array.
+    if (_method() > greeter::MAX_MAGNET_PARAMETERS) {
+        throw std::length_error(
+            "Magnet type '" + std::to_string(key) + "' takes " +
+            std::to_string(_method()) + " parameters, more than the " +
+            std::to_string(greeter::MAX_MAGNET_PARAMETERS) +
+            " a simulator makes room for");
+    }
+
     registry_parameters[key] = _method;
     return true;
 }
@@ -64,6 +77,24 @@ void greeter::MagneticFieldMethodFactory::computeMagneticField(
     } else {
         std::cout << "Unknown child type '" << key << "'" << std::endl;
     }
+}
+
+greeter::MagneticFieldMethodFactory::MethodFunction
+greeter::MagneticFieldMethodFactory::getComputeMagneticField(const u_int16_t& key) const {
+
+    auto it = registry.find(key);
+    if (it == registry.end()) {
+        std::string known;
+        for (const auto& entry : registry) {
+            known += known.empty() ? "" : ", ";
+            known += std::to_string(entry.first);
+        }
+        throw std::invalid_argument(
+            "Unknown magnet type '" + std::to_string(key) +
+            "', the known types are " + known);
+    }
+
+    return it->second;
 }
 
 size_t greeter::MagneticFieldMethodFactory::getNumberOfParameters(const u_int16_t& key) const {

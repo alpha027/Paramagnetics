@@ -2,9 +2,8 @@
 #define FORCESIMULATOR_I_H
 
 #include <greeter/ForceSimulator.h>
-#include <greeter/CubicMagnet.h>
-#include <greeter/SphericalMagnet.h>
-#include <greeter/TetrahedronMagnet.h>
+#include <greeter/MagneticFieldMethodFactory.h>
+#include <greeter/MagnetParameters.h>
 #include <greeter/Quaternion.h>
 
 inline
@@ -20,7 +19,33 @@ greeter::ForceSimulator::ForceSimulator(
     num_targets(0), num_cells(0), eps(1e-5f) {
 
         num_magnets = magnet_types.extent(0);
+
+        resolveMagnetTypes();
     }
+
+/*
+  Look up, once, the kernel of every source magnet and how many geometry
+  parameters its shape takes. The cell loop below runs this table instead of
+  branching on the magnet type, which is what keeps a new magnet type out of it.
+*/
+inline
+void greeter::ForceSimulator::resolveMagnetTypes() {
+
+    const greeter::MagneticFieldMethodFactory& factory =
+        greeter::MagneticFieldMethodFactory::getInstance();
+
+    magnet_kernels = MagnetKernelView("magnet_kernels", num_magnets);
+
+    for (size_t i = 0; i < num_magnets; i++) {
+
+        const u_int16_t magnet_type = (u_int16_t) magnet_types(i);
+
+        magnet_kernels(i).kernel = factory.getComputeMagneticField(magnet_type);
+        magnet_kernels(i).geometry_offset = geometry_offsets(i);
+        magnet_kernels(i).geometry_count =
+            (u_int32_t) factory.getNumberOfParameters(magnet_type) - 10;
+    }
+}
 
 inline
 greeter::ForceSimulator::~ForceSimulator() {}
@@ -278,115 +303,29 @@ void greeter::ForceSimulator::operator()( u_int64_t cell_index ) const {
             continue;
         }
 
-        const u_int16_t magnet_type = magnet_types(i);
-        const size_t start_index = geometry_offsets(i);
+        const MagnetKernel magnet = magnet_kernels(i);
 
-        if (magnet_type == 0) { // Case of CuboidMagnet
+        float magnet_parameters[greeter::MAX_MAGNET_PARAMETERS];
 
-            const float magnet_parameters[13] = {
-                positions(i, 0),
-                positions(i, 1),
-                positions(i, 2),
-                orientations(i, 0),
-                orientations(i, 1),
-                orientations(i, 2),
-                orientations(i, 3),
-                dimensions(start_index),
-                dimensions(start_index + 1),
-                dimensions(start_index + 2),
-                magnetizations(i, 0),
-                magnetizations(i, 1),
-                magnetizations(i, 2)
+        greeter::packMagnetParameters(
+            positions, orientations, magnetizations, dimensions,
+            i, magnet.geometry_offset, magnet.geometry_count, magnet_parameters);
+
+        for (int s = 0; s < 7; s++) {
+
+            const float observation_point[3] = {
+                cell_point[0] + fd_offsets[s][0],
+                cell_point[1] + fd_offsets[s][1],
+                cell_point[2] + fd_offsets[s][2]
             };
 
-            for (int s = 0; s < 7; s++) {
+            float bx = 0.0f, by = 0.0f, bz = 0.0f;
 
-                const float observation_point[3] = {
-                    cell_point[0] + fd_offsets[s][0],
-                    cell_point[1] + fd_offsets[s][1],
-                    cell_point[2] + fd_offsets[s][2]
-                };
+            magnet.kernel(magnet_parameters, observation_point, bx, by, bz);
 
-                float bx = 0.0f, by = 0.0f, bz = 0.0f;
-
-                greeter::CuboidMagnet::computeMagneticFieldForCube(
-                    magnet_parameters, observation_point, bx, by, bz);
-
-                b_field[s][0] += bx;
-                b_field[s][1] += by;
-                b_field[s][2] += bz;
-            }
-
-        } else if (magnet_type == 1) { // Case of SphereMagnet
-
-            const float magnet_parameters[11] = {
-                positions(i, 0),
-                positions(i, 1),
-                positions(i, 2),
-                orientations(i, 0),
-                orientations(i, 1),
-                orientations(i, 2),
-                orientations(i, 3),
-                dimensions(start_index),
-                magnetizations(i, 0),
-                magnetizations(i, 1),
-                magnetizations(i, 2)
-            };
-
-            for (int s = 0; s < 7; s++) {
-
-                const float observation_point[3] = {
-                    cell_point[0] + fd_offsets[s][0],
-                    cell_point[1] + fd_offsets[s][1],
-                    cell_point[2] + fd_offsets[s][2]
-                };
-
-                float bx = 0.0f, by = 0.0f, bz = 0.0f;
-
-                greeter::SphereMagnet::computeMagneticFieldForSphere(
-                    magnet_parameters, observation_point, bx, by, bz);
-
-                b_field[s][0] += bx;
-                b_field[s][1] += by;
-                b_field[s][2] += bz;
-            }
-
-        } else if (magnet_type == 2) { // Case of TetrahedronMagnet
-
-            const float magnet_parameters[22] = {
-                positions(i, 0),
-                positions(i, 1),
-                positions(i, 2),
-                orientations(i, 0),
-                orientations(i, 1),
-                orientations(i, 2),
-                orientations(i, 3),
-                dimensions(start_index), dimensions(start_index + 1), dimensions(start_index + 2),
-                dimensions(start_index + 3), dimensions(start_index + 4), dimensions(start_index + 5),
-                dimensions(start_index + 6), dimensions(start_index + 7), dimensions(start_index + 8),
-                dimensions(start_index + 9), dimensions(start_index + 10), dimensions(start_index + 11),
-                magnetizations(i, 0),
-                magnetizations(i, 1),
-                magnetizations(i, 2)
-            };
-
-            for (int s = 0; s < 7; s++) {
-
-                const float observation_point[3] = {
-                    cell_point[0] + fd_offsets[s][0],
-                    cell_point[1] + fd_offsets[s][1],
-                    cell_point[2] + fd_offsets[s][2]
-                };
-
-                float bx = 0.0f, by = 0.0f, bz = 0.0f;
-
-                greeter::TetrahedronMagnet::computeMagneticFieldForTetrahedron(
-                    magnet_parameters, observation_point, bx, by, bz);
-
-                b_field[s][0] += bx;
-                b_field[s][1] += by;
-                b_field[s][2] += bz;
-            }
+            b_field[s][0] += bx;
+            b_field[s][1] += by;
+            b_field[s][2] += bz;
         }
     }
 

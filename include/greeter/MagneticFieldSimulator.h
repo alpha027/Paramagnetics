@@ -14,10 +14,14 @@ class MagneticFieldSimulator {
   Float3VectorView magnetizations;
   FloatVectorView dimensions;
   UInt32VectorView magnet_types;
-  UInt32VectorView dimensionParameterCumulativeCount;
   Float3VectorView observation_points;
   Float3VectorView magnetic_fields;
   size_t num_magnets;
+
+  // Kernel and geometry layout of each magnet, resolved once from `magnet_types`.
+  MagnetKernelView magnet_kernels;
+
+  void resolveMagnetTypes();
 
 public:
 
@@ -40,14 +44,9 @@ public:
     void printPosition( u_int64_t observation_point_index ) const;
     void printMagneticField( u_int64_t observation_point_index ) const;
 
-    void fillMagnetPositions(const std::vector<std::vector<float>>& positions);
-    void fillMagnetOrientations(const std::vector<std::vector<float>>& orientations);
-    void fillMagnetMagnetizations(const std::vector<std::vector<float>>& magnetizations);
-    void fillMagnetdimensions(const std::vector<float>& dimensions);
     void fillObservationPoints(const std::vector<std::vector<float>>& observation_points);
-    void fillDimensionParameterCumulativeCount();
 
-    void computeMagneticField(const u_int16_t& key, const float* parameters, 
+    void computeMagneticField(const u_int16_t& key, const float* parameters,
                               const float* observation_point, float& a, float& b, float& c);
 
     void applyRotationFromQuaternion(const float* quaternion, const float* vector, float* result);

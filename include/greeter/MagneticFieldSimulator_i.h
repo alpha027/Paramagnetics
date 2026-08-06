@@ -3,6 +3,7 @@
 
 #include <greeter/MagneticFieldSimulator.h>
 #include <greeter/MagneticFieldMethodFactory.h>
+#include <greeter/MagnetParameters.h>
 #include <greeter/Quaternion.h>
 
 inline
@@ -17,17 +18,43 @@ greeter::MagneticFieldSimulator::MagneticFieldSimulator(
     magnet_types(_magnet_types),
     observation_points(_observation_points) {
 
-        u_int64_t N = observation_points.extent(0);
-        Float3VectorView magnetic_fields("magnetic_fields", N);
-
-        Kokkos::parallel_for( "magnetizations", N, KOKKOS_LAMBDA ( int i ) {
-            magnetic_fields(i, 0)  = 0.0;
-            magnetic_fields(i, 1)  = 1.0;
-            magnetic_fields(i, 2)  = 0.0;
-        });
-
         num_magnets = magnet_types.extent(0);
+
+        resolveMagnetTypes();
     }
+
+/*
+  Look up, once, everything the inner loop needs to know about a magnet type:
+  the kernel to call and where the geometry of the magnet sits in `dimensions`.
+  Doing this per magnet per observation point, as the loop used to, meant a hash
+  lookup and a branch on the type for every field evaluation.
+*/
+inline
+void greeter::MagneticFieldSimulator::resolveMagnetTypes() {
+
+    const greeter::MagneticFieldMethodFactory& factory =
+        greeter::MagneticFieldMethodFactory::getInstance();
+
+    magnet_kernels = MagnetKernelView("magnet_kernels", num_magnets);
+
+    u_int32_t offset = 0;
+
+    for (size_t i = 0; i < num_magnets; i++) {
+
+        const u_int16_t magnet_type = (u_int16_t) magnet_types(i);
+
+        // The shape only decides how many geometry parameters follow the
+        // position and the orientation, see packMagnetParameters.
+        const u_int32_t count =
+            (u_int32_t) factory.getNumberOfParameters(magnet_type) - 10;
+
+        magnet_kernels(i).kernel = factory.getComputeMagneticField(magnet_type);
+        magnet_kernels(i).geometry_offset = offset;
+        magnet_kernels(i).geometry_count = count;
+
+        offset += count;
+    }
+}
 
 inline
 greeter::MagneticFieldSimulator::~MagneticFieldSimulator() {}
@@ -110,95 +137,27 @@ std::vector<std::vector<float>> greeter::MagneticFieldSimulator::getMagneticFiel
 KOKKOS_INLINE_FUNCTION
 void greeter::MagneticFieldSimulator::operator()( u_int64_t observation_point_index ) const {
 
+    const float the_observation_point[3] = {
+        observation_points(observation_point_index, 0),
+        observation_points(observation_point_index, 1),
+        observation_points(observation_point_index, 2)
+    };
+
     for (size_t i = 0; i < num_magnets; i++) {
 
-        u_int16_t magnet_type = magnet_types(i);
+        const MagnetKernel magnet = magnet_kernels(i);
 
-        float the_observation_point[3] = {
-            observation_points(observation_point_index, 0),
-            observation_points(observation_point_index, 1),
-            observation_points(observation_point_index, 2)
-        };
+        float magnet_parameters[greeter::MAX_MAGNET_PARAMETERS];
+
+        greeter::packMagnetParameters(
+            positions, orientations, magnetizations, dimensions,
+            i, magnet.geometry_offset, magnet.geometry_count, magnet_parameters);
 
         float bx = 0.0f;
         float by = 0.0f;
         float bz = 0.0f;
 
-        size_t num_parameters = greeter::MagneticFieldMethodFactory::getInstance().getNumberOfParameters(magnet_type) - 10;
-
-        size_t start_index = dimensionParameterCumulativeCount(i) - num_parameters;
-
-        if (magnet_type == 0) { // Case of CuboidMagnet
-            float magnet_parameters[13] = {
-                positions(i, 0), 
-                positions(i, 1),
-                positions(i, 2),
-                orientations(i, 0),
-                orientations(i, 1),
-                orientations(i, 2),
-                orientations(i, 3),
-                dimensions(start_index),
-                dimensions(start_index + 1),
-                dimensions(start_index + 2), 
-                magnetizations(i, 0),
-                magnetizations(i, 1),
-                magnetizations(i, 2) 
-            };
-
-            greeter::MagneticFieldMethodFactory::getInstance().computeMagneticField(
-            magnet_type,
-            magnet_parameters,
-            the_observation_point,
-            bx, by, bz
-            );
-        } else if (magnet_type == 1) // Case of SphereMagnet
-        {
-            float magnet_parameters[11] = {
-                positions(i, 0), 
-                positions(i, 1),
-                positions(i, 2),
-                orientations(i, 0),
-                orientations(i, 1),
-                orientations(i, 2),
-                orientations(i, 3),
-                dimensions(start_index),
-                magnetizations(i, 0),
-                magnetizations(i, 1),
-                magnetizations(i, 2)
-            };
-
-            greeter::MagneticFieldMethodFactory::getInstance().computeMagneticField(
-            magnet_type,
-            magnet_parameters,
-            the_observation_point,
-            bx, by, bz
-            );
-        } else if (magnet_type == 2) // Case of TetrahedronMagnet
-        {
-            float magnet_parameters[22] = {
-                positions(i, 0),
-                positions(i, 1),
-                positions(i, 2),
-                orientations(i, 0),
-                orientations(i, 1),
-                orientations(i, 2),
-                orientations(i, 3),
-                dimensions(start_index), dimensions(start_index + 1), dimensions(start_index + 2),
-                dimensions(start_index + 3), dimensions(start_index + 4), dimensions(start_index + 5),
-                dimensions(start_index + 6), dimensions(start_index + 7), dimensions(start_index + 8),
-                dimensions(start_index + 9), dimensions(start_index + 10), dimensions(start_index + 11),
-                magnetizations(i, 0),
-                magnetizations(i, 1),
-                magnetizations(i, 2)
-            };
-
-            greeter::MagneticFieldMethodFactory::getInstance().computeMagneticField(
-            magnet_type,
-            magnet_parameters,
-            the_observation_point,
-            bx, by, bz
-            );
-        }
+        magnet.kernel(magnet_parameters, the_observation_point, bx, by, bz);
 
         magnetic_fields(observation_point_index, 0) += bx;
         magnetic_fields(observation_point_index, 1) += by;
@@ -208,62 +167,8 @@ void greeter::MagneticFieldSimulator::operator()( u_int64_t observation_point_in
 }
 
 inline
-void greeter::MagneticFieldSimulator::fillDimensionParameterCumulativeCount(){
-
-    size_t N = (size_t) num_magnets;
-
-    dimensionParameterCumulativeCount = UInt32VectorView("dimensionParameterCumulativeCount", N);
-
-    for (size_t i = 0; i < N; i++) {
-        if ( i == 0 ) {
-            dimensionParameterCumulativeCount(i) = (u_int32_t) greeter::MagneticFieldMethodFactory::getInstance()
-                .getNumberOfParameters(magnet_types(i)) - 10;
-        } else {
-            dimensionParameterCumulativeCount(i) = (u_int32_t) greeter::MagneticFieldMethodFactory::getInstance()
-            .getNumberOfParameters(magnet_types(i)) + dimensionParameterCumulativeCount(i-1) - 10;
-        }
-        
-    }
-}
-
-KOKKOS_INLINE_FUNCTION
-void greeter::MagneticFieldSimulator::fillMagnetPositions(const std::vector<std::vector<float>>& _positions) {
-
-    const size_t M = _positions.size();
-
-    auto all_positions = _positions.data();
-
-    Kokkos::parallel_for( "positions", M, KOKKOS_LAMBDA ( int i ) {
-       positions(i, 0) = all_positions[i][0]; //_positions[i][0];
-       positions(i, 1) = all_positions[i][1]; //_positions[i][1];
-       positions(i, 2) = all_positions[i][2]; //_positions[i][2];
-    });
-
-    size_t magnet_count = (size_t) M / 3;
-    num_magnets = magnet_count;
-}
-
-inline
 size_t greeter::MagneticFieldSimulator::getNumObservationPoints() const {
     return observation_points.extent(0);
-}
-
-KOKKOS_INLINE_FUNCTION
-void greeter::MagneticFieldSimulator::fillMagnetOrientations(const std::vector<std::vector<float>>& _orientations) {
-
-    const size_t M = _orientations.size();
-
-    orientations = Float4VectorView("orientations", M);
-
-    Kokkos::parallel_for( "orientations", M, KOKKOS_LAMBDA ( int i ) {
-       orientations(i, 0) = _orientations[i][0];
-       orientations(i, 1) = _orientations[i][1];
-       orientations(i, 2) = _orientations[i][2];
-       orientations(i, 3) = _orientations[i][3];
-    });
-
-    size_t magnet_count = (size_t) M / 4;
-    num_magnets = magnet_count;
 }
 
 KOKKOS_INLINE_FUNCTION
