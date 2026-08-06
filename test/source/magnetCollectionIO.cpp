@@ -96,7 +96,7 @@ TEST_CASE("A JSON file is checked against the schema") {
   SUBCASE("a magnet type this library does not know is rejected") {
 
     nlohmann::json data = nlohmann::json::parse(THREE_MAGNETS);
-    data["magnets"][1]["type"] = "cylinder";
+    data["magnets"][1]["type"] = "torus";
 
     TemporaryFile file(data.dump());
     std::ifstream stream = file.open();

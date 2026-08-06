@@ -2,6 +2,7 @@
 #include <greeter/CubicMagnet.h>
 #include <greeter/SphericalMagnet.h>
 #include <greeter/TetrahedronMagnet.h>
+#include <greeter/CylinderMagnet.h>
 
 
 // See MagneticFieldMethodFactory for why the built in magnets are registered here.
@@ -18,6 +19,10 @@ greeter::TargetMeshFactory::TargetMeshFactory() {
     registerGenerateTargetMesh(
         greeter::TetrahedronMagnet::getStaticTypeID(),
         greeter::TetrahedronMagnet::generateTargetMesh);
+
+    registerGenerateTargetMesh(
+        greeter::CylinderMagnet::getStaticTypeID(),
+        greeter::CylinderMagnet::generateTargetMesh);
 }
 
 

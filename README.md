@@ -16,11 +16,11 @@
 
 # ParaMagneticS
 
-Stands for parallel magnetic field simulations. This repository offers a user friendly tool to efficiently simulate the magnetic field stemming from simple magnet geometries: cuboid, sphere and tetrahedron. ParaMagneticS is implemented in C++ and allows to explore the magnetic field for a combination of magnets. The simulations are performed in a parallel manner to reduce the design iteration time for different magnet configurations.
+Stands for parallel magnetic field simulations. This repository offers a user friendly tool to efficiently simulate the magnetic field stemming from simple magnet geometries: cuboid, sphere, tetrahedron and cylinder. ParaMagneticS is implemented in C++ and allows to explore the magnetic field for a combination of magnets. The simulations are performed in a parallel manner to reduce the design iteration time for different magnet configurations.
 
 ## Features
 
-- Elementary magnets: cuboids, spheres and tetrahedra
+- Elementary magnets: cuboids, spheres, tetrahedra and cylinders
 - Parallel magnetic force and torque simulation between magnets
 - Easy and seamless workflow using a JSON parameter file
 - [Modern CMake practices](https://pabloariasal.github.io/2018/02/19/its-time-to-do-cmake-right/)
@@ -129,13 +129,15 @@ The input data is a *.json* file that has the following format:
 Note that the **orientation** field in the JSON parameter file represents a quaternion, given as `[w, x, y, z]`.
 The **magnetization** field is the magnetic polarization **J** of the magnet, in Tesla.
 
-A magnet is a `cuboid`, a `sphere` or a `tetrahedron`. They differ in how their geometry is given:
+A magnet is a `cuboid`, a `sphere`, a `tetrahedron` or a `cylinder`. They differ in how their
+geometry is given:
 
 | `type` | geometry | `magnetization` |
 | --- | --- | --- |
 | `cuboid` | `dimensions`: `[a, b, c]`, the side lengths in metre | `[Jx, Jy, Jz]` in Tesla |
 | `sphere` | `dimensions`: the radius in metre, as a number or as `[r]` | `J` along the local z axis, as a number or as `[0, 0, J]` |
 | `tetrahedron` | `vertices`: four points in the local frame, in metre | `[Jx, Jy, Jz]` in Tesla |
+| `cylinder` | `dimensions`: `[d, h]`, the diameter and the height in metre | `[Jx, Jy, Jz]` in Tesla, or a number for `[0, 0, J]` |
 
 A sphere is magnetized along its own z axis, so a magnetization that points elsewhere is expressed
 by rotating the sphere with its `orientation` rather than by giving a transverse component.
@@ -175,6 +177,28 @@ the polarization itself inside the body, following Guptasarma, *Geophysics* 64(1
 cuboid or a sphere, its barycenter is not its position, and it is the barycenter that a torque
 refers to by default.
 
+The axis of a cylinder is its own z axis and its center is its `position`, so `orientation` is what
+points it elsewhere. A magnetization along the axis and one across it are two different closed
+forms, and an arbitrary magnetization is the superposition of the two:
+
+```txt
+{
+  "id": 4,
+  "type": "cylinder",
+  "parameters": {
+    "dimensions": [1.5, 0.8],
+    "magnetization": [0.3, -0.5, 0.8],
+    "position": [2, 0, 0],
+    "orientation": [1, 0, 0, 0]
+    }
+}
+```
+
+The axial part follows Derby, *American Journal of Physics* 78(3), 2010, and the part across the
+axis follows Caciagli, *Journal of Magnetism and Magnetic Materials* 456, 2018. Both reduce to
+Bulirsch's complete elliptic integral, which is the only special function the cylinder needs. The
+field is not defined on the rim where the hull meets a base, and is reported as zero there.
+
 ### Force and torque simulation
 
 Add an optional `force` section to the input file to compute the magnetic force (in Newton) and the
@@ -200,7 +224,7 @@ The fields of the `force` section are:
 | --- | --- | --- |
 | `targets` | `"all"` | Magnet ids the force acts on. Either `"all"`, a list of ids, or a list of target objects (see below). |
 | `sources` | every other magnet | Magnet ids that generate the field. A target never acts on itself. |
-| `meshing` | `1` | Number of cells per target, or `[n1, n2, n3]` cells along the local axes. A spherical magnet is exactly a point dipole and is never split. A tetrahedron is split on a barycentric grid, so it takes a cell count and reads `[n1, n2, n3]` as their product. |
+| `meshing` | `1` | Number of cells per target, or `[n1, n2, n3]` cells along the local axes. A spherical magnet is exactly a point dipole and is never split. A tetrahedron is split on a barycentric grid and a cylinder into rings, so both take a cell count and read `[n1, n2, n3]` as their product. A cylinder never yields fewer than two cells, because its split is apportioned over circumference, radius and height. |
 | `pivot` | `"centroid"` | Point through which the force contributes to the torque, either `"centroid"` or `[x, y, z]`. |
 | `eps` | `1e-3 * magnet size` | Finite difference step in metre used for the field gradient. |
 

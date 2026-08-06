@@ -1,55 +1,151 @@
 {
-  "magnets": [
-    {
-      "id": 1,
-      "type": "cuboid",
-      "parameters": {
-        "dimensions": [1, 1, 1],
-        "magnetization": [0, 1, 0],
-        "position": [0, 0, 0],
-        "orientation": [1, 0, 0, 0]
-        }
-    },
-    {
-      "id": 2,
-      "type": "cuboid",
-      "parameters": {
-        "dimensions": [1, 1, 1],
-        "magnetization": [0, 1, 0],
-        "position": [0, 0, 2],
-        "orientation": [1, 0, 0, 0]
-        }
-    },
-    {
-      "id": 3,
-      "type": "tetrahedron",
-      "parameters": {
-        "vertices": [[0, 0, 0], [1, 0, 0], [0, 1, 0], [0, 0, 1]],
-        "magnetization": [0, 1, 0],
-        "position": [0, 0, -2],
-        "orientation": [1, 0, 0, 0]
-        }
-    }
-  ],
-   "field_of_view": {
-     "x": {
-       "min": 2,
-       "max": 4,
-       "n": 3
-    },
-     "y": {
-       "min": 2,
-       "max": 3,
-       "n": 4
-    },
-     "z": {
-       "min": 0,
-       "max": 10,
-       "n": 11
-    }
-   },
-   "force": {
-     "targets": [2],
-     "meshing": 1000
+ "magnets": [
+  {
+   "id": 1,
+   "type": "cuboid",
+   "parameters": {
+    "dimensions": [
+     1,
+     1,
+     1
+    ],
+    "magnetization": [
+     0,
+     1,
+     0
+    ],
+    "position": [
+     0,
+     0,
+     0
+    ],
+    "orientation": [
+     1,
+     0,
+     0,
+     0
+    ]
    }
+  },
+  {
+   "id": 2,
+   "type": "cuboid",
+   "parameters": {
+    "dimensions": [
+     1,
+     1,
+     1
+    ],
+    "magnetization": [
+     0,
+     1,
+     0
+    ],
+    "position": [
+     0,
+     0,
+     2
+    ],
+    "orientation": [
+     1,
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "id": 3,
+   "type": "tetrahedron",
+   "parameters": {
+    "vertices": [
+     [
+      0,
+      0,
+      0
+     ],
+     [
+      1,
+      0,
+      0
+     ],
+     [
+      0,
+      1,
+      0
+     ],
+     [
+      0,
+      0,
+      1
+     ]
+    ],
+    "magnetization": [
+     0,
+     1,
+     0
+    ],
+    "position": [
+     0,
+     0,
+     -2
+    ],
+    "orientation": [
+     1,
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "id": 4,
+   "type": "cylinder",
+   "parameters": {
+    "dimensions": [
+     1.5,
+     0.8
+    ],
+    "magnetization": [
+     0,
+     1,
+     0
+    ],
+    "position": [
+     2.0,
+     0,
+     0
+    ],
+    "orientation": [
+     1,
+     0,
+     0,
+     0
+    ]
+   }
+  }
+ ],
+ "field_of_view": {
+  "x": {
+   "min": 2,
+   "max": 4,
+   "n": 3
+  },
+  "y": {
+   "min": 2,
+   "max": 3,
+   "n": 4
+  },
+  "z": {
+   "min": 0,
+   "max": 10,
+   "n": 11
+  }
+ },
+ "force": {
+  "targets": [
+   2
+  ],
+  "meshing": 1000
+ }
 }

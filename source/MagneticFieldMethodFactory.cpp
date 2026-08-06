@@ -2,6 +2,7 @@
 # include <greeter/CubicMagnet.h>
 # include <greeter/SphericalMagnet.h>
 # include <greeter/TetrahedronMagnet.h>
+# include <greeter/CylinderMagnet.h>
 # include <stdexcept>
 
 
@@ -33,6 +34,13 @@ greeter::MagneticFieldMethodFactory::MagneticFieldMethodFactory() {
     registerNumberOfParameters(
         greeter::TetrahedronMagnet::getStaticTypeID(),
         greeter::TetrahedronMagnet::numberOfParameters);
+
+    registerComputeMagneticField(
+        greeter::CylinderMagnet::getStaticTypeID(),
+        greeter::CylinderMagnet::computeMagneticFieldForCylinder);
+    registerNumberOfParameters(
+        greeter::CylinderMagnet::getStaticTypeID(),
+        greeter::CylinderMagnet::numberOfParameters);
 }
 
 

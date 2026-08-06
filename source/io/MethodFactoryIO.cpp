@@ -2,6 +2,7 @@
 #include <greeter/io/CubicMagnetIO.h>
 #include <greeter/io/SphericalMagnetIO.h>
 #include <greeter/io/TetrahedronMagnetIO.h>
+#include <greeter/io/CylinderMagnetIO.h>
 
 #include <stdexcept>
 
@@ -20,6 +21,10 @@ greeter::MethodFactoryIO::MethodFactoryIO() {
     registerGetMagnet(
         greeter::TetrahedronMagnetIO::getTypeName(),
         greeter::TetrahedronMagnetIO::createMagnet);
+
+    registerGetMagnet(
+        greeter::CylinderMagnetIO::getTypeName(),
+        greeter::CylinderMagnetIO::createMagnet);
 }
 
 

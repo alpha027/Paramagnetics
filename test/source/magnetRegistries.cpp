@@ -122,7 +122,7 @@ TEST_CASE("An unknown magnet type is reported instead of being built") {
 
   const char* JSON = R"({
     "magnets": [
-      { "id": 1, "type": "cylinder", "parameters": {
+      { "id": 1, "type": "torus", "parameters": {
           "dimensions": [1, 1], "magnetization": [0, 0, 1],
           "position": [0, 0, 0], "orientation": [1, 0, 0, 0] } }
     ],
@@ -132,7 +132,7 @@ TEST_CASE("An unknown magnet type is reported instead of being built") {
   // A null magnet used to reach the collection and crash on its first use.
   CHECK_THROWS_AS(
     greeter::MethodFactoryIO::getInstance().createMagnet(
-      "cylinder", nlohmann::json::parse(JSON)["magnets"][0]),
+      "torus", nlohmann::json::parse(JSON)["magnets"][0]),
     std::invalid_argument);
 
   CHECK_FALSE(greeter::MagnetIO::validateJSON(nlohmann::json::parse(JSON)));
