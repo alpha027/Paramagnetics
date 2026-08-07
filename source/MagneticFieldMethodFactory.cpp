@@ -1,4 +1,47 @@
 # include <greeter/MagneticFieldMethodFactory.h>
+# include <greeter/CubicMagnet.h>
+# include <greeter/SphericalMagnet.h>
+# include <greeter/TetrahedronMagnet.h>
+# include <greeter/CylinderMagnet.h>
+# include <stdexcept>
+
+
+/*
+  The magnets that ship with this library. Naming their kernels here is what
+  pulls their translation units out of the static library, so a new magnet
+  class of this library has to be added to this list to be reachable through
+  the registry. A magnet defined outside of it registers itself instead.
+*/
+greeter::MagneticFieldMethodFactory::MagneticFieldMethodFactory() {
+
+    registerComputeMagneticField(
+        greeter::CuboidMagnet::getStaticTypeID(),
+        greeter::CuboidMagnet::computeMagneticFieldForCube);
+    registerNumberOfParameters(
+        greeter::CuboidMagnet::getStaticTypeID(),
+        greeter::CuboidMagnet::numberOfParameters);
+
+    registerComputeMagneticField(
+        greeter::SphereMagnet::getStaticTypeID(),
+        greeter::SphereMagnet::computeMagneticFieldForSphere);
+    registerNumberOfParameters(
+        greeter::SphereMagnet::getStaticTypeID(),
+        greeter::SphereMagnet::numberOfParameters);
+
+    registerComputeMagneticField(
+        greeter::TetrahedronMagnet::getStaticTypeID(),
+        greeter::TetrahedronMagnet::computeMagneticFieldForTetrahedron);
+    registerNumberOfParameters(
+        greeter::TetrahedronMagnet::getStaticTypeID(),
+        greeter::TetrahedronMagnet::numberOfParameters);
+
+    registerComputeMagneticField(
+        greeter::CylinderMagnet::getStaticTypeID(),
+        greeter::CylinderMagnet::computeMagneticFieldForCylinder);
+    registerNumberOfParameters(
+        greeter::CylinderMagnet::getStaticTypeID(),
+        greeter::CylinderMagnet::numberOfParameters);
+}
 
 
 void greeter::MagneticFieldMethodFactory::displayRegistered() const {
@@ -16,6 +59,18 @@ bool greeter::MagneticFieldMethodFactory::registerComputeMagneticField(
 
 bool greeter::MagneticFieldMethodFactory::registerNumberOfParameters(
     const u_int16_t& key, NumerOfParametersFunction _method) {
+
+    // The simulators pack the parameters of a magnet into a stack array of this
+    // size, so a shape that needs more has to be caught here rather than by
+    // walking off the end of that array.
+    if (_method() > greeter::MAX_MAGNET_PARAMETERS) {
+        throw std::length_error(
+            "Magnet type '" + std::to_string(key) + "' takes " +
+            std::to_string(_method()) + " parameters, more than the " +
+            std::to_string(greeter::MAX_MAGNET_PARAMETERS) +
+            " a simulator makes room for");
+    }
+
     registry_parameters[key] = _method;
     return true;
 }
@@ -30,6 +85,24 @@ void greeter::MagneticFieldMethodFactory::computeMagneticField(
     } else {
         std::cout << "Unknown child type '" << key << "'" << std::endl;
     }
+}
+
+greeter::MagneticFieldMethodFactory::MethodFunction
+greeter::MagneticFieldMethodFactory::getComputeMagneticField(const u_int16_t& key) const {
+
+    auto it = registry.find(key);
+    if (it == registry.end()) {
+        std::string known;
+        for (const auto& entry : registry) {
+            known += known.empty() ? "" : ", ";
+            known += std::to_string(entry.first);
+        }
+        throw std::invalid_argument(
+            "Unknown magnet type '" + std::to_string(key) +
+            "', the known types are " + known);
+    }
+
+    return it->second;
 }
 
 size_t greeter::MagneticFieldMethodFactory::getNumberOfParameters(const u_int16_t& key) const {

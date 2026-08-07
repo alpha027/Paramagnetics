@@ -7,6 +7,13 @@
 
 namespace greeter {
 
+/*
+  Upper bound on getNumOfParameters() of any magnet class, so that a simulator
+  can pack the parameters of a magnet into a stack array without knowing its
+  shape. The registry rejects a magnet class that needs more.
+*/
+constexpr size_t MAX_MAGNET_PARAMETERS = 32;
+
 class Magnet {
 
   public:
@@ -20,6 +27,13 @@ class Magnet {
     virtual std::unique_ptr<Magnet> clone() const = 0;
 
     virtual std::vector<float> getPosition() const = 0;
+
+    /*
+      Geometric center of the magnet, which is the pivot a torque refers to by
+      default. It is the position of every magnet whose shape is symmetric
+      around it, so only the shapes that are not have to override this.
+    */
+    virtual std::vector<float> getCentroid() const { return getPosition(); }
 
     virtual std::vector<float> getDimensions() const = 0;
 

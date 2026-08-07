@@ -16,11 +16,14 @@
 
 # ParaMagneticS
 
-Stands for parallel magnetic field simulations. This repository offers a user friendly tool to efficiently simulate the magnetic field stemming from simple magnet geometries: cube and sphere. ParaMagneticS is implemented in C++ and allows to explore the magnetic field for a combination of magnets. The simulations are performed in a parallel manner to reduce the design iteration time for different magnet configurations.
+Stands for parallel magnetic field simulations. This repository offers a user friendly tool to efficiently simulate the magnetic field stemming from simple magnet geometries: cuboid, sphere, tetrahedron and cylinder. ParaMagneticS is implemented in C++ and allows to explore the magnetic field for a combination of magnets. The simulations are performed in a parallel manner to reduce the design iteration time for different magnet configurations.
 
 ## Features
 
-- Elementary magnets: Cubic and spherical magnets
+- Elementary magnets: cuboids, spheres, tetrahedra and cylinders
+- Parametrised arrangements of them, built from the parameter file rather than written out one by one
+- Parallel magnetic force and torque simulation between magnets
+- A Qt viewer for the result, which is a separate program and needs neither Kokkos nor the input file
 - Easy and seamless workflow using a JSON parameter file
 - [Modern CMake practices](https://pabloariasal.github.io/2018/02/19/its-time-to-do-cmake-right/)
 - Clean separation of library and executable code
@@ -59,16 +62,30 @@ The `/full_dir_path_to_data_output` is the directory in which the simulation res
 
 ### Build and run the standalone target
 
-Use the compiling script *compile.sh*:
+The compile script builds the simulator, the test suite and, when Qt 6 is
+installed, the viewer:
+
 ```bash
 ./compile.sh
 ```
 
-or use the following command to build and run the executable target.
+It takes a few options: `--clean` starts over, `--debug` builds Debug,
+`--no-tests` and `--no-gui` leave parts out, `-j N` sets the number of build
+jobs. `./compile.sh --help` lists them all.
+
+Then run an example:
+
+```bash
+./run_example.sh                  # simulate arrangements.json, results in output/
+./run_example.sh magnets.json     # any other input file
+./run_example.sh --view           # …and open the result in the viewer
+```
+
+Or build and run by hand:
 
 ```bash
 cmake -S standalone -B build/standalone -DCMAKE_BUILD_TYPE=Release -DKokkos_ENABLE_OPENMP=On -DCMAKE_CXX_COMPILER=g++
-cmake -S test -B build/test -DCMAKE_BUILD_TYPE=Release -DKokkos_ENABLE_OPENMP=On -DCMAKE_CXX_COMPILER=g++
+cmake --build build/standalone -j
 ./build/standalone/Greeter --help
 ```
 
@@ -87,6 +104,52 @@ CTEST_OUTPUT_ON_FAILURE=1 cmake --build build/test --target test
 
 To collect code coverage information, run CMake with the `-DENABLE_TEST_COVERAGE=1` option.
 
+### Build and run the viewer
+
+The viewer draws a scene, the field it makes and the forces in it. It needs Qt 6 and is built
+separately, so that everything above builds on a machine without it.
+
+```bash
+# Debian and Ubuntu; other systems have their own names for these
+sudo apt install qt6-base-dev libqt6opengl6-dev
+
+cmake -S gui -B build/gui -DCMAKE_BUILD_TYPE=Release -DKokkos_ENABLE_OPENMP=On -DCMAKE_CXX_COMPILER=g++
+cmake --build build/gui
+
+./build/gui/paramagnetics-viewer arrangements.json
+```
+
+Open an input file, press **Run**, and the field and the forces it asks for are simulated on a
+thread of their own, so the window stays usable and the run can be stopped. Drag to turn, shift
+drag or middle drag to slide, the wheel to zoom, and click a magnet to pick it out. The magnets an
+arrangement generated are grouped under it on the left.
+
+The field can be shown as a slice plane, as arrows, or as field lines followed through it. Arrows
+are all drawn the same length and the strength is in the colour: a length that followed the
+strength would draw one arrow across the whole box and leave every other one too small to see. For
+the same reason the colour scale is logarithmic by default and stops short of the largest sample.
+
+It also draws without a window, which is useful on a machine that has none and for making the same
+figure repeatedly:
+
+```bash
+./build/gui/paramagnetics-viewer arrangements.json --show slice,lines,magnets --draw field.png
+```
+
+#### Looking at a run somebody else did
+
+The viewer does not need the simulator. A run on a cluster writes a snapshot, and the snapshot
+opens anywhere:
+
+```bash
+./build/standalone/Greeter --input arrangements.json --snapshot run.pmsnap
+./build/gui/paramagnetics-viewer run.pmsnap
+```
+
+A snapshot holds the magnets, the field and the forces, and nothing needs to be simulated again to
+look at it. `run.json` instead of `run.pmsnap` writes the readable form, which is worth having for
+a small field and hopeless for a large one: a grid of a hundred points a side is three million
+numbers.
 
 ### Input Data
 
@@ -125,11 +188,275 @@ The input data is a *.json* file that has the following format:
    }
 }
 ```
-Note that the **orientation** field in the JSON parameter file represents a quaternion.
+Note that the **orientation** field in the JSON parameter file represents a quaternion, given as `[w, x, y, z]`.
+The **magnetization** field is the magnetic polarization **J** of the magnet, in Tesla.
+
+A magnet is a `cuboid`, a `sphere`, a `tetrahedron` or a `cylinder`. They differ in how their
+geometry is given:
+
+| `type` | geometry | `magnetization` |
+| --- | --- | --- |
+| `cuboid` | `dimensions`: `[a, b, c]`, the side lengths in metre | `[Jx, Jy, Jz]` in Tesla |
+| `sphere` | `dimensions`: the radius in metre, as a number or as `[r]` | `J` along the local z axis, as a number or as `[0, 0, J]` |
+| `tetrahedron` | `vertices`: four points in the local frame, in metre | `[Jx, Jy, Jz]` in Tesla |
+| `cylinder` | `dimensions`: `[d, h]`, the diameter and the height in metre | `[Jx, Jy, Jz]` in Tesla, or a number for `[0, 0, J]` |
+
+A sphere is magnetized along its own z axis, so a magnetization that points elsewhere is expressed
+by rotating the sphere with its `orientation` rather than by giving a transverse component.
+
+```txt
+{
+  "id": 2,
+  "type": "sphere",
+  "parameters": {
+    "dimensions": 0.5,
+    "magnetization": 1.0,
+    "position": [0, 0, 0],
+    "orientation": [1, 0, 0, 0]
+    }
+}
+```
+
+The four vertices of a tetrahedron are given in its own frame, and `position` and `orientation`
+then place it. They are written either as four points or as a flat list of twelve numbers, and
+they must not be coplanar. Their winding does not matter.
+
+```txt
+{
+  "id": 3,
+  "type": "tetrahedron",
+  "parameters": {
+    "vertices": [[0, 0, 0], [1, 0, 0], [0, 1, 0], [0, 0, 1]],
+    "magnetization": [0.3, -0.7, 0.5],
+    "position": [0, 0, 0],
+    "orientation": [1, 0, 0, 0]
+    }
+}
+```
+
+The field of a tetrahedron is the sum of the fields of its four magnetically charged faces, plus
+the polarization itself inside the body, following Guptasarma, *Geophysics* 64(1), 1999. Unlike a
+cuboid or a sphere, its barycenter is not its position, and it is the barycenter that a torque
+refers to by default.
+
+The axis of a cylinder is its own z axis and its center is its `position`, so `orientation` is what
+points it elsewhere. A magnetization along the axis and one across it are two different closed
+forms, and an arbitrary magnetization is the superposition of the two:
+
+```txt
+{
+  "id": 4,
+  "type": "cylinder",
+  "parameters": {
+    "dimensions": [1.5, 0.8],
+    "magnetization": [0.3, -0.5, 0.8],
+    "position": [2, 0, 0],
+    "orientation": [1, 0, 0, 0]
+    }
+}
+```
+
+The axial part follows Derby, *American Journal of Physics* 78(3), 2010, and the part across the
+axis follows Caciagli, *Journal of Magnetism and Magnetic Materials* 456, 2018. Both reduce to
+Bulirsch's complete elliptic integral, which is the only special function the cylinder needs. The
+field is not defined on the rim where the hull meets a base, and is reported as zero there.
+
+### Arrangements
+
+A group of identical magnets does not have to be written out one by one. An optional
+`arrangements` section describes it by its parameters instead, and the reader turns it into
+ordinary magnets that the rest of the library cannot tell apart from listed ones. A file may hold
+`magnets`, `arrangements`, or both.
+
+```txt
+{
+  "arrangements": [
+    {
+      "id": 100,
+      "type": "linear_array",
+      "parameters": {
+        "count": [4, 2, 1],
+        "spacing": [0.03, 0.03, 0.03],
+        "alternating": "x",
+        "position": [0, 0, 0],
+        "orientation": [1, 0, 0, 0],
+        "element": {
+          "type": "cuboid",
+          "parameters": {
+            "dimensions": [0.02, 0.02, 0.02],
+            "magnetization": [0, 0, 1]
+          }
+        }
+      }
+    },
+    {
+      "id": 200,
+      "type": "halbach_ring",
+      "parameters": {
+        "radius": 0.3,
+        "count": 16,
+        "order": 1,
+        "element": {
+          "type": "cuboid",
+          "parameters": {
+            "dimensions": [0.1, 0.1, 0.1],
+            "magnetization": [0, 1, 0]
+          }
+        }
+      }
+    }
+  ]
+}
+```
+
+The `element` is the magnet the arrangement repeats, written in the schema of that magnet minus
+its `position` and `orientation`, which the arrangement is what decides. It goes through the
+reader of its own type, so any magnet type works as an element, and an element that places itself
+is refused rather than quietly overwritten. Its `magnetization` is read in its own frame and is
+carried along when the arrangement turns it, so a member moves as a rigid body, its geometry and
+its polarization together.
+
+The `position` and `orientation` of an arrangement place the assembly as a whole and are both
+optional, defaulting to the origin and no rotation. A member is placed in the frame of the
+arrangement first and carried into the world second.
+
+| `type` | parameters |
+| --- | --- |
+| `linear_array` | `count`: members along the local x, y and z as `[nx, ny, nz]`, or a single number for a row. `spacing`: the distance between neighbours in metre as `[dx, dy, dz]`, or a single number for all three. `centered`: optional, `true` by default, so the lattice sits on `position` rather than starting there. `alternating`: optional, `"x"`, `"y"` or `"z"`, turning every other member half a turn about that local axis. |
+| `circular_array` | `radius`: of the circle the members sit on, in metre. `count`: members round it. `face`: optional, `"axis"` by default, leaving every member pointing the same way, or `"center"`, carrying the frame of a member round the ring with it. |
+| `halbach_ring` | `radius` and `count` as above. `order`: optional, `1` by default, turning the member at the angle `t` by `(order + 1) * t` about the axis of the ring. |
+| `halbach_linear` | `count`: members in the row. `spacing`: the distance between neighbours in metre. `steps_per_period`: members per full turn of the polarization, or `wavelength`: the same thing as a length, exactly one of the two. `centered`: optional, `true` by default. |
+
+The members of a lattice come out with x running fastest and z slowest, so the member at
+`(ix, iy, iz)` is number `ix + nx * (iy + ny * iz)`. The members of a ring come out in the order
+they sit round it, starting on the local x axis and turning towards the local y axis.
+
+`alternating` is a rotation rather than a sign change on the magnetization, which is what keeps a
+member a rigid body; naming the axis the magnetization already lies along therefore leaves that
+member as it was.
+
+A Halbach ring of order 1 is the dipole ring, whose field is uniform inside it and cancels
+outside. Order 2 is the quadrupole, and order -1 leaves every member pointing the same way, which
+is what makes a `circular_array` the same ring without the turning: `"face": "axis"` is order -1
+and `"face": "center"` is order 0. The order is a whole number, because the polarization has to
+come back to itself after a full turn round the ring, and it may be negative.
+
+The axis the field of a ring lies along is set by the element, whose magnetization is read in its
+own frame, so a ring of order 1 built from an element polarized along its local y makes a field
+along y. Which way along that axis is decided by the ring rather than by the element: an element
+polarized along `+y` gives a field along `-y`.
+
+A linear Halbach row turns each member a little further about the local y axis than the one
+before, so a polarization along the local z axis sweeps round in the local xz plane and the field
+of the row is strong on one side and nearly cancels on the other. Four members to a period is the
+usual choice. With a positive `steps_per_period` and an element polarized along its local z, the
+strong side is local `-z`; negating `steps_per_period` or `wavelength` mirrors the row and swaps
+the two sides. The turn of member `i` is counted off `i` rather than off where it sits, so the
+first member is never turned however the row is placed.
+
+Note that `face: "center"` decides which way the *frame* of a member points, and it is the
+element that decides what lies along that frame: its magnetization is read in its own frame, so
+`[J, 0, 0]` ends up radial and `[0, J, 0]` tangential. An element cannot be given a rotation of its
+own, so a shape whose geometry rather than its magnetization has to point at the middle of a ring,
+such as a cylinder lying on its side, is not expressible yet.
+
+The magnets an arrangement generates are numbered on from the highest `id` the file uses, so
+adding an arrangement never renames a magnet that was already there. They can be named
+individually by those ids, or all at once by the arrangement they belong to, see below. See
+`arrangements.json` for a complete example.
+
+### Force and torque simulation
+
+Add an optional `force` section to the input file to compute the magnetic force (in Newton) and the
+torque (in Newton metre) that the magnets exert on each other:
+
+```txt
+"force": {
+  "targets": [2],
+  "meshing": 1000
+}
+```
+
+Every target is split into cells that carry a magnetic moment. The field of the sources and its
+gradient are evaluated at each cell by finite differences, which gives the force
+`F = (grad B) . m` and the torque `T = m x B + (r - pivot) x F` of the cell. The cell contributions
+are then summed per target. This is the scheme of the
+[magpylib](https://github.com/magpylib/magpylib) `getFT` function, and the cells are distributed
+over the available threads in the same way as the observation points of a field simulation.
+
+The fields of the `force` section are:
+
+| Field | Default | Meaning |
+| --- | --- | --- |
+| `targets` | `"all"` | Magnet ids the force acts on. Either `"all"`, a list of ids, or a list of target objects (see below). |
+| `sources` | every other magnet | Magnet ids that generate the field. A target never acts on itself. |
+| | | An id in either list may be replaced by `{"arrangement": id}`, which names every member of that arrangement at once. `"all"` covers the generated magnets as well. |
+| `meshing` | `1` | Number of cells per target, or `[n1, n2, n3]` cells along the local axes. A spherical magnet is exactly a point dipole and is never split. A tetrahedron is split on a barycentric grid and a cylinder into rings, so both take a cell count and read `[n1, n2, n3]` as their product. A cylinder never yields fewer than two cells, because its split is apportioned over circumference, radius and height. |
+| `pivot` | `"centroid"` | Point through which the force contributes to the torque, either `"centroid"` or `[x, y, z]`. |
+| `eps` | `1e-3 * magnet size` | Finite difference step in metre used for the field gradient. |
+
+`meshing`, `sources` and `pivot` can also be set per target, by listing target objects instead of
+plain ids:
+
+```txt
+"force": {
+  "targets": [
+    {"id": 2, "meshing": [4, 4, 4], "sources": [1]},
+    {"id": 3, "meshing": 500, "pivot": [0, 0, 0]}
+  ],
+  "eps": 1e-4
+}
+```
+
+A target object may name an arrangement instead of a single magnet, in which case every member of
+it becomes a target and they share what the object says:
+
+```txt
+"force": {
+  "targets": [
+    {"id": 1, "meshing": 500},
+    {"arrangement": 100, "meshing": 8, "sources": [1]}
+  ]
+}
+```
+
+Note that a whole arrangement is as many targets as it has members, and the cost of a force
+simulation is the number of targets times the cells each is split into times the number of
+sources, so an arrangement of any size is where that cost starts to be felt.
+
+A larger `meshing` gives a more accurate force, at a cost that grows linearly with the number of
+cells. A single cell reduces the target to a point dipole in its center, which is already exact for
+a spherical magnet.
+
+The kernels of this library run in single precision, so `eps` cannot be made arbitrarily small
+without drowning the finite difference in round-off. The default of one thousandth of the magnet
+size keeps both the round-off and the truncation error small; values below `1e-5 * magnet size` are
+not recommended.
 
 ### Output Data
 
-The main script generates a *.csv* file containing the values of the magnetic field resulting from the provided magnets in the input JSON file.
+The main script generates a *.csv* file containing the values of the magnetic field resulting from
+the provided magnets in the input JSON file.
+
+When the input file has a `force` section, a second *.csv* file `force_results.csv` is written, with
+one row per target and the columns
+
+```txt
+magnet_id, Fx, Fy, Fz, Tx, Ty, Tz
+```
+
+where the force is given in Newton and the torque in Newton metre.
+
+Neither *.csv* says where anything was measured: the field file is three numbers a sample, in the
+order the field of view lays its points out, which is x slowest and z fastest. A snapshot does say,
+and is what the viewer opens:
+
+```bash
+./build/standalone/Greeter --input arrangements.json --snapshot run.pmsnap
+```
+
+A snapshot carries the magnets, their shapes and where they sit, the field together with the box it
+was sampled in, and the forces keyed by magnet id.
 
 ### Build the documentation
 

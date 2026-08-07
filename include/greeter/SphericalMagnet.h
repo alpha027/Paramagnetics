@@ -3,6 +3,8 @@
 
 #include <greeter/Magnet.h>
 #include <greeter/MagneticFieldMethodFactory.h>
+#include <greeter/TargetMesh.h>
+#include <greeter/view/ShapeDescriptor.h>
 
 namespace greeter {
 
@@ -80,6 +82,18 @@ class SphereMagnet: public Magnet {
       static std::string getStaticTypeName();
       static u_int16_t getStaticTypeID();
       static size_t numberOfParameters();
+
+      static greeter::TargetMeshData generateTargetMesh(
+        const float* parameters,
+        const greeter::MeshingSpec& meshing
+      );
+
+      /*
+        A sphere of a diameter. The class and the input file both work in the
+        radius, a descriptor always gives the extent across the shape so that
+        a viewer has one rule for every type. See MagnetGeometryFactory.
+      */
+      static greeter::view::ShapeDescriptor describeShape(const float* parameters);
   };
 
 } // namespace greeter

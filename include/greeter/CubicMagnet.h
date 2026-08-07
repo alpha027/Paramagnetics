@@ -3,6 +3,8 @@
 
 #include <greeter/Magnet.h>
 #include <greeter/MagneticFieldMethodFactory.h>
+#include <greeter/TargetMesh.h>
+#include <greeter/view/ShapeDescriptor.h>
 #include <vector>
 
 namespace greeter {
@@ -72,6 +74,14 @@ class CuboidMagnet: public Magnet {
       );
 
       static size_t numberOfParameters();
+
+      static greeter::TargetMeshData generateTargetMesh(
+        const float* parameters,
+        const greeter::MeshingSpec& meshing
+      );
+
+      /* A box of the three side lengths, see MagnetGeometryFactory. */
+      static greeter::view::ShapeDescriptor describeShape(const float* parameters);
   };
 
 } // namespace greeter

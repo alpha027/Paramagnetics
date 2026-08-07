@@ -1,4 +1,31 @@
 #include <greeter/io/MethodFactoryIO.h>
+#include <greeter/io/CubicMagnetIO.h>
+#include <greeter/io/SphericalMagnetIO.h>
+#include <greeter/io/TetrahedronMagnetIO.h>
+#include <greeter/io/CylinderMagnetIO.h>
+
+#include <stdexcept>
+
+
+// See MagneticFieldMethodFactory for why the built in readers are registered here.
+greeter::MethodFactoryIO::MethodFactoryIO() {
+
+    registerGetMagnet(
+        greeter::CubicMagnetIO::getTypeName(),
+        greeter::CubicMagnetIO::createMagnet);
+
+    registerGetMagnet(
+        greeter::SphericalMagnetIO::getTypeName(),
+        greeter::SphericalMagnetIO::createMagnet);
+
+    registerGetMagnet(
+        greeter::TetrahedronMagnetIO::getTypeName(),
+        greeter::TetrahedronMagnetIO::createMagnet);
+
+    registerGetMagnet(
+        greeter::CylinderMagnetIO::getTypeName(),
+        greeter::CylinderMagnetIO::createMagnet);
+}
 
 
 void greeter::MethodFactoryIO::displayRegistered() const {
@@ -20,13 +47,37 @@ bool greeter::MethodFactoryIO::registerGetMagnet(
 //     return true;
 // }
 
+bool greeter::MethodFactoryIO::isRegistered(const std::string& key) const {
+    return registry.find(key) != registry.end();
+}
+
+std::vector<std::string> greeter::MethodFactoryIO::getRegisteredTypes() const {
+
+    std::vector<std::string> keys;
+    keys.reserve(registry.size());
+
+    for (const auto& entry : registry) {
+        keys.push_back(entry.first);
+    }
+
+    return keys;
+}
+
 std::unique_ptr<greeter::Magnet> greeter::MethodFactoryIO::createMagnet(
     const std::string& key, const nlohmann::json& magnet) const {
     auto it = registry.find(key);
-    if (it != registry.end()) {
-        return it->second(magnet);
-    } else {
-        std::cout << "Unknown child type '" << key << "'" << std::endl;
-        return nullptr;
+
+    if (it == registry.end()) {
+        // Returning a null magnet used to leave the collection with an entry
+        // that crashed on the first use.
+        std::string known;
+        for (const auto& entry : registry) {
+            known += known.empty() ? "" : ", ";
+            known += entry.first;
+        }
+        throw std::invalid_argument(
+            "Unknown magnet type '" + key + "', the known types are " + known);
     }
+
+    return it->second(magnet);
 }

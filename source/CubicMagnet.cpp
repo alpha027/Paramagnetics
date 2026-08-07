@@ -1,8 +1,10 @@
 #include <greeter/CubicMagnet.h>
 #include <greeter/Quaternion.h>
+#include <greeter/TargetMeshFactory.h>
+#include <algorithm>
 #include <cmath>
 
-greeter::CuboidMagnet::CuboidMagnet() : position({0, 0, 0}), orientation({1.0, 0.0, 0.0, 0.0}), dimensions({1.0, 1.0, 1.0}), magnetization({0, 1.0, 0}) {}
+greeter::CuboidMagnet::CuboidMagnet() : position({0, 0, 0}), dimensions({1.0, 1.0, 1.0}), orientation({1.0, 0.0, 0.0, 0.0}), magnetization({0, 1.0, 0}) {}
 greeter::CuboidMagnet::CuboidMagnet( std::vector<float> _position, std::vector<float> _dimensions, std::vector<float> _orientation,
                             std::vector<float> _magnetization
                           ) : 
@@ -234,10 +236,10 @@ void greeter::CuboidMagnet::calculateMagneticFieldForAxisAlignedCube(
 
   float by_pol_x = magnetization[0] * ff2z * qsigns[0][1];
   float by_pol_y = magnetization[1] * ff1y * qsigns[1][1];
-  float by_pol_z = magnetization[2] * ff2x * qsigns[2][1];
+  float by_pol_z = -magnetization[2] * ff2x * qsigns[2][1];
 
   float bz_pol_x = magnetization[0] * ff2y * qsigns[0][2];
-  float bz_pol_y = magnetization[1] * ff2x * qsigns[1][2];
+  float bz_pol_y = -magnetization[1] * ff2x * qsigns[1][2];
   float bz_pol_z = magnetization[2] * ff1z * qsigns[2][2];
 
   result_x = (bx_pol_x + bx_pol_y + bx_pol_z)/(4.0f * M_PI);
@@ -325,19 +327,65 @@ uint16_t greeter::CuboidMagnet::getStaticTypeID() {
   return 0;
 }
 
-static bool registerCalculateMagneticFieldForCubeToFactory 
-__attribute__((unused)) =
- greeter::MagneticFieldMethodFactory::getInstance().
- registerComputeMagneticField(
-  greeter::CuboidMagnet::getStaticTypeID(),
-  greeter::CuboidMagnet::computeMagneticFieldForCube
-);
+greeter::TargetMeshData greeter::CuboidMagnet::generateTargetMesh(
+    const float* parameters, const greeter::MeshingSpec& meshing) {
+
+  const float a = parameters[7];
+  const float b = parameters[8];
+  const float c = parameters[9];
+  const float* polarization = &parameters[10];
+
+  uint32_t n1 = 1;
+  uint32_t n2 = 1;
+  uint32_t n3 = 1;
+
+  if (meshing.explicit_split) {
+    n1 = std::max(1u, meshing.n[0]);
+    n2 = std::max(1u, meshing.n[1]);
+    n3 = std::max(1u, meshing.n[2]);
+  } else if (meshing.total > 1) {
+    // split with a cell aspect ratio close to 1
+    const float cell_size = std::cbrt(a * b * c / (float)meshing.total);
+    n1 = std::max(1u, (uint32_t)std::lround(a / cell_size));
+    n2 = std::max(1u, (uint32_t)std::lround(b / cell_size));
+    n3 = std::max(1u, (uint32_t)std::lround(c / cell_size));
+  }
+
+  const float volume = a * b * c / (float)(n1 * n2 * n3);
+  const float moment_scale = volume / greeter::MU0;
+
+  greeter::TargetMeshData mesh;
+  mesh.reserve((size_t)n1 * n2 * n3);
+
+  for (uint32_t i = 0; i < n1; i++) {
+    for (uint32_t j = 0; j < n2; j++) {
+      for (uint32_t k = 0; k < n3; k++) {
+        greeter::MeshCell cell;
+
+        cell.point[0] = -a / 2.0f + ((float)i + 0.5f) * a / (float)n1;
+        cell.point[1] = -b / 2.0f + ((float)j + 0.5f) * b / (float)n2;
+        cell.point[2] = -c / 2.0f + ((float)k + 0.5f) * c / (float)n3;
+
+        cell.moment[0] = moment_scale * polarization[0];
+        cell.moment[1] = moment_scale * polarization[1];
+        cell.moment[2] = moment_scale * polarization[2];
+
+        mesh.push_back(cell);
+      }
+    }
+  }
+
+  return mesh;
+}
 
 
-static bool registerNumberOfParametersForCubeToFactory
-__attribute__((unused)) =
-greeter::MagneticFieldMethodFactory::getInstance().
-registerNumberOfParameters(
-  greeter::CuboidMagnet::getStaticTypeID(),
-  greeter::CuboidMagnet::numberOfParameters
-);
+greeter::view::ShapeDescriptor greeter::CuboidMagnet::describeShape(
+    const float* parameters) {
+
+  greeter::view::ShapeDescriptor shape;
+
+  shape.kind = greeter::view::ShapeKind::Box;
+  shape.parameters = {parameters[7], parameters[8], parameters[9]};
+
+  return shape;
+}

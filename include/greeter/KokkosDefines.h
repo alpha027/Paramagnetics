@@ -67,6 +67,30 @@ typedef Kokkos::View< int32_t*, Layout, MemSpace > Int32VectorView;
 typedef Kokkos::View< uint64_t*, Layout, MemSpace > UInt64VectorView;
 typedef Kokkos::View< float*, Layout, MemSpace > FloatVectorView;
 
+/*
+  Field kernel of a magnet class. A plain function pointer rather than a
+  std::function, so that it can be held in a View and called from inside a
+  parallel loop.
+*/
+typedef void (*FieldKernel)(const float* parameters, const float* observation_point,
+                            float& b_x, float& b_y, float& b_z);
+
+/*
+  Everything a simulator has to know about one magnet of a simulation that
+  depends on its type. Resolved once, before the parallel loop, so that the loop
+  neither looks the type up in the registry nor branches on it.
+
+  The kernel is wrapped in a struct because a View reads every trailing '*' of
+  its data type as a rank, which would take a bare function pointer apart.
+*/
+struct MagnetKernel {
+    FieldKernel kernel;           // field kernel of the shape
+    u_int32_t geometry_offset;    // start of the geometry of this magnet in `dimensions`
+    u_int32_t geometry_count;     // geometry parameters the shape takes
+};
+
+typedef Kokkos::View< MagnetKernel*, Layout, MemSpace > MagnetKernelView;
+
 // random generator type def
 typedef typename Kokkos::Random_XorShift64_Pool<> RandPoolType;
 

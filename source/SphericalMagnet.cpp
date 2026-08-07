@@ -1,5 +1,6 @@
 #include <greeter/SphericalMagnet.h>
 #include <greeter/Quaternion.h>
+#include <greeter/TargetMeshFactory.h>
 #include <cmath>
 
 
@@ -16,11 +17,12 @@ greeter::SphereMagnet::SphereMagnet() :
 greeter::SphereMagnet::SphereMagnet(
   std::vector<float> _position, std::vector<float> _orientation,
   float _radius, float _magnetization ) :
-  position(_position), radius(_radius),
-  orientation(_orientation), magnetization(_magnetization) {}
+  radius(_radius), magnetization(_magnetization),
+  position(_position), orientation(_orientation) {}
 
 greeter::SphereMagnet::SphereMagnet(const SphereMagnet& other) :
-    radius(other.radius), magnetization(other.magnetization) {}
+    radius(other.radius), magnetization(other.magnetization),
+    position(other.position), orientation(other.orientation) {}
 
 greeter::SphereMagnet::~SphereMagnet() {}
 
@@ -58,7 +60,10 @@ std::vector<float> greeter::SphereMagnet::getOrientation() const {
 }
 
 std::vector<float> greeter::SphereMagnet::getMagnetization() const {
-  std::vector<float> theMagnetization = {magnetization};
+  // The magnetization of a sphere is stored as its magnitude along the local
+  // e_z, but callers (and the parameter arrays of the field kernels) expect the
+  // full vector.
+  std::vector<float> theMagnetization = {0.0f, 0.0f, magnetization};
   return theMagnetization;
 }
 
@@ -254,14 +259,43 @@ std::vector<float> greeter::SphereMagnet::calculateMagneticFieldForSphere(
 }
 
 
-static bool registerCalculateMagneticFieldForSphereToFactory
-    __attribute__((unused)) = greeter::MagneticFieldMethodFactory::getInstance().
-    registerComputeMagneticField(
-        greeter::SphereMagnet::getStaticTypeID(), 
-        greeter::SphereMagnet::computeMagneticFieldForSphere );
+greeter::TargetMeshData greeter::SphereMagnet::generateTargetMesh(
+    const float* parameters, const greeter::MeshingSpec& meshing) {
 
-static bool registerNumberOfParametersForSphereToFactory
-    __attribute__((unused)) = greeter::MagneticFieldMethodFactory::getInstance().
-    registerNumberOfParameters(
-        greeter::SphereMagnet::getStaticTypeID(),
-        greeter::SphereMagnet::numberOfParameters );
+  // A homogeneously magnetized sphere is exactly equivalent to a point dipole
+  // in its center, so it is never split into cells and the meshing input is
+  // ignored (same as magpylib).
+  (void)meshing;
+
+  const float radius = parameters[7];
+  const float* polarization = &parameters[8];
+
+  const float volume = 4.0f / 3.0f * (float)M_PI * radius * radius * radius;
+  const float moment_scale = volume / greeter::MU0;
+
+  greeter::MeshCell cell;
+
+  cell.point[0] = 0.0f;
+  cell.point[1] = 0.0f;
+  cell.point[2] = 0.0f;
+
+  cell.moment[0] = moment_scale * polarization[0];
+  cell.moment[1] = moment_scale * polarization[1];
+  cell.moment[2] = moment_scale * polarization[2];
+
+  return greeter::TargetMeshData{cell};
+}
+
+
+greeter::view::ShapeDescriptor greeter::SphereMagnet::describeShape(
+    const float* parameters) {
+
+  greeter::view::ShapeDescriptor shape;
+
+  // The class keeps a radius, a descriptor always gives the extent across the
+  // shape so that one rule covers every type.
+  shape.kind = greeter::view::ShapeKind::Sphere;
+  shape.parameters = {2.0f * parameters[7]};
+
+  return shape;
+}

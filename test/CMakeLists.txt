@@ -48,6 +48,21 @@ if(NOT TEST_INSTALLED_VERSION)
   endif()
 endif()
 
+# ---- Boundary guard ----
+
+# The view and service headers are what a viewer includes, and the point of
+# them is that a viewer needs no Kokkos. This target compiles a file that
+# includes every one of them with only the library's own include directory and
+# nlohmann/json available, so a Kokkos include leaking into any of them stops
+# the build rather than quietly tying the viewer to Kokkos. See
+# test/boundary/viewBoundary.cpp.
+add_library(GreeterViewBoundary OBJECT ${CMAKE_CURRENT_SOURCE_DIR}/boundary/viewBoundary.cpp)
+set_target_properties(GreeterViewBoundary PROPERTIES CXX_STANDARD 17)
+target_include_directories(GreeterViewBoundary PRIVATE ${CMAKE_CURRENT_LIST_DIR}/../include)
+target_link_libraries(GreeterViewBoundary PRIVATE nlohmann_json::nlohmann_json)
+target_compile_options(GreeterViewBoundary PRIVATE -Wall -Wpedantic -Wextra)
+add_dependencies(${PROJECT_NAME} GreeterViewBoundary)
+
 # ---- Add GreeterTests ----
 
 ##enable_testing()
