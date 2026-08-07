@@ -62,16 +62,30 @@ The `/full_dir_path_to_data_output` is the directory in which the simulation res
 
 ### Build and run the standalone target
 
-Use the compiling script *compile.sh*:
+The compile script builds the simulator, the test suite and, when Qt 6 is
+installed, the viewer:
+
 ```bash
 ./compile.sh
 ```
 
-or use the following command to build and run the executable target.
+It takes a few options: `--clean` starts over, `--debug` builds Debug,
+`--no-tests` and `--no-gui` leave parts out, `-j N` sets the number of build
+jobs. `./compile.sh --help` lists them all.
+
+Then run an example:
+
+```bash
+./run_example.sh                  # simulate arrangements.json, results in output/
+./run_example.sh magnets.json     # any other input file
+./run_example.sh --view           # …and open the result in the viewer
+```
+
+Or build and run by hand:
 
 ```bash
 cmake -S standalone -B build/standalone -DCMAKE_BUILD_TYPE=Release -DKokkos_ENABLE_OPENMP=On -DCMAKE_CXX_COMPILER=g++
-cmake -S test -B build/test -DCMAKE_BUILD_TYPE=Release -DKokkos_ENABLE_OPENMP=On -DCMAKE_CXX_COMPILER=g++
+cmake --build build/standalone -j
 ./build/standalone/Greeter --help
 ```
 
