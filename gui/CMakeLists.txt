@@ -14,7 +14,14 @@ CPMAddPackage(NAME Greeter SOURCE_DIR ${CMAKE_CURRENT_LIST_DIR}/..)
 
 find_package(Qt6 6.2 REQUIRED COMPONENTS Core Gui Widgets OpenGL OpenGLWidgets)
 
-qt_standard_project_setup()
+# qt_standard_project_setup() only exists from Qt 6.3; on 6.2 set by hand the
+# two things it would set that matter here.
+if(Qt6_VERSION VERSION_LESS 6.3)
+  set(CMAKE_AUTOMOC ON)
+  set(CMAKE_AUTOUIC ON)
+else()
+  qt_standard_project_setup()
+endif()
 
 # ---- Create the viewer ----
 
