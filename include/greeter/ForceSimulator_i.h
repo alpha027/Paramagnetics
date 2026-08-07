@@ -152,8 +152,15 @@ void greeter::ForceSimulator::fillTargets(const std::vector<greeter::TargetSpec>
 
 inline
 void greeter::ForceSimulator::simulate() {
+    simulate(true);
+}
 
-    std::cout << "Start force simulation !" << std::endl;
+inline
+void greeter::ForceSimulator::simulate(const bool& verbose) {
+
+    if (verbose) {
+        std::cout << "Start force simulation !" << std::endl;
+    }
 
     Kokkos::parallel_for( range_policy( 0, num_cells ),
                           *this );
@@ -161,7 +168,9 @@ void greeter::ForceSimulator::simulate() {
 
     reduceToTargets();
 
-    std::cout << "End force simulation !" << std::endl;
+    if (verbose) {
+        std::cout << "End force simulation !" << std::endl;
+    }
 }
 
 inline
@@ -214,6 +223,14 @@ std::vector<greeter::ForceResult> greeter::ForceSimulator::getResults() const {
 
         // All cells of a target belong to the same magnet.
         result.target_index = cell_owner(target_cell_offsets(t));
+
+        result.cells = target_cell_offsets(t + 1) - target_cell_offsets(t);
+
+        // Carried out with the numbers, because a torque means nothing
+        // without the point it turns about.
+        result.pivot[0] = pivots(t, 0);
+        result.pivot[1] = pivots(t, 1);
+        result.pivot[2] = pivots(t, 2);
 
         result.force[0] = target_forces(t, 0);
         result.force[1] = target_forces(t, 1);

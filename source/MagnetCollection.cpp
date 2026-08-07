@@ -161,7 +161,7 @@ std::vector<std::vector<float>> greeter::MagnetCollection::simulate(const greete
 
   std::unique_ptr<greeter::MagneticFieldSimulator> simulator = createSimulator();
 
-  simulator->fillObservationPoints(fov.getFOV());
+  simulator->fillObservationPoints(fov.getPoints());
 
   simulator->simulate();
 
@@ -197,6 +197,15 @@ std::vector<float> greeter::MagnetCollection::getMagnetParameters(const size_t& 
   }
 
   return parameters;
+}
+
+uint16_t greeter::MagnetCollection::getMagnetTypeID(const size_t& index) const {
+
+  if (index >= this->magnets.size()) {
+    throw std::out_of_range("Index out of range");
+  }
+
+  return this->magnets[index]->getTypeID();
 }
 
 std::unique_ptr<greeter::ForceSimulator> greeter::MagnetCollection::createForceSimulator() const {
@@ -251,6 +260,12 @@ std::unique_ptr<greeter::ForceSimulator> greeter::MagnetCollection::createForceS
 
 std::vector<greeter::ForceResult> greeter::MagnetCollection::computeForces(
     const greeter::ForceConfig& config) const {
+
+  return computeForces(config, true);
+}
+
+std::vector<greeter::ForceResult> greeter::MagnetCollection::computeForces(
+    const greeter::ForceConfig& config, const bool& verbose) const {
 
   const u_int32_t num_magnets = get_num_magnets();
 
@@ -347,7 +362,7 @@ std::vector<greeter::ForceResult> greeter::MagnetCollection::computeForces(
     simulator->printMeshReport();
   }
 
-  simulator->simulate();
+  simulator->simulate(verbose);
 
   return simulator->getResults();
 }

@@ -12,6 +12,8 @@ struct ForceResult {
   uint32_t target_index;  // index of the target magnet in the collection
   float force[3];         // [N]
   float torque[3];        // [N*m]
+  float pivot[3];         // the point the torque refers to
+  uint32_t cells;         // how finely the target was meshed
 };
 
 /*
@@ -77,6 +79,9 @@ public:
     void operator()( u_int64_t cell_index ) const;
 
     void simulate();
+
+    /* The same, without announcing itself, see MagneticFieldSimulator. */
+    void simulate(const bool& verbose);
 
     void fillTargets(const std::vector<greeter::TargetSpec>& targets);
 

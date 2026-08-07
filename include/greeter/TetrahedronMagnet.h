@@ -4,6 +4,7 @@
 #include <greeter/Magnet.h>
 #include <greeter/MagneticFieldMethodFactory.h>
 #include <greeter/TargetMesh.h>
+#include <greeter/view/ShapeDescriptor.h>
 #include <vector>
 
 namespace greeter {
@@ -99,6 +100,9 @@ class TetrahedronMagnet: public Magnet {
         const float* parameters,
         const greeter::MeshingSpec& meshing
       );
+
+      /* The four local vertices, see MagnetGeometryFactory. */
+      static greeter::view::ShapeDescriptor describeShape(const float* parameters);
   };
 
 } // namespace greeter

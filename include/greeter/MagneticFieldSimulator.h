@@ -40,6 +40,13 @@ public:
 
     void simulate();
 
+    /*
+      The same, without saying so. A caller that runs the observation points
+      in chunks, as a viewer does to stay answerable, would otherwise print
+      two lines per chunk.
+    */
+    void simulate(const bool& verbose);
+
     void printValue( u_int64_t observation_point_index ) const;
     void printPosition( u_int64_t observation_point_index ) const;
     void printMagneticField( u_int64_t observation_point_index ) const;
@@ -53,6 +60,17 @@ public:
     void applyInverseRotationFromQuaternion(const float* quaternion, const float* vector, float* result);
 
     std::vector<std::vector<float>> getMagneticFields() const;
+
+    /*
+      The same values as three floats per observation point, one after the
+      other. A vector of vectors costs one allocation per sample, which is
+      nothing next to the simulation itself but is a poor thing to hand to a
+      viewer that redraws the result.
+    */
+    std::vector<float> getMagneticFieldsFlat() const;
+
+    /* The observation points, likewise flat, in the order they were filled. */
+    std::vector<float> getObservationPointsFlat() const;
 
     size_t getNumObservationPoints() const;
 };

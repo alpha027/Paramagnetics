@@ -2,81 +2,192 @@
 #include <greeter/version.h>
 #include <greeter/KokkosDefines.h>
 
-#include <greeter/MagneticFieldSimulator_i.h>
-#include <greeter/MagnetCollection.h>
-
 #include <cxxopts.hpp>
 #include <iostream>
 #include <string>
-#include <unordered_map>
-
 
 #include <nlohmann/json.hpp>
 #include <fstream>
 
-#include <greeter/io/MagnetIO.h>
-#include <greeter/io/ForceIO.h>
-#include <greeter/io/SceneIO.h>
+#include <greeter/service/SimulationService.h>
+#include <greeter/view/SnapshotIO.h>
 
-//#include <Kokkos_Core.hpp>
-//using json = nlohmann::json;
 
 std::vector<std::filesystem::path> getJSONFiles();
 std::string getDataPath();
 void writeMatrixToCSV(const std::vector<std::vector<float>>& matrix, const std::string& filename);
 std::string getRepoRoot();
 
-auto main(int argc, char** argv) -> int {
-  Kokkos::initialize(argc, argv);
 
-  std::filesystem::path JSON_path_str = getJSONFiles()[0];
+namespace {
 
-  std::ifstream fileJson(JSON_path_str);
-  nlohmann::json magnetics_data = nlohmann::json::parse(fileJson);
+/* Says how far along a run is, on one line that rewrites itself. */
+class ConsoleProgress: public greeter::service::ProgressSink {
 
-  // The magnets and the id each of them answers to come out of one pass, so
-  // that the magnets an arrangement generated are named like any other.
-  greeter::Scene scene = greeter::SceneIO::read(magnetics_data);
+  public:
 
-  const greeter::MagnetCollection& my_read_magnet_collection = scene.collection;
+    bool onProgress(const size_t& done, const size_t& total) override {
 
-  if (magnetics_data.contains("field_of_view")) {
-
-    greeter::FieldOfView my_read_fov = greeter::MagnetIO::readFieldOfView(magnetics_data["field_of_view"]);
-
-    auto simulation_results_1 = my_read_magnet_collection.simulate(my_read_fov);
-
-    std::string output_file_path = getRepoRoot() + "/output/simulation_results_1.csv";
-    writeMatrixToCSV(simulation_results_1, output_file_path);
-  }
-
-  if (greeter::ForceIO::hasForceSection(magnetics_data)) {
-
-    greeter::ForceConfig force_config = greeter::ForceIO::read(
-      magnetics_data, scene.magnet_ids, scene.arrangements);
-
-    auto force_results = my_read_magnet_collection.simulateForces(force_config);
-
-    // Report the magnet ids of the scene rather than the collection indices
-    for (auto& row : force_results) {
-      const size_t index = (size_t) row[0];
-      if (index < scene.magnet_ids.size()) {
-        row[0] = (float) scene.magnet_ids[index];
+      if (total == 0) {
+        return true;
       }
+
+      const int percent = (int) (100 * done / total);
+
+      // Only when it has moved, otherwise a large run spends its time
+      // printing.
+      if (percent != last_percent) {
+        std::cout << "\r  " << percent << "% (" << done << " of " << total
+                  << ")" << std::flush;
+        last_percent = percent;
+      }
+
+      if (done == total) {
+        std::cout << std::endl;
+      }
+
+      return true;
     }
 
-    std::string force_output_file_path = getRepoRoot() + "/output/force_results.csv";
-    writeMatrixToCSV(force_results, force_output_file_path);
+  private:
+
+    int last_percent = -1;
+};
+
+}  // namespace
+
+
+auto main(int argc, char** argv) -> int {
+
+  cxxopts::Options options("Greeter", "ParaMagneticS, parallel magnetic field and force simulation");
+
+  options.add_options()
+    ("i,input", "Input file, the first JSON file of data/ by default",
+     cxxopts::value<std::string>())
+    ("s,snapshot", "Also write a snapshot of the run, for the viewer to open. "
+                   "A .json extension writes the readable form, anything else "
+                   "the compact one",
+     cxxopts::value<std::string>())
+    ("q,quiet", "Do not announce every step of the simulation")
+    ("h,help", "Print this");
+
+  cxxopts::ParseResult parsed;
+
+  try {
+    parsed = options.parse(argc, argv);
+  } catch (const std::exception& error) {
+    std::cerr << "Error: " << error.what() << std::endl;
+    return 1;
+  }
+
+  if (parsed.count("help")) {
+    std::cout << options.help() << std::endl;
+    return 0;
+  }
+
+  Kokkos::initialize(argc, argv);
+
+  int status = 0;
+
+  // In its own scope: everything holding a Kokkos view has to be gone before
+  // Kokkos::finalize, and a service that outlives it takes the process down.
+  {
+    try {
+
+      std::string input_path;
+
+      if (parsed.count("input")) {
+        input_path = parsed["input"].as<std::string>();
+      } else {
+        const std::vector<std::filesystem::path> files = getJSONFiles();
+        if (files.empty()) {
+          throw std::invalid_argument("No JSON file in " + getDataPath());
+        }
+        input_path = files[0];
+      }
+
+      greeter::service::SimulationService service;
+
+      service.loadFile(input_path);
+
+      greeter::service::RunOptions run_options;
+      run_options.verbose = false;
+
+      ConsoleProgress progress;
+
+      greeter::view::Snapshot snapshot;
+
+      snapshot.scene = service.getScene();
+
+      greeter::service::FieldRequest request;
+
+      if (service.getFieldRequest(request)) {
+
+        if (!parsed.count("quiet")) {
+          std::cout << "Simulating the field at " << request.getSampleCount()
+                    << " points" << std::endl;
+        }
+
+        snapshot.field = service.simulateField(request, &progress, run_options);
+
+        // The CSV keeps the shape it has always had, three numbers a sample.
+        // Where each of them was measured is in the snapshot.
+        std::vector<std::vector<float>> matrix;
+        matrix.reserve(snapshot.field.size());
+
+        for (size_t i = 0; i < snapshot.field.size(); i++) {
+          float b[3];
+          snapshot.field.getField(i, b);
+          matrix.push_back({b[0], b[1], b[2]});
+        }
+
+        writeMatrixToCSV(matrix, getRepoRoot() + "/output/simulation_results_1.csv");
+      }
+
+      if (service.hasForceSection()) {
+
+        if (!parsed.count("quiet")) {
+          std::cout << "Computing forces" << std::endl;
+        }
+
+        snapshot.forces = service.simulateForces(nullptr, run_options);
+
+        std::vector<std::vector<float>> matrix;
+        matrix.reserve(snapshot.forces.entries.size());
+
+        for (const auto& entry : snapshot.forces.entries) {
+          matrix.push_back({
+            (float) entry.id,
+            entry.force[0], entry.force[1], entry.force[2],
+            entry.torque[0], entry.torque[1], entry.torque[2]
+          });
+        }
+
+        writeMatrixToCSV(matrix, getRepoRoot() + "/output/force_results.csv");
+      }
+
+      if (parsed.count("snapshot")) {
+
+        const std::string snapshot_path = parsed["snapshot"].as<std::string>();
+
+        greeter::view::SnapshotIO::write(snapshot, snapshot_path);
+
+        std::cout << "Snapshot written to " << snapshot_path << std::endl;
+      }
+
+    } catch (const std::exception& error) {
+      std::cerr << "Error: " << error.what() << std::endl;
+      status = 1;
+    }
   }
 
   Kokkos::finalize();
 
-  return 0;
+  return status;
 }
 
 std::string getRepoRoot() {
   std::filesystem::path source_file = __FILE__;
-  std::filesystem::path current_path = std::filesystem::current_path();
   std::filesystem::path repo_root = source_file.parent_path().parent_path().parent_path();
   return repo_root;
 }

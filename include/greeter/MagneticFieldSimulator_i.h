@@ -61,8 +61,16 @@ greeter::MagneticFieldSimulator::~MagneticFieldSimulator() {}
 
 inline
 void greeter::MagneticFieldSimulator::simulate() {
+    simulate(true);
+}
 
-    std::cout << "Start simulation !" << std::endl;
+inline
+void greeter::MagneticFieldSimulator::simulate(const bool& verbose) {
+
+    if (verbose) {
+        std::cout << "Start simulation !" << std::endl;
+    }
+
     u_int64_t num_samples = getNumObservationPoints();
 
     //Kokkos::parallel_for( num_samples, *this );
@@ -70,8 +78,9 @@ void greeter::MagneticFieldSimulator::simulate() {
                           *this );
     Kokkos::fence();
 
-    std::cout << "End simulation !" << std::endl;
-
+    if (verbose) {
+        std::cout << "End simulation !" << std::endl;
+    }
 }
 
 inline
@@ -129,6 +138,38 @@ std::vector<std::vector<float>> greeter::MagneticFieldSimulator::getMagneticFiel
         result[i][0] = magnetic_fields(i, 0);
         result[i][1] = magnetic_fields(i, 1);
         result[i][2] = magnetic_fields(i, 2);
+    }
+
+    return result;
+}
+
+inline
+std::vector<float> greeter::MagneticFieldSimulator::getMagneticFieldsFlat() const {
+
+    const u_int64_t N = getNumObservationPoints();
+
+    std::vector<float> result(3 * (size_t) N, 0.0f);
+
+    for(u_int64_t i = 0; i < N; i++) {
+        result[3 * (size_t) i + 0] = magnetic_fields(i, 0);
+        result[3 * (size_t) i + 1] = magnetic_fields(i, 1);
+        result[3 * (size_t) i + 2] = magnetic_fields(i, 2);
+    }
+
+    return result;
+}
+
+inline
+std::vector<float> greeter::MagneticFieldSimulator::getObservationPointsFlat() const {
+
+    const u_int64_t N = getNumObservationPoints();
+
+    std::vector<float> result(3 * (size_t) N, 0.0f);
+
+    for(u_int64_t i = 0; i < N; i++) {
+        result[3 * (size_t) i + 0] = observation_points(i, 0);
+        result[3 * (size_t) i + 1] = observation_points(i, 1);
+        result[3 * (size_t) i + 2] = observation_points(i, 2);
     }
 
     return result;

@@ -23,6 +23,7 @@ Stands for parallel magnetic field simulations. This repository offers a user fr
 - Elementary magnets: cuboids, spheres, tetrahedra and cylinders
 - Parametrised arrangements of them, built from the parameter file rather than written out one by one
 - Parallel magnetic force and torque simulation between magnets
+- A Qt viewer for the result, which is a separate program and needs neither Kokkos nor the input file
 - Easy and seamless workflow using a JSON parameter file
 - [Modern CMake practices](https://pabloariasal.github.io/2018/02/19/its-time-to-do-cmake-right/)
 - Clean separation of library and executable code
@@ -89,6 +90,52 @@ CTEST_OUTPUT_ON_FAILURE=1 cmake --build build/test --target test
 
 To collect code coverage information, run CMake with the `-DENABLE_TEST_COVERAGE=1` option.
 
+### Build and run the viewer
+
+The viewer draws a scene, the field it makes and the forces in it. It needs Qt 6 and is built
+separately, so that everything above builds on a machine without it.
+
+```bash
+# Debian and Ubuntu; other systems have their own names for these
+sudo apt install qt6-base-dev libqt6opengl6-dev
+
+cmake -S gui -B build/gui -DCMAKE_BUILD_TYPE=Release -DKokkos_ENABLE_OPENMP=On -DCMAKE_CXX_COMPILER=g++
+cmake --build build/gui
+
+./build/gui/paramagnetics-viewer arrangements.json
+```
+
+Open an input file, press **Run**, and the field and the forces it asks for are simulated on a
+thread of their own, so the window stays usable and the run can be stopped. Drag to turn, shift
+drag or middle drag to slide, the wheel to zoom, and click a magnet to pick it out. The magnets an
+arrangement generated are grouped under it on the left.
+
+The field can be shown as a slice plane, as arrows, or as field lines followed through it. Arrows
+are all drawn the same length and the strength is in the colour: a length that followed the
+strength would draw one arrow across the whole box and leave every other one too small to see. For
+the same reason the colour scale is logarithmic by default and stops short of the largest sample.
+
+It also draws without a window, which is useful on a machine that has none and for making the same
+figure repeatedly:
+
+```bash
+./build/gui/paramagnetics-viewer arrangements.json --show slice,lines,magnets --draw field.png
+```
+
+#### Looking at a run somebody else did
+
+The viewer does not need the simulator. A run on a cluster writes a snapshot, and the snapshot
+opens anywhere:
+
+```bash
+./build/standalone/Greeter --input arrangements.json --snapshot run.pmsnap
+./build/gui/paramagnetics-viewer run.pmsnap
+```
+
+A snapshot holds the magnets, the field and the forces, and nothing needs to be simulated again to
+look at it. `run.json` instead of `run.pmsnap` writes the readable form, which is worth having for
+a small field and hopeless for a large one: a grid of a hundred points a side is three million
+numbers.
 
 ### Input Data
 
@@ -385,6 +432,17 @@ magnet_id, Fx, Fy, Fz, Tx, Ty, Tz
 ```
 
 where the force is given in Newton and the torque in Newton metre.
+
+Neither *.csv* says where anything was measured: the field file is three numbers a sample, in the
+order the field of view lays its points out, which is x slowest and z fastest. A snapshot does say,
+and is what the viewer opens:
+
+```bash
+./build/standalone/Greeter --input arrangements.json --snapshot run.pmsnap
+```
+
+A snapshot carries the magnets, their shapes and where they sit, the field together with the box it
+was sampled in, and the forces keyed by magnet id.
 
 ### Build the documentation
 

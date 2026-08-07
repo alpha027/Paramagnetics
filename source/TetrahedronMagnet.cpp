@@ -597,3 +597,15 @@ greeter::TargetMeshData greeter::TetrahedronMagnet::generateTargetMesh(
 
   return mesh;
 }
+
+
+greeter::view::ShapeDescriptor greeter::TetrahedronMagnet::describeShape(
+    const float* parameters) {
+
+  greeter::view::ShapeDescriptor shape;
+
+  shape.kind = greeter::view::ShapeKind::Tetrahedron;
+  shape.parameters.assign(&parameters[7], &parameters[7] + 12);
+
+  return shape;
+}

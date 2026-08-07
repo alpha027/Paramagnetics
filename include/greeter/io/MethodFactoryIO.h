@@ -42,6 +42,10 @@ public:
     // rather than carrying a list of the types of its own.
     bool isRegistered(const std::string& key) const;
 
+    // Every type that can be read. A test walks this to check that whatever
+    // else a magnet type has to be registered for, it has been.
+    std::vector<std::string> getRegisteredTypes() const;
+
     // bool registerNumberOfParameters(const std::string& key, NumerOfParametersFunction _method);
 
     // void computeMagneticField(const std::string& key, const float* parameters,

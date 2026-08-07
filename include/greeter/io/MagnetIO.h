@@ -25,7 +25,8 @@ class MagnetIO {
         // void writeOrientation(nlohmann::json& magnet, const std::vector<float>& orientation);
         // void writeMagnetization(nlohmann::json& magnet, const std::vector<float>& magnetization);
 
-        static std::unique_ptr<Magnet> createMagnet(const nlohmann::json& magnet);
+        // A single magnet is built by the reader registered for its type, see
+        // MethodFactoryIO::createMagnet.
 
         //void read(const nlohmann::json& magnet, greeter::MagnetCollection& collection);
         static greeter::MagnetCollection read(const nlohmann::json& magnet);

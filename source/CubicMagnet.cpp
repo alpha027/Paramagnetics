@@ -4,7 +4,7 @@
 #include <algorithm>
 #include <cmath>
 
-greeter::CuboidMagnet::CuboidMagnet() : position({0, 0, 0}), orientation({1.0, 0.0, 0.0, 0.0}), dimensions({1.0, 1.0, 1.0}), magnetization({0, 1.0, 0}) {}
+greeter::CuboidMagnet::CuboidMagnet() : position({0, 0, 0}), dimensions({1.0, 1.0, 1.0}), orientation({1.0, 0.0, 0.0, 0.0}), magnetization({0, 1.0, 0}) {}
 greeter::CuboidMagnet::CuboidMagnet( std::vector<float> _position, std::vector<float> _dimensions, std::vector<float> _orientation,
                             std::vector<float> _magnetization
                           ) : 
@@ -376,4 +376,16 @@ greeter::TargetMeshData greeter::CuboidMagnet::generateTargetMesh(
   }
 
   return mesh;
+}
+
+
+greeter::view::ShapeDescriptor greeter::CuboidMagnet::describeShape(
+    const float* parameters) {
+
+  greeter::view::ShapeDescriptor shape;
+
+  shape.kind = greeter::view::ShapeKind::Box;
+  shape.parameters = {parameters[7], parameters[8], parameters[9]};
+
+  return shape;
 }

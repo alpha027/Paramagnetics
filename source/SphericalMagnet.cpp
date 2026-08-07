@@ -17,8 +17,8 @@ greeter::SphereMagnet::SphereMagnet() :
 greeter::SphereMagnet::SphereMagnet(
   std::vector<float> _position, std::vector<float> _orientation,
   float _radius, float _magnetization ) :
-  position(_position), radius(_radius),
-  orientation(_orientation), magnetization(_magnetization) {}
+  radius(_radius), magnetization(_magnetization),
+  position(_position), orientation(_orientation) {}
 
 greeter::SphereMagnet::SphereMagnet(const SphereMagnet& other) :
     radius(other.radius), magnetization(other.magnetization),
@@ -284,4 +284,18 @@ greeter::TargetMeshData greeter::SphereMagnet::generateTargetMesh(
   cell.moment[2] = moment_scale * polarization[2];
 
   return greeter::TargetMeshData{cell};
+}
+
+
+greeter::view::ShapeDescriptor greeter::SphereMagnet::describeShape(
+    const float* parameters) {
+
+  greeter::view::ShapeDescriptor shape;
+
+  // The class keeps a radius, a descriptor always gives the extent across the
+  // shape so that one rule covers every type.
+  shape.kind = greeter::view::ShapeKind::Sphere;
+  shape.parameters = {2.0f * parameters[7]};
+
+  return shape;
 }

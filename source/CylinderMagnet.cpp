@@ -594,3 +594,15 @@ greeter::TargetMeshData greeter::CylinderMagnet::generateTargetMesh(
 
   return mesh;
 }
+
+
+greeter::view::ShapeDescriptor greeter::CylinderMagnet::describeShape(
+    const float* parameters) {
+
+  greeter::view::ShapeDescriptor shape;
+
+  shape.kind = greeter::view::ShapeKind::Cylinder;
+  shape.parameters = {parameters[7], parameters[8]};
+
+  return shape;
+}

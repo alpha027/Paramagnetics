@@ -51,6 +51,18 @@ bool greeter::MethodFactoryIO::isRegistered(const std::string& key) const {
     return registry.find(key) != registry.end();
 }
 
+std::vector<std::string> greeter::MethodFactoryIO::getRegisteredTypes() const {
+
+    std::vector<std::string> keys;
+    keys.reserve(registry.size());
+
+    for (const auto& entry : registry) {
+        keys.push_back(entry.first);
+    }
+
+    return keys;
+}
+
 std::unique_ptr<greeter::Magnet> greeter::MethodFactoryIO::createMagnet(
     const std::string& key, const nlohmann::json& magnet) const {
     auto it = registry.find(key);

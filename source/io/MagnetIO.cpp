@@ -1,5 +1,6 @@
 #include <greeter/io/MagnetIO.h>
 #include <greeter/io/ArrangementFactoryIO.h>
+#include <greeter/io/FieldOfViewIO.h>
 #include <greeter/io/MethodFactoryIO.h>
 #include <greeter/io/SceneIO.h>
 #include <set>
@@ -77,29 +78,8 @@ namespace greeter {
 
     greeter::FieldOfView MagnetIO::readFieldOfView(const nlohmann::json& fov) {
 
-        std::vector<std::string> keys = {"x", "y", "z"};
-
-        for (auto& key : keys) {
-            if (!fov.contains(key)) {
-                throw std::invalid_argument("Invalid field of view");
-            }
-        }
-
-        std::vector<float> xxyyzz = {
-            fov["x"]["min"],
-            fov["x"]["max"],
-            fov["y"]["min"],
-            fov["y"]["max"],
-            fov["z"]["min"],
-            fov["z"]["max"]
-        };
-
-        std::vector<u_int32_t> nnn = {
-            fov["x"]["n"],
-            fov["y"]["n"],
-            fov["z"]["n"]
-        };
-
-        return greeter::FieldOfView(xxyyzz, nnn);
+        // One reader for the section, so that the standalone and the viewer
+        // cannot disagree about what a field of view means.
+        return greeter::FieldOfViewIO::read(fov);
     }
 }  // namespace greeter

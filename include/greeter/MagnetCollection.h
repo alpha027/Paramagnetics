@@ -60,9 +60,19 @@ class MagnetCollection {
 
     std::vector<float> getMagnetParameters(const size_t& index) const;
 
+    /*
+      Which shape the magnet is, as the registries key it. Enough, together
+      with its parameters, to describe it without reaching for the object.
+    */
+    uint16_t getMagnetTypeID(const size_t& index) const;
+
     std::unique_ptr<greeter::ForceSimulator> createForceSimulator() const;
 
     std::vector<greeter::ForceResult> computeForces(const greeter::ForceConfig& config) const;
+
+    /* The same, quiet, for a caller that reports progress its own way. */
+    std::vector<greeter::ForceResult> computeForces(
+      const greeter::ForceConfig& config, const bool& verbose) const;
 
     std::vector<std::vector<float>> simulateForces(const greeter::ForceConfig& config) const;
 
