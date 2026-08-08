@@ -84,9 +84,9 @@ typedef void (*FieldKernel)(const float* parameters, const float* observation_po
   its data type as a rank, which would take a bare function pointer apart.
 */
 struct MagnetKernel {
-    FieldKernel kernel;           // field kernel of the shape
-    u_int32_t geometry_offset;    // start of the geometry of this magnet in `dimensions`
-    u_int32_t geometry_count;     // geometry parameters the shape takes
+    FieldKernel kernel;            // field kernel of the shape
+    FieldKernel polarization;      // polarization of the shape at a point, may be null
+    u_int32_t parameter_offset;    // start of this magnet's parameters in `magnet_parameters`
 };
 
 typedef Kokkos::View< MagnetKernel*, Layout, MemSpace > MagnetKernelView;

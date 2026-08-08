@@ -698,9 +698,16 @@ void viewer::MainWindow::buildSceneTree() {
     item->setText(1, QString::fromStdString(magnet.shape.type_name));
     item->setData(0, Qt::UserRole, (qint64) magnet.id);
 
-    item->setToolTip(0, QString("at %1\npolarization %2")
+    // A dipole carries a moment in ampere metre squared, everything else a
+    // polarization in Tesla. The source says which, so this does not have to
+    // guess from the type name.
+    item->setToolTip(0, QString("at %1\n%2 %3")
                           .arg(formatVector(magnet.position, "m"))
-                          .arg(formatVector(magnet.magnetization, "T")));
+                          .arg(QString::fromStdString(
+                                 greeter::view::getName(magnet.moment_kind)))
+                          .arg(formatVector(
+                                 magnet.magnetization,
+                                 greeter::view::getUnit(magnet.moment_kind).c_str())));
   }
 
   scene_tree->expandAll();

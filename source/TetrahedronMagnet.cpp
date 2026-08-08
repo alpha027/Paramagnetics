@@ -609,3 +609,76 @@ greeter::view::ShapeDescriptor greeter::TetrahedronMagnet::describeShape(
 
   return shape;
 }
+
+
+void greeter::TetrahedronMagnet::computePolarizationForTetrahedron(
+    const float* parameters, const float* observation_point,
+    float& j_x, float& j_y, float& j_z) {
+
+  j_x = 0.0f;
+  j_y = 0.0f;
+  j_z = 0.0f;
+
+  const float* position = &parameters[0];
+  const float* orientation = &parameters[3];
+  const float* vertices = &parameters[7];
+  const float* magnetization = &parameters[19];
+
+  const float translated[3] = {
+    observation_point[0] - position[0],
+    observation_point[1] - position[1],
+    observation_point[2] - position[2]
+  };
+
+  float local[3];
+
+  greeter::Quaternion::applyInverseRotationFromQuaternion(
+    orientation, translated, local);
+
+  // The same barycentric test the field kernel makes, which is what keeps the
+  // two from ever disagreeing about where the body is.
+  double edge[3][3];
+  double to_observer[3];
+
+  for (size_t k = 0; k < 3; k++) {
+    for (size_t i = 0; i < 3; i++) {
+      edge[k][i] = (double) vertices[3 * (k + 1) + i] - (double) vertices[i];
+    }
+  }
+
+  for (size_t i = 0; i < 3; i++) {
+    to_observer[i] = (double) local[i] - (double) vertices[i];
+  }
+
+  double second_cross_third[3];
+  double observer_cross_third[3];
+  double second_cross_observer[3];
+
+  cross(edge[1], edge[2], second_cross_third);
+  cross(to_observer, edge[2], observer_cross_third);
+  cross(edge[1], to_observer, second_cross_observer);
+
+  const double determinant = dot(edge[0], second_cross_third);
+
+  if (determinant == 0.0) {
+    return;
+  }
+
+  const double first = dot(to_observer, second_cross_third) / determinant;
+  const double second = dot(edge[0], observer_cross_third) / determinant;
+  const double third = dot(edge[0], second_cross_observer) / determinant;
+
+  if (!(first >= 0.0 && second >= 0.0 && third >= 0.0 &&
+        first + second + third <= 1.0)) {
+    return;
+  }
+
+  float turned[3];
+
+  greeter::Quaternion::applyRotationFromQuaternion(
+    orientation, magnetization, turned);
+
+  j_x = turned[0];
+  j_y = turned[1];
+  j_z = turned[2];
+}

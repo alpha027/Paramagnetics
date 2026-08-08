@@ -358,6 +358,9 @@ greeter::view::ShapeMesh greeter::view::buildMesh(
     case greeter::view::ShapeKind::Mesh:
       return buildTriangles(shape.parameters);
 
+    // A point has no surface. The viewer draws a marker where it sits, the
+    // same way it does for a shape it has never met.
+    case greeter::view::ShapeKind::Point:
     case greeter::view::ShapeKind::Unknown:
       break;
   }

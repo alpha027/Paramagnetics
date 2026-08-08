@@ -5,6 +5,7 @@
 #include <greeter/io/ForceIO.h>
 #include <greeter/io/MagnetIO.h>
 #include <greeter/io/SceneIO.h>
+#include <greeter/TargetMesh.h>
 
 #include <fstream>
 #include <stdexcept>
@@ -131,8 +132,13 @@ greeter::view::SceneSnapshot greeter::service::SimulationService::getScene() con
                   ? impl->scene.magnet_ids[index] : (int64_t) index;
     magnet.arrangement_id = owner[index];
 
-    magnet.shape = shapes.describeShape(
-      collection.getMagnetTypeID(index), parameters.data());
+    const uint16_t type = collection.getMagnetTypeID(index);
+
+    magnet.shape = shapes.describeShape(type, parameters.data());
+
+    // Whether the last three numbers below are a polarization or a moment,
+    // which is not something a viewer should have to work out from a name.
+    magnet.moment_kind = shapes.getMomentKind(type);
 
     for (size_t axis = 0; axis < 3; axis++) {
       magnet.position[axis] = parameters[axis];
@@ -142,8 +148,8 @@ greeter::view::SceneSnapshot greeter::service::SimulationService::getScene() con
       magnet.orientation[i] = parameters[3 + i];
     }
 
-    // The polarization is the last three of the parameters, whatever the
-    // shape put in front of it.
+    // The polarization, or the moment, is the last three of the parameters,
+    // whatever the shape put in front of it.
     for (size_t axis = 0; axis < 3; axis++) {
       magnet.magnetization[axis] = parameters[parameters.size() - 3 + axis];
     }
@@ -200,6 +206,36 @@ bool greeter::service::SimulationService::getFieldRequest(
 
   const std::vector<float> bounds = fov.getBounds();
   const std::vector<uint32_t> counts = fov.getCounts();
+
+  // Which of the four quantities the file asks for, B unless it says.
+  if (impl->input["field_of_view"].contains("quantity")) {
+
+    const nlohmann::json& given = impl->input["field_of_view"]["quantity"];
+
+    if (!given.is_string()) {
+      throw std::invalid_argument(
+        "The \"quantity\" of a field of view is \"B\", \"H\", \"J\" or \"M\"");
+    }
+
+    const std::string name = given.get<std::string>();
+
+    bool known = false;
+
+    for (const auto& kind : {greeter::view::FieldKind::B, greeter::view::FieldKind::H,
+                             greeter::view::FieldKind::J, greeter::view::FieldKind::M}) {
+      if (greeter::view::getName(kind) == name) {
+        request.kind = kind;
+        known = true;
+        break;
+      }
+    }
+
+    if (!known) {
+      throw std::invalid_argument(
+        "A field of view can be asked for \"B\", \"H\", \"J\" or \"M\", not \"" +
+        name + "\"");
+    }
+  }
 
   for (size_t i = 0; i < 6; i++) {
     request.bounds[i] = bounds[i];
@@ -275,6 +311,7 @@ greeter::view::FieldGrid greeter::service::SimulationService::simulateField(
   greeter::view::FieldGrid grid;
 
   grid.grid = true;
+  grid.kind = request.kind;
 
   for (size_t i = 0; i < 6; i++) {
     grid.bounds[i] = request.bounds[i];
@@ -293,6 +330,12 @@ greeter::view::FieldGrid greeter::service::SimulationService::simulateField(
   std::unique_ptr<greeter::MagneticFieldSimulator> simulator =
     impl->scene.collection.createSimulator();
 
+  // B needs nothing else. The other three need to know, at every point, what
+  // material is there.
+  const bool needs_polarization = request.kind != greeter::view::FieldKind::B;
+
+  simulator->setComputePolarization(needs_polarization);
+
   std::vector<std::vector<float>> points;
 
   for (size_t start = 0; start < total; start += chunk) {
@@ -308,7 +351,35 @@ greeter::view::FieldGrid greeter::service::SimulationService::simulateField(
     simulator->fillObservationPoints(points);
     simulator->simulate(options.verbose);
 
-    const std::vector<float> chunk_field = simulator->getMagneticFieldsFlat();
+    std::vector<float> chunk_field = simulator->getMagneticFieldsFlat();
+
+    if (needs_polarization) {
+
+      const std::vector<float> polarization = simulator->getPolarizationsFlat();
+
+      for (size_t i = 0; i < chunk_field.size(); i++) {
+
+        switch (request.kind) {
+
+          case greeter::view::FieldKind::J:
+            chunk_field[i] = polarization[i];
+            break;
+
+          // H = (B - J) / mu0, which is B / mu0 outside every magnet and the
+          // demagnetizing field inside one.
+          case greeter::view::FieldKind::H:
+            chunk_field[i] = (chunk_field[i] - polarization[i]) / greeter::MU0;
+            break;
+
+          case greeter::view::FieldKind::M:
+            chunk_field[i] = polarization[i] / greeter::MU0;
+            break;
+
+          case greeter::view::FieldKind::B:
+            break;
+        }
+      }
+    }
 
     grid.field.insert(grid.field.end(), chunk_field.begin(), chunk_field.end());
 

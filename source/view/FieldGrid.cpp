@@ -4,6 +4,28 @@
 #include <stdexcept>
 
 
+std::string greeter::view::getName(const greeter::view::FieldKind& kind) {
+  switch (kind) {
+    case greeter::view::FieldKind::B: return "B";
+    case greeter::view::FieldKind::H: return "H";
+    case greeter::view::FieldKind::J: return "J";
+    case greeter::view::FieldKind::M: return "M";
+  }
+  return "B";
+}
+
+
+std::string greeter::view::getUnit(const greeter::view::FieldKind& kind) {
+  switch (kind) {
+    case greeter::view::FieldKind::B: return "T";
+    case greeter::view::FieldKind::J: return "T";
+    case greeter::view::FieldKind::H: return "A/m";
+    case greeter::view::FieldKind::M: return "A/m";
+  }
+  return "T";
+}
+
+
 size_t greeter::view::FieldGrid::size() const {
   return field.size() / 3;
 }

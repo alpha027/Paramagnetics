@@ -3,6 +3,9 @@
 #include <greeter/SphericalMagnet.h>
 #include <greeter/TetrahedronMagnet.h>
 #include <greeter/CylinderMagnet.h>
+#include <greeter/DipoleMagnet.h>
+#include <greeter/TriangleMagnet.h>
+#include <greeter/TriangularMeshMagnet.h>
 
 
 // See MagneticFieldMethodFactory for why the built in magnets are registered here.
@@ -23,6 +26,18 @@ greeter::TargetMeshFactory::TargetMeshFactory() {
     registerGenerateTargetMesh(
         greeter::CylinderMagnet::getStaticTypeID(),
         greeter::CylinderMagnet::generateTargetMesh);
+
+    registerGenerateTargetMesh(
+        greeter::DipoleMagnet::getStaticTypeID(),
+        greeter::DipoleMagnet::generateTargetMesh);
+
+    registerGenerateTargetMesh(
+        greeter::TriangleMagnet::getStaticTypeID(),
+        greeter::TriangleMagnet::generateTargetMesh);
+
+    registerGenerateTargetMesh(
+        greeter::TriangularMeshMagnet::getStaticTypeID(),
+        greeter::TriangularMeshMagnet::generateTargetMesh);
 }
 
 

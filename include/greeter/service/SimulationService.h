@@ -28,11 +28,18 @@ class ProgressSink {
     virtual bool onProgress(const size_t& done, const size_t& total) = 0;
 };
 
-/* The box to sample the field in, and how finely. */
+/* The box to sample the field in, how finely, and which quantity. */
 struct FieldRequest {
 
   float bounds[6] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};  // xx, yy, zz
   uint32_t counts[3] = {1, 1, 1};
+
+  /*
+    B by default, which is what the field kernels give and what everything
+    here used to give. The other three cost a second look at every magnet,
+    to ask whether the point is inside it.
+  */
+  greeter::view::FieldKind kind = greeter::view::FieldKind::B;
 
   size_t getSampleCount() const;
 };

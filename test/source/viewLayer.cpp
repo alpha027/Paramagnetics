@@ -1,6 +1,7 @@
 #include <doctest/doctest.h>
 
 #include <greeter/MagnetGeometryFactory.h>
+#include <greeter/MagneticFieldMethodFactory.h>
 #include <greeter/io/MethodFactoryIO.h>
 #include <greeter/service/SimulationService.h>
 #include <greeter/view/ShapeMesh.h>
@@ -55,29 +56,36 @@ namespace {
 }  // namespace
 
 
-TEST_CASE("Every magnet type that can be read can also be drawn") {
+TEST_CASE("Every magnet type that has a field can also be drawn") {
 
-  // The point of the registry: a magnet type added to the readers and
-  // forgotten here would be a magnet the viewer draws as nothing. Walking the
-  // readers is what turns that from a thing to remember into a failing test.
+  /*
+    The point of the registry: a magnet type added to the field kernels and
+    forgotten here would be a magnet the viewer draws as nothing. Walking the
+    kernels is what turns that from a thing to remember into a failing test.
+
+    Walking the type ids rather than the reader names, because the two are not
+    in step: a reader may be an alias that builds a magnet of some other type.
+    "cylinder_segment" is one, and produces a triangular mesh. What has to be
+    drawable is whatever can produce a field.
+  */
   const greeter::MagnetGeometryFactory& shapes =
     greeter::MagnetGeometryFactory::getInstance();
 
-  const std::vector<uint16_t> keys = shapes.getRegisteredTypes();
+  const std::vector<uint16_t> types =
+    greeter::MagneticFieldMethodFactory::getInstance().getRegisteredTypes();
 
-  for (const auto& type : greeter::MethodFactoryIO::getInstance().getRegisteredTypes()) {
+  CHECK(types.size() >= 7);
 
-    bool described = false;
+  for (const auto& type : types) {
+    INFO("magnet type id: " << type);
+    CHECK(shapes.isRegistered(type));
+    CHECK_FALSE(shapes.getTypeName(type).empty());
+  }
 
-    for (const auto& key : keys) {
-      if (shapes.getTypeName(key) == type) {
-        described = true;
-        break;
-      }
-    }
-
-    INFO("magnet type: " << type.c_str());
-    CHECK(described);
+  // And every reader builds something, whether or not it is a type of its own.
+  for (const auto& name : greeter::MethodFactoryIO::getInstance().getRegisteredTypes()) {
+    INFO("reader: " << name.c_str());
+    CHECK(greeter::MethodFactoryIO::getInstance().isRegistered(name));
   }
 }
 

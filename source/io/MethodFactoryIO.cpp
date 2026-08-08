@@ -3,6 +3,10 @@
 #include <greeter/io/SphericalMagnetIO.h>
 #include <greeter/io/TetrahedronMagnetIO.h>
 #include <greeter/io/CylinderMagnetIO.h>
+#include <greeter/io/DipoleMagnetIO.h>
+#include <greeter/io/TriangleMagnetIO.h>
+#include <greeter/io/TriangularMeshMagnetIO.h>
+#include <greeter/io/CylinderSegmentMagnetIO.h>
 
 #include <stdexcept>
 
@@ -25,6 +29,24 @@ greeter::MethodFactoryIO::MethodFactoryIO() {
     registerGetMagnet(
         greeter::CylinderMagnetIO::getTypeName(),
         greeter::CylinderMagnetIO::createMagnet);
+
+    registerGetMagnet(
+        greeter::DipoleMagnetIO::getTypeName(),
+        greeter::DipoleMagnetIO::createMagnet);
+
+    registerGetMagnet(
+        greeter::TriangleMagnetIO::getTypeName(),
+        greeter::TriangleMagnetIO::createMagnet);
+
+    registerGetMagnet(
+        greeter::TriangularMeshMagnetIO::getTypeName(),
+        greeter::TriangularMeshMagnetIO::createMagnet);
+
+    // Built as a faceted triangular mesh rather than from a closed form, see
+    // CylinderSegmentMagnetIO for what that costs.
+    registerGetMagnet(
+        greeter::CylinderSegmentMagnetIO::getTypeName(),
+        greeter::CylinderSegmentMagnetIO::createMagnet);
 }
 
 

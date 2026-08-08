@@ -27,8 +27,14 @@ struct MagnetView {
   float position[3] = {0.0f, 0.0f, 0.0f};
   float orientation[4] = {1.0f, 0.0f, 0.0f, 0.0f};  // w, x, y, z
 
-  /* The magnetic polarization J [T], in the frame of the magnet. */
+  /*
+    The magnetic polarization J [T] in the frame of the magnet, or, when
+    `moment_kind` says so, a magnetic moment [A*m^2] instead. Ask
+    getUnit(moment_kind) before putting a unit on it.
+  */
   float magnetization[3] = {0.0f, 0.0f, 0.0f};
+
+  MomentKind moment_kind = MomentKind::Polarization;
 };
 
 /* An arrangement and the magnets it generated, so a viewer can group them. */

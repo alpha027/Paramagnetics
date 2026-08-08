@@ -7,6 +7,7 @@
 #include <greeter/SphericalMagnet.h>
 #include <greeter/io/ForceIO.h>
 #include <greeter/io/MagnetIO.h>
+#include <cmath>
 
 
 TEST_CASE("Spherical magnet magnetic field") {
@@ -172,4 +173,70 @@ TEST_CASE("Malformed sphere parameters are rejected") {
         {"position", {0, 0, 0}}, {"orientation", {0, 0, 0}}})),
       std::invalid_argument);
   }
+}
+
+
+TEST_CASE("Inside a sphere the field is two thirds of the polarization") {
+
+  // A homogeneously polarized sphere is the one shape whose interior field is
+  // uniform, and it is exactly 2/3 of the polarization. The dipole expression
+  // that gives the field outside runs away as the radius goes to zero, so the
+  // two cases have to be told apart; using the outside one everywhere put
+  // 83 T at 2 mm from the middle of a 1 T sphere.
+  //
+  // The numbers below are magpylib 5, Sphere(diameter=0.02,
+  // polarization=(0, 0, 1)), which agrees with this to single precision.
+  greeter::SphereMagnet sphere(0.01f, 1.0f);
+
+  const float expected_inside = 2.0f / 3.0f;
+
+  // Along the axis, across it and off to one side: uniform means uniform.
+  const std::vector<std::vector<float>> inside = {
+    {0.0f, 0.0f, 0.0f},
+    {0.0f, 0.0f, 0.002f},
+    {0.0f, 0.0f, -0.006f},
+    {0.004f, 0.0f, 0.0f},
+    {0.003f, -0.004f, 0.005f}
+  };
+
+  for (const auto& point : inside) {
+
+    const std::vector<float> field =
+      sphere.computeMagneticField(point[0], point[1], point[2]);
+
+    CHECK(field[0] == doctest::Approx(0.0f).epsilon(1e-5));
+    CHECK(field[1] == doctest::Approx(0.0f).epsilon(1e-5));
+    CHECK(field[2] == doctest::Approx(expected_inside));
+  }
+
+  // The surface belongs to the inside, and the two expressions agree there:
+  // on the axis the outside field at r = a is also 2/3 of the polarization.
+  const std::vector<float> surface = sphere.computeMagneticField(0.0f, 0.0f, 0.01f);
+  CHECK(surface[2] == doctest::Approx(expected_inside));
+
+  // Outside is unchanged, and still the dipole field.
+  const std::vector<float> outside = sphere.computeMagneticField(0.0f, 0.0f, 0.02f);
+  CHECK(outside[2] == doctest::Approx(0.0833333f));
+
+  const std::vector<float> across = sphere.computeMagneticField(0.02f, 0.0f, 0.0f);
+  CHECK(across[2] == doctest::Approx(-0.0416667f));
+}
+
+
+TEST_CASE("A sphere polarized off axis is uniform inside along its own axis") {
+
+  // The class holds a polarization along its local z and is turned to point
+  // it elsewhere, so the interior field has to follow the turn rather than
+  // staying along z.
+  const float half = std::sqrt(0.5f);
+
+  // A quarter turn about y takes the local z axis onto the global x axis.
+  greeter::SphereMagnet sphere(
+    {0.0f, 0.0f, 0.0f}, {half, 0.0f, half, 0.0f}, 0.01f, 1.0f);
+
+  const std::vector<float> field = sphere.computeMagneticField(0.0f, 0.002f, 0.0f);
+
+  CHECK(field[0] == doctest::Approx(2.0f / 3.0f));
+  CHECK(field[1] == doctest::Approx(0.0f).epsilon(1e-5));
+  CHECK(field[2] == doctest::Approx(0.0f).epsilon(1e-5));
 }

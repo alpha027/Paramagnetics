@@ -8,13 +8,11 @@
 
 inline
 greeter::MagneticFieldSimulator::MagneticFieldSimulator(
-    Float3VectorView _positions, Float4VectorView _orientations,
-    Float3VectorView _magnetizations, FloatVectorView _dimensions,
+    FloatVectorView _magnet_parameters, UInt32VectorView _parameter_offsets,
     UInt32VectorView _magnet_types,
     Float3VectorView _observation_points) :
-    positions(_positions), orientations(_orientations),
-    magnetizations(_magnetizations),
-    dimensions(_dimensions),
+    magnet_parameters(_magnet_parameters),
+    parameter_offsets(_parameter_offsets),
     magnet_types(_magnet_types),
     observation_points(_observation_points) {
 
@@ -24,10 +22,9 @@ greeter::MagneticFieldSimulator::MagneticFieldSimulator(
     }
 
 /*
-  Look up, once, everything the inner loop needs to know about a magnet type:
-  the kernel to call and where the geometry of the magnet sits in `dimensions`.
-  Doing this per magnet per observation point, as the loop used to, meant a hash
-  lookup and a branch on the type for every field evaluation.
+  Look up, once, the kernel of every magnet and where its parameters start.
+  Doing the lookup per magnet per observation point, as the loop used to, meant
+  a hash lookup and a branch on the type for every field evaluation.
 */
 inline
 void greeter::MagneticFieldSimulator::resolveMagnetTypes() {
@@ -37,22 +34,18 @@ void greeter::MagneticFieldSimulator::resolveMagnetTypes() {
 
     magnet_kernels = MagnetKernelView("magnet_kernels", num_magnets);
 
-    u_int32_t offset = 0;
-
     for (size_t i = 0; i < num_magnets; i++) {
 
         const u_int16_t magnet_type = (u_int16_t) magnet_types(i);
 
-        // The shape only decides how many geometry parameters follow the
-        // position and the orientation, see packMagnetParameters.
-        const u_int32_t count =
-            (u_int32_t) factory.getNumberOfParameters(magnet_type) - 10;
-
         magnet_kernels(i).kernel = factory.getComputeMagneticField(magnet_type);
-        magnet_kernels(i).geometry_offset = offset;
-        magnet_kernels(i).geometry_count = count;
+        magnet_kernels(i).parameter_offset = parameter_offsets(i);
 
-        offset += count;
+        // A type that does not say where it is can still give a field; only
+        // H, J and M are then out of reach, and asking for them says so.
+        magnet_kernels(i).polarization =
+            factory.hasComputePolarization(magnet_type)
+                ? factory.getComputePolarization(magnet_type) : nullptr;
     }
 }
 
@@ -89,14 +82,6 @@ void greeter::MagneticFieldSimulator::printValue( u_int64_t observation_point_in
               << observation_points( observation_point_index, 0) << ", " 
               << observation_points(observation_point_index, 1) << ", " 
               << observation_points(observation_point_index,2) << ")" << std::endl;
-}
-
-inline
-void greeter::MagneticFieldSimulator::printPosition( u_int64_t observation_point_index ) const {
-    std::cout << "position for index " << observation_point_index << ": (" 
-              << positions( observation_point_index, 0) << ", " 
-              << positions(observation_point_index, 1) << ", " 
-              << positions(observation_point_index,2) << ")" << std::endl;
 }
 
 inline
@@ -160,6 +145,31 @@ std::vector<float> greeter::MagneticFieldSimulator::getMagneticFieldsFlat() cons
 }
 
 inline
+void greeter::MagneticFieldSimulator::setComputePolarization(const bool& wanted) {
+    with_polarization = wanted;
+}
+
+inline
+std::vector<float> greeter::MagneticFieldSimulator::getPolarizationsFlat() const {
+
+    const u_int64_t N = getNumObservationPoints();
+
+    std::vector<float> result(3 * (size_t) N, 0.0f);
+
+    if (!with_polarization) {
+        return result;
+    }
+
+    for(u_int64_t i = 0; i < N; i++) {
+        result[3 * (size_t) i + 0] = polarizations(i, 0);
+        result[3 * (size_t) i + 1] = polarizations(i, 1);
+        result[3 * (size_t) i + 2] = polarizations(i, 2);
+    }
+
+    return result;
+}
+
+inline
 std::vector<float> greeter::MagneticFieldSimulator::getObservationPointsFlat() const {
 
     const u_int64_t N = getNumObservationPoints();
@@ -188,21 +198,33 @@ void greeter::MagneticFieldSimulator::operator()( u_int64_t observation_point_in
 
         const MagnetKernel magnet = magnet_kernels(i);
 
-        float magnet_parameters[greeter::MAX_MAGNET_PARAMETERS];
-
-        greeter::packMagnetParameters(
-            positions, orientations, magnetizations, dimensions,
-            i, magnet.geometry_offset, magnet.geometry_count, magnet_parameters);
+        // A pointer into the one array the parameters of every magnet live
+        // in, rather than a copy made per magnet per point.
+        const float* parameters =
+            greeter::magnetParameters(magnet_parameters, magnet.parameter_offset);
 
         float bx = 0.0f;
         float by = 0.0f;
         float bz = 0.0f;
 
-        magnet.kernel(magnet_parameters, the_observation_point, bx, by, bz);
+        magnet.kernel(parameters, the_observation_point, bx, by, bz);
 
         magnetic_fields(observation_point_index, 0) += bx;
         magnetic_fields(observation_point_index, 1) += by;
         magnetic_fields(observation_point_index, 2) += bz;
+
+        if (with_polarization && magnet.polarization != nullptr) {
+
+            float jx = 0.0f;
+            float jy = 0.0f;
+            float jz = 0.0f;
+
+            magnet.polarization(parameters, the_observation_point, jx, jy, jz);
+
+            polarizations(observation_point_index, 0) += jx;
+            polarizations(observation_point_index, 1) += jy;
+            polarizations(observation_point_index, 2) += jz;
+        }
     }
 
 }
@@ -220,6 +242,8 @@ void greeter::MagneticFieldSimulator::fillObservationPoints(const std::vector<st
     observation_points = Float3VectorView("observation_points", M);
 
     magnetic_fields = Float3VectorView("magnetic_fields", M);
+
+    polarizations = Float3VectorView("polarizations", with_polarization ? M : 0);
 
     Kokkos::parallel_for( "magnetizations", M, KOKKOS_LAMBDA ( int i ) {
        observation_points(i, 0) = _observation_points[i][0];

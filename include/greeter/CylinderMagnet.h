@@ -128,6 +128,18 @@ class CylinderMagnet: public Magnet {
         const greeter::MeshingSpec& meshing
       );
 
+
+      /*
+        The polarization J [T] at a point: what the magnet is made of where it
+        is, and zero outside it. Together with B it gives H and M, see
+        MagneticFieldMethodFactory.
+      */
+      static void computePolarizationForCylinder(
+        const float* parameters,
+        const float* observation_point,
+        float& j_x, float& j_y, float& j_z
+      );
+
       /* Diameter and height, see MagnetGeometryFactory. */
       static greeter::view::ShapeDescriptor describeShape(const float* parameters);
   };

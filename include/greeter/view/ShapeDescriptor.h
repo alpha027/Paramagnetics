@@ -47,8 +47,36 @@ enum class ShapeKind : uint8_t {
     A shape that is none of the above describes itself this way and needs no
     change anywhere in the viewer.
   */
-  Mesh = 5
+  Mesh = 5,
+
+  /*
+    parameters: none. A source with no extent at all, such as a dipole, which
+    is drawn as a marker at the point it sits.
+  */
+  Point = 6
 };
+
+/*
+  What the last three numbers of a magnet stand for.
+
+  Almost every source here carries a magnetic polarization J in Tesla. A
+  dipole carries a magnetic moment in ampere metre squared instead, and the
+  two are neither the same quantity nor the same unit. A viewer that showed
+  one as the other would be quietly lying, so the source says which it is.
+*/
+enum class MomentKind : uint8_t {
+
+  /* A polarization J [T]. */
+  Polarization = 0,
+
+  /* A magnetic moment m [A*m^2]. */
+  Moment = 1
+};
+
+std::string getName(const MomentKind& kind);
+
+/* The unit it is measured in, for a label. */
+std::string getUnit(const MomentKind& kind);
 
 /*
   Not called toString: doctest and other libraries pick up a toString found by

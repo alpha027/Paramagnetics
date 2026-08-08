@@ -54,7 +54,8 @@ greeter::view::ShapeKind kindFromString(const std::string& name) {
     greeter::view::ShapeKind::Cylinder,
     greeter::view::ShapeKind::Sphere,
     greeter::view::ShapeKind::Tetrahedron,
-    greeter::view::ShapeKind::Mesh
+    greeter::view::ShapeKind::Mesh,
+    greeter::view::ShapeKind::Point
   };
 
   for (const auto& kind : kinds) {
@@ -103,7 +104,8 @@ nlohmann::json sceneToJSON(const greeter::view::SceneSnapshot& scene) {
       {"shape", shapeToJSON(magnet.shape)},
       {"position", arrayOf(magnet.position, 3)},
       {"orientation", arrayOf(magnet.orientation, 4)},
-      {"magnetization", arrayOf(magnet.magnetization, 3)}
+      {"magnetization", arrayOf(magnet.magnetization, 3)},
+      {"moment_kind", greeter::view::getName(magnet.moment_kind)}
     });
   }
 
@@ -152,6 +154,13 @@ greeter::view::SceneSnapshot sceneFromJSON(const nlohmann::json& data) {
       readArrayInto(entry, "position", magnet.position, 3, "magnet");
       readArrayInto(entry, "orientation", magnet.orientation, 4, "magnet");
       readArrayInto(entry, "magnetization", magnet.magnetization, 3, "magnet");
+
+      // Older snapshots say nothing, and everything in them carried a
+      // polarization, which is the default.
+      if (entry.value("moment_kind", std::string()) ==
+          greeter::view::getName(greeter::view::MomentKind::Moment)) {
+        magnet.moment_kind = greeter::view::MomentKind::Moment;
+      }
 
       scene.magnets.push_back(magnet);
     }
@@ -224,6 +233,7 @@ greeter::view::ForceReport forcesFromJSON(const nlohmann::json& data) {
 nlohmann::json fieldHeaderToJSON(const greeter::view::FieldGrid& field) {
   return {
     {"grid", field.grid},
+    {"quantity", greeter::view::getName(field.kind)},
     {"bounds", arrayOf(field.bounds, 6)},
     {"counts", {field.counts[0], field.counts[1], field.counts[2]}},
     {"samples", field.size()}
@@ -238,6 +248,17 @@ void fieldHeaderFromJSON(const nlohmann::json& data,
   }
 
   field.grid = data.value("grid", false);
+
+  // Older snapshots say nothing, and everything in them was B.
+  const std::string quantity = data.value("quantity", std::string("B"));
+
+  for (const auto& kind : {greeter::view::FieldKind::B, greeter::view::FieldKind::H,
+                           greeter::view::FieldKind::J, greeter::view::FieldKind::M}) {
+    if (greeter::view::getName(kind) == quantity) {
+      field.kind = kind;
+      break;
+    }
+  }
 
   if (data.contains("bounds") && data["bounds"].is_array() &&
       data["bounds"].size() == 6) {

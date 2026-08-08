@@ -13,6 +13,7 @@ size_t expectedParameters(const greeter::view::ShapeKind& kind) {
     case greeter::view::ShapeKind::Sphere:      return 1;
     case greeter::view::ShapeKind::Tetrahedron: return 12;
     case greeter::view::ShapeKind::Mesh:        return 0;
+    case greeter::view::ShapeKind::Point:       return 0;
     case greeter::view::ShapeKind::Unknown:     return 0;
   }
   return 0;
@@ -28,9 +29,28 @@ std::string greeter::view::getName(const greeter::view::ShapeKind& kind) {
     case greeter::view::ShapeKind::Sphere:      return "sphere";
     case greeter::view::ShapeKind::Tetrahedron: return "tetrahedron";
     case greeter::view::ShapeKind::Mesh:        return "mesh";
+    case greeter::view::ShapeKind::Point:       return "point";
     case greeter::view::ShapeKind::Unknown:     return "unknown";
   }
   return "unknown";
+}
+
+
+std::string greeter::view::getName(const greeter::view::MomentKind& kind) {
+  switch (kind) {
+    case greeter::view::MomentKind::Moment:       return "moment";
+    case greeter::view::MomentKind::Polarization: return "polarization";
+  }
+  return "polarization";
+}
+
+
+std::string greeter::view::getUnit(const greeter::view::MomentKind& kind) {
+  switch (kind) {
+    case greeter::view::MomentKind::Moment:       return "A m^2";
+    case greeter::view::MomentKind::Polarization: return "T";
+  }
+  return "T";
 }
 
 
@@ -90,6 +110,7 @@ std::vector<float> greeter::view::ShapeDescriptor::getLocalHalfExtent() const {
       break;
     }
 
+    case greeter::view::ShapeKind::Point:
     case greeter::view::ShapeKind::Unknown:
       break;
   }

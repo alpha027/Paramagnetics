@@ -67,21 +67,27 @@ void main() {
 }
 )";
 
-QString formatTesla(const float& value) {
+/*
+  A number with a unit and a sensible prefix. The unit is whatever the field
+  is of: B and J are in Tesla, H and M in ampere per metre, and putting Tesla
+  on an ampere per metre would be a lie the picture could not be read past.
+*/
+QString formatQuantity(const float& value, const QString& unit) {
 
   const float magnitude = std::fabs(value);
 
   if (magnitude >= 1.0f) {
-    return QString::number((double) value, 'f', 2) + " T";
+    return QString::number((double) value, 'f', 2) + " " + unit;
   }
   if (magnitude >= 1e-3f) {
-    return QString::number((double) value * 1e3, 'f', 2) + " mT";
+    return QString::number((double) value * 1e3, 'f', 2) + " m" + unit;
   }
   if (magnitude >= 1e-6f) {
-    return QString::number((double) value * 1e6, 'f', 2) + " " + QChar(0x00B5) + "T";
+    return QString::number((double) value * 1e6, 'f', 2) + " " +
+           QChar(0x00B5) + unit;
   }
 
-  return QString::number((double) value, 'e', 1) + " T";
+  return QString::number((double) value, 'e', 1) + " " + unit;
 }
 
 }  // namespace
@@ -497,13 +503,20 @@ void viewer::Viewport::drawLegend(QPainter& painter) {
   painter.setPen(QColor(210, 212, 218));
   painter.drawRect(left, top, bar_width, bar_height);
 
+  // Whatever the field is of, which need not be B.
+  const QString name =
+    QString::fromStdString(greeter::view::getName(snapshot.field.kind));
+
+  const QString unit =
+    QString::fromStdString(greeter::view::getUnit(snapshot.field.kind));
+
   QString title;
 
   switch (settings.quantity) {
-    case viewer::FieldQuantity::Bx: title = "Bx"; break;
-    case viewer::FieldQuantity::By: title = "By"; break;
-    case viewer::FieldQuantity::Bz: title = "Bz"; break;
-    case viewer::FieldQuantity::Magnitude: title = "|B|"; break;
+    case viewer::FieldQuantity::Bx: title = name + "x"; break;
+    case viewer::FieldQuantity::By: title = name + "y"; break;
+    case viewer::FieldQuantity::Bz: title = name + "z"; break;
+    case viewer::FieldQuantity::Magnitude: title = "|" + name + "|"; break;
   }
 
   if (settings.scale == viewer::ColorScale::Logarithmic) {
@@ -512,9 +525,10 @@ void viewer::Viewport::drawLegend(QPainter& painter) {
 
   painter.drawText(left - 6, top - 12, title);
 
-  painter.drawText(left + bar_width + 4, top + 5, formatTesla(range.maximum));
+  painter.drawText(left + bar_width + 4, top + 5,
+                   formatQuantity(range.maximum, unit));
   painter.drawText(left + bar_width + 4, top + bar_height,
-                   formatTesla(range.diverging ? range.minimum : range.minimum));
+                   formatQuantity(range.minimum, unit));
 
   if (range.diverging) {
     painter.drawText(left + bar_width + 4, top + bar_height / 2 + 5, "0");

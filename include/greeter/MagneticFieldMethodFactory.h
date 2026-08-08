@@ -37,6 +37,20 @@ public:
     // Method to register a class with a key
     bool registerComputeMagneticField(const u_int16_t& key, MethodFunction _method);
 
+    /*
+      The polarization J [T] of the shape at a point: what it is made of where
+      it is, and zero outside it.
+
+      B is what the field kernels give. Together with J it gives the other two
+      quantities anyone asks for, since H = (B - J) / mu0 and M = J / mu0. So
+      one small function per shape, saying where the shape is, buys all three.
+    */
+    bool registerComputePolarization(const u_int16_t& key, MethodFunction _method);
+
+    MethodFunction getComputePolarization(const u_int16_t& key) const;
+
+    bool hasComputePolarization(const u_int16_t& key) const;
+
     bool registerNumberOfParameters(const u_int16_t& key, NumerOfParametersFunction _method);
 
     void computeMagneticField(const u_int16_t& key, const float* parameters,
@@ -51,6 +65,16 @@ public:
     MethodFunction getComputeMagneticField(const u_int16_t& key) const;
 
     size_t getNumberOfParameters(const u_int16_t& key) const;
+
+    /*
+      Whether the type has a fixed number of parameters at all. A shape whose
+      size varies between one magnet and the next does not.
+    */
+    bool hasNumberOfParameters(const u_int16_t& key) const;
+
+    // Every type that can compute a field. A test walks this to check that
+    // whatever else a magnet type has to be registered for, it has been.
+    std::vector<u_int16_t> getRegisteredTypes() const;
     // Method to display all registered types
     void displayRegistered() const;
 
@@ -60,7 +84,8 @@ private:
     ~MagneticFieldMethodFactory() = default; // Destructor
     MagneticFieldMethodFactory(const MagneticFieldMethodFactory&) = delete; // Prevent copying
     MagneticFieldMethodFactory& operator=(const MagneticFieldMethodFactory&) = delete; // Prevent assignment
-    std::unordered_map<u_int16_t, MethodFunction> registry;  // Map of key to creator function
+    std::unordered_map<u_int16_t, MethodFunction> registry;
+    std::unordered_map<u_int16_t, MethodFunction> registry_polarization;  // Map of key to creator function
     std::unordered_map<u_int16_t, NumerOfParametersFunction> registry_parameters;  // Map of key to creator function
 };
 

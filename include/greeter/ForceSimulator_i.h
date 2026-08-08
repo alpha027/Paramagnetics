@@ -8,14 +8,11 @@
 
 inline
 greeter::ForceSimulator::ForceSimulator(
-    Float3VectorView _positions, Float4VectorView _orientations,
-    Float3VectorView _magnetizations, FloatVectorView _dimensions,
-    UInt32VectorView _magnet_types, UInt32VectorView _geometry_offsets) :
-    positions(_positions), orientations(_orientations),
-    magnetizations(_magnetizations),
-    dimensions(_dimensions),
+    FloatVectorView _magnet_parameters, UInt32VectorView _parameter_offsets,
+    UInt32VectorView _magnet_types) :
+    magnet_parameters(_magnet_parameters),
+    parameter_offsets(_parameter_offsets),
     magnet_types(_magnet_types),
-    geometry_offsets(_geometry_offsets),
     num_targets(0), num_cells(0), eps(1e-5f) {
 
         num_magnets = magnet_types.extent(0);
@@ -24,9 +21,9 @@ greeter::ForceSimulator::ForceSimulator(
     }
 
 /*
-  Look up, once, the kernel of every source magnet and how many geometry
-  parameters its shape takes. The cell loop below runs this table instead of
-  branching on the magnet type, which is what keeps a new magnet type out of it.
+  Look up, once, the kernel of every source magnet and where its parameters
+  start. The cell loop below runs this table instead of branching on the magnet
+  type, which is what keeps a new magnet type out of it.
 */
 inline
 void greeter::ForceSimulator::resolveMagnetTypes() {
@@ -41,9 +38,7 @@ void greeter::ForceSimulator::resolveMagnetTypes() {
         const u_int16_t magnet_type = (u_int16_t) magnet_types(i);
 
         magnet_kernels(i).kernel = factory.getComputeMagneticField(magnet_type);
-        magnet_kernels(i).geometry_offset = geometry_offsets(i);
-        magnet_kernels(i).geometry_count =
-            (u_int32_t) factory.getNumberOfParameters(magnet_type) - 10;
+        magnet_kernels(i).parameter_offset = parameter_offsets(i);
     }
 }
 
@@ -322,11 +317,8 @@ void greeter::ForceSimulator::operator()( u_int64_t cell_index ) const {
 
         const MagnetKernel magnet = magnet_kernels(i);
 
-        float magnet_parameters[greeter::MAX_MAGNET_PARAMETERS];
-
-        greeter::packMagnetParameters(
-            positions, orientations, magnetizations, dimensions,
-            i, magnet.geometry_offset, magnet.geometry_count, magnet_parameters);
+        const float* parameters =
+            greeter::magnetParameters(magnet_parameters, magnet.parameter_offset);
 
         for (int s = 0; s < 7; s++) {
 
@@ -338,7 +330,7 @@ void greeter::ForceSimulator::operator()( u_int64_t cell_index ) const {
 
             float bx = 0.0f, by = 0.0f, bz = 0.0f;
 
-            magnet.kernel(magnet_parameters, observation_point, bx, by, bz);
+            magnet.kernel(parameters, observation_point, bx, by, bz);
 
             b_field[s][0] += bx;
             b_field[s][1] += by;

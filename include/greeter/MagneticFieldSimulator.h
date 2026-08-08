@@ -9,13 +9,18 @@ namespace greeter {
 class MagneticFieldSimulator {
   //std::vector<std::unique_ptr<greeter::Magnet>> magnets;
 
-  Float3VectorView positions;
-  Float4VectorView orientations;
-  Float3VectorView magnetizations;
-  FloatVectorView dimensions;
+  // The parameters of every magnet, end to end, and where each one starts.
+  // See MagnetParameters.h for the layout and for why it is stored this way.
+  FloatVectorView magnet_parameters;
+  UInt32VectorView parameter_offsets;
   UInt32VectorView magnet_types;
   Float3VectorView observation_points;
   Float3VectorView magnetic_fields;
+
+  // The polarization at each observation point, filled only when asked for.
+  Float3VectorView polarizations;
+  bool with_polarization = false;
+
   size_t num_magnets;
 
   // Kernel and geometry layout of each magnet, resolved once from `magnet_types`.
@@ -25,9 +30,8 @@ class MagneticFieldSimulator {
 
 public:
 
-    MagneticFieldSimulator(Float3VectorView positions,
-      Float4VectorView orientations, Float3VectorView magnetizations,
-      FloatVectorView dimensions, UInt32VectorView magnet_types,
+    MagneticFieldSimulator(FloatVectorView magnet_parameters,
+      UInt32VectorView parameter_offsets, UInt32VectorView magnet_types,
       Float3VectorView observation_points
     );
 
@@ -48,7 +52,6 @@ public:
     void simulate(const bool& verbose);
 
     void printValue( u_int64_t observation_point_index ) const;
-    void printPosition( u_int64_t observation_point_index ) const;
     void printMagneticField( u_int64_t observation_point_index ) const;
 
     void fillObservationPoints(const std::vector<std::vector<float>>& observation_points);
@@ -68,6 +71,16 @@ public:
       viewer that redraws the result.
     */
     std::vector<float> getMagneticFieldsFlat() const;
+
+    /*
+      Also work out the polarization at every point, which is what turns B
+      into H, J and M. Off by default, because it costs a second pass over the
+      magnets and most runs only want B. Set before simulate().
+    */
+    void setComputePolarization(const bool& wanted);
+
+    /* Three floats per observation point, the polarization J [T]. */
+    std::vector<float> getPolarizationsFlat() const;
 
     /* The observation points, likewise flat, in the order they were filled. */
     std::vector<float> getObservationPointsFlat() const;

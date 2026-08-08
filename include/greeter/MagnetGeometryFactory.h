@@ -42,8 +42,19 @@ public:
     using DescribeFunction =
         std::function<greeter::view::ShapeDescriptor(const float* parameters)>;
 
-    bool registerDescribeShape(const uint16_t& key, const std::string& type_name,
-                               DescribeFunction _method);
+    /*
+      `moment_kind` says what the last three parameters of the type are: a
+      polarization in Tesla for almost everything, a moment in ampere metre
+      squared for a dipole. It is registered here rather than worked out from
+      the name so that a viewer never has to know any names.
+    */
+    bool registerDescribeShape(
+        const uint16_t& key, const std::string& type_name,
+        DescribeFunction _method,
+        const greeter::view::MomentKind& moment_kind =
+            greeter::view::MomentKind::Polarization);
+
+    greeter::view::MomentKind getMomentKind(const uint16_t& key) const;
 
     /*
       What the magnet looks like. An unregistered type gives back a descriptor
@@ -72,6 +83,7 @@ private:
     struct Entry {
         std::string type_name;
         DescribeFunction describe;
+        greeter::view::MomentKind moment_kind;
     };
 
     std::unordered_map<uint16_t, Entry> registry;
