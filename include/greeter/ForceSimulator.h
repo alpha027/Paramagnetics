@@ -34,13 +34,11 @@ struct ForceResult {
 */
 class ForceSimulator {
 
-  // Source magnets, same structure-of-arrays layout as MagneticFieldSimulator
-  Float3VectorView positions;
-  Float4VectorView orientations;
-  Float3VectorView magnetizations;
-  FloatVectorView dimensions;
+  // Source magnets, laid out as in MagneticFieldSimulator: the parameters of
+  // every magnet end to end, and where each one starts.
+  FloatVectorView magnet_parameters;
+  UInt32VectorView parameter_offsets;
   UInt32VectorView magnet_types;
-  UInt32VectorView geometry_offsets;  // start of each magnet inside `dimensions`
   size_t num_magnets;
 
   // Kernel and geometry layout of each magnet, resolved once from `magnet_types`.
@@ -69,9 +67,8 @@ class ForceSimulator {
 
 public:
 
-    ForceSimulator(Float3VectorView positions, Float4VectorView orientations,
-      Float3VectorView magnetizations, FloatVectorView dimensions,
-      UInt32VectorView magnet_types, UInt32VectorView geometry_offsets
+    ForceSimulator(FloatVectorView magnet_parameters,
+      UInt32VectorView parameter_offsets, UInt32VectorView magnet_types
     );
 
     ~ForceSimulator();

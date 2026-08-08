@@ -606,3 +606,47 @@ greeter::view::ShapeDescriptor greeter::CylinderMagnet::describeShape(
 
   return shape;
 }
+
+
+void greeter::CylinderMagnet::computePolarizationForCylinder(
+    const float* parameters, const float* observation_point,
+    float& j_x, float& j_y, float& j_z) {
+
+  j_x = 0.0f;
+  j_y = 0.0f;
+  j_z = 0.0f;
+
+  const float* position = &parameters[0];
+  const float* orientation = &parameters[3];
+  const float diameter = parameters[7];
+  const float height = parameters[8];
+  const float* magnetization = &parameters[9];
+
+  const float translated[3] = {
+    observation_point[0] - position[0],
+    observation_point[1] - position[1],
+    observation_point[2] - position[2]
+  };
+
+  float local[3];
+
+  greeter::Quaternion::applyInverseRotationFromQuaternion(
+    orientation, translated, local);
+
+  if (std::fabs(local[2]) > 0.5f * height) {
+    return;
+  }
+
+  if (std::sqrt(local[0] * local[0] + local[1] * local[1]) > 0.5f * diameter) {
+    return;
+  }
+
+  float turned[3];
+
+  greeter::Quaternion::applyRotationFromQuaternion(
+    orientation, magnetization, turned);
+
+  j_x = turned[0];
+  j_y = turned[1];
+  j_z = turned[2];
+}

@@ -143,6 +143,19 @@ void greeter::SphereMagnet::
 
     float r = sqrt(x*x + y*y + z*z);
 
+    // Inside a homogeneously polarized sphere the field is uniform and equal
+    // to two thirds of the polarization, which is the one closed form in all
+    // of magnetostatics that everybody remembers. Outside it is exactly the
+    // field of a point dipole. The expression below is the outside one, and
+    // it runs away as r goes to zero, so the two cases have to be told apart
+    // rather than the one formula used everywhere.
+    if (r <= radius) {
+        result_x = (2.0f / 3.0f) * magnetization_x;
+        result_y = (2.0f / 3.0f) * magnetization_y;
+        result_z = (2.0f / 3.0f) * magnetization_z;
+        return;
+    }
+
     float r5 = r*r*r*r*r;
 
     float radius3 = radius*radius*radius;
@@ -298,4 +311,43 @@ greeter::view::ShapeDescriptor greeter::SphereMagnet::describeShape(
   shape.parameters = {2.0f * parameters[7]};
 
   return shape;
+}
+
+
+void greeter::SphereMagnet::computePolarizationForSphere(
+    const float* parameters, const float* observation_point,
+    float& j_x, float& j_y, float& j_z) {
+
+  j_x = 0.0f;
+  j_y = 0.0f;
+  j_z = 0.0f;
+
+  const float* position = &parameters[0];
+  const float* orientation = &parameters[3];
+  const float radius = parameters[7];
+  const float* magnetization = &parameters[8];
+
+  const float translated[3] = {
+    observation_point[0] - position[0],
+    observation_point[1] - position[1],
+    observation_point[2] - position[2]
+  };
+
+  // A sphere is round, so there is nothing to turn before measuring.
+  const float distance = std::sqrt(translated[0] * translated[0] +
+                                   translated[1] * translated[1] +
+                                   translated[2] * translated[2]);
+
+  if (distance > radius) {
+    return;
+  }
+
+  float turned[3];
+
+  greeter::Quaternion::applyRotationFromQuaternion(
+    orientation, magnetization, turned);
+
+  j_x = turned[0];
+  j_y = turned[1];
+  j_z = turned[2];
 }

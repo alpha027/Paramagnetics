@@ -3,6 +3,9 @@
 #include <greeter/SphericalMagnet.h>
 #include <greeter/TetrahedronMagnet.h>
 #include <greeter/CylinderMagnet.h>
+#include <greeter/DipoleMagnet.h>
+#include <greeter/TriangleMagnet.h>
+#include <greeter/TriangularMeshMagnet.h>
 #include <iostream>
 
 
@@ -28,14 +31,45 @@ greeter::MagnetGeometryFactory::MagnetGeometryFactory() {
         greeter::CylinderMagnet::getStaticTypeID(),
         greeter::CylinderMagnet::getStaticTypeName(),
         greeter::CylinderMagnet::describeShape);
+
+    // The one source whose last three numbers are a moment rather than a
+    // polarization.
+    registerDescribeShape(
+        greeter::DipoleMagnet::getStaticTypeID(),
+        greeter::DipoleMagnet::getStaticTypeName(),
+        greeter::DipoleMagnet::describeShape,
+        greeter::view::MomentKind::Moment);
+
+    registerDescribeShape(
+        greeter::TriangleMagnet::getStaticTypeID(),
+        greeter::TriangleMagnet::getStaticTypeName(),
+        greeter::TriangleMagnet::describeShape);
+
+    registerDescribeShape(
+        greeter::TriangularMeshMagnet::getStaticTypeID(),
+        greeter::TriangularMeshMagnet::getStaticTypeName(),
+        greeter::TriangularMeshMagnet::describeShape);
 }
 
 
 bool greeter::MagnetGeometryFactory::registerDescribeShape(
-    const uint16_t& key, const std::string& type_name, DescribeFunction _method) {
+    const uint16_t& key, const std::string& type_name, DescribeFunction _method,
+    const greeter::view::MomentKind& moment_kind) {
 
-    registry[key] = Entry{type_name, _method};
+    registry[key] = Entry{type_name, _method, moment_kind};
     return true;
+}
+
+
+greeter::view::MomentKind greeter::MagnetGeometryFactory::getMomentKind(
+    const uint16_t& key) const {
+
+    const auto it = registry.find(key);
+
+    // Almost everything carries a polarization, so that is what an unknown
+    // type is assumed to carry.
+    return it == registry.end() ? greeter::view::MomentKind::Polarization
+                                : it->second.moment_kind;
 }
 
 

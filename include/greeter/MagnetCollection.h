@@ -55,6 +55,15 @@ class MagnetCollection {
 
     std::unique_ptr<greeter::MagneticFieldSimulator> createSimulator() const;
 
+    /*
+      Lays the parameters of every magnet down end to end, in the order the
+      field kernels read them, and records where each block starts. Both
+      simulators are built from the same three arrays.
+    */
+    void fillMagnetParameters(FloatVectorView magnet_parameters,
+                              UInt32VectorView parameter_offsets,
+                              UInt32VectorView magnet_types) const;
+
     std::vector<std::vector<float>> simulate(const std::vector<std::vector<float>>& fov) const;
     std::vector<std::vector<float>> simulate(const greeter::FieldOfView& fov) const;
 

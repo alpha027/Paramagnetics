@@ -88,6 +88,18 @@ class SphereMagnet: public Magnet {
         const greeter::MeshingSpec& meshing
       );
 
+
+      /*
+        The polarization J [T] at a point: what the magnet is made of where it
+        is, and zero outside it. Together with B it gives H and M, see
+        MagneticFieldMethodFactory.
+      */
+      static void computePolarizationForSphere(
+        const float* parameters,
+        const float* observation_point,
+        float& j_x, float& j_y, float& j_z
+      );
+
       /*
         A sphere of a diameter. The class and the input file both work in the
         radius, a descriptor always gives the extent across the shape so that

@@ -20,7 +20,8 @@ Stands for parallel magnetic field simulations. This repository offers a user fr
 
 ## Features
 
-- Elementary magnets: cuboids, spheres, tetrahedra and cylinders
+- Elementary magnets: cuboids, spheres, tetrahedra, cylinders, ring sectors, point dipoles, charged triangles, and bodies of any shape at all as a closed triangular mesh
+- The magnetic flux density **B**, the field strength **H**, the polarization **J** and the magnetization **M**
 - Parametrised arrangements of them, built from the parameter file rather than written out one by one
 - Parallel magnetic force and torque simulation between magnets
 - A Qt viewer for the result, which is a separate program and needs neither Kokkos nor the input file
@@ -177,8 +178,31 @@ The input data is a *.json* file that has the following format:
 Note that the **orientation** field in the JSON parameter file represents a quaternion, given as `[w, x, y, z]`.
 The **magnetization** field is the magnetic polarization **J** of the magnet, in Tesla.
 
-A magnet is a `cuboid`, a `sphere`, a `tetrahedron` or a `cylinder`. They differ in how their
-geometry is given:
+#### Which quantity is simulated
+
+The field of view computes **B** unless it is asked for something else:
+
+```txt
+"field_of_view": {
+  "quantity": "H",
+  "x": {"min": -0.05, "max": 0.05, "n": 41},
+  ...
+}
+```
+
+| `quantity` | | unit |
+| --- | --- | --- |
+| `B` | magnetic flux density, the default | Tesla |
+| `H` | magnetic field strength, `(B - J) / mu0` | ampere per metre |
+| `J` | magnetic polarization: what the magnet is made of where it is, zero elsewhere | Tesla |
+| `M` | magnetization, `J / mu0` | ampere per metre |
+
+The last three cost a second look at every magnet, to ask whether the point is inside it, so `B`
+stays the default. **H** is the one worth knowing about: inside a magnet it points *against* the
+polarization, which is why a magnet demagnetizes itself. Inside a sphere of polarization J it is
+exactly `-J / (3 mu0)`, and the tests check that.
+
+Magnets differ in how their geometry is given:
 
 | `type` | geometry | `magnetization` |
 | --- | --- | --- |
@@ -186,9 +210,36 @@ geometry is given:
 | `sphere` | `dimensions`: the radius in metre, as a number or as `[r]` | `J` along the local z axis, as a number or as `[0, 0, J]` |
 | `tetrahedron` | `vertices`: four points in the local frame, in metre | `[Jx, Jy, Jz]` in Tesla |
 | `cylinder` | `dimensions`: `[d, h]`, the diameter and the height in metre | `[Jx, Jy, Jz]` in Tesla, or a number for `[0, 0, J]` |
+| `cylinder_segment` | `dimensions`: `[r1, r2, h, phi1, phi2]`, the radii and height in metre and the angles in degrees | `[Jx, Jy, Jz]` in Tesla |
+| `triangular_mesh` | `vertices` and `faces`, or `triangles` | `[Jx, Jy, Jz]` in Tesla |
+| `triangle` | `vertices`: three points in the local frame, in metre | `[Jx, Jy, Jz]` in Tesla |
+| `dipole` | none, it is a point | **`moment`**: `[mx, my, mz]` in ampere metre squared |
 
 A sphere is magnetized along its own z axis, so a magnetization that points elsewhere is expressed
 by rotating the sphere with its `orientation` rather than by giving a transverse component.
+
+**`triangular_mesh`** is a body of any shape at all, given as a closed surface of triangles, either
+as `vertices` plus `faces` of three indices each, or written out directly as `triangles`. The
+surface has to be closed, and is checked; one wound inside out is turned the right way round rather
+than refused. A tetrahedron is the same thing with four faces, and the two agree to the last digit.
+
+**`cylinder_segment`** is the arc shaped block that real Halbach rings and motor rotors are made of.
+It is built as a faceted body rather than from a closed form: the curved walls are cut into
+`segments` flat strips, 32 by default. Against magpylib's exact expression for a sector of
+r1 = 20 mm, r2 = 30 mm, h = 10 mm over 60°, the worst error is 2.2 % at 4 facets, 0.14 % at 16,
+**0.035 % at the default 32**, and 0.009 % at 64 — falling with the square of the facet size, and
+already far below any tolerance a magnet is actually made to. Raise `segments` if the field right
+against the curved wall matters.
+
+**`triangle`** is a single magnetically charged facet, the piece every polyhedron is built from. It
+is a surface and not a body: it has no volume, so it cannot be a force target, and asking for one
+says so.
+
+**`dipole`** carries a **`moment` in ampere metre squared**, not a `magnetization` in Tesla — a
+magnet of volume V and polarization J has the moment `V * J / mu0`. Writing it as `magnetization`
+is refused rather than quietly read as a moment. It is worth having as a deliberate far field
+approximation: an array of a thousand magnets seen from a metre away is a thousand dipoles, and
+costs a fraction of the shaped kernels to evaluate as such.
 
 ```txt
 {

@@ -85,62 +85,44 @@ u_int32_t greeter::MagnetCollection::get_num_magnets() const {
 
 std::unique_ptr<greeter::MagneticFieldSimulator> greeter::MagnetCollection::createSimulator() const {
 
-  u_int32_t num_magnets = get_num_magnets();
+  UInt32VectorView _magnet_types("magnet_types", get_num_magnets());
+  UInt32VectorView _parameter_offsets("parameter_offsets", get_num_magnets());
+  FloatVectorView _magnet_parameters("magnet_parameters", getTotalNumOfParameters());
 
-  size_t tot_num_parameters = getTotalNumOfGeoParameters();
+  fillMagnetParameters(_magnet_parameters, _parameter_offsets, _magnet_types);
 
-  Float3VectorView _positions("positions", num_magnets);
-  Float4VectorView _orientations("orientations", num_magnets);
-  Float3VectorView _magnetizations("magnetizations", num_magnets);
-  FloatVectorView _radii("radii", tot_num_parameters);
   Float3VectorView _observation_points("observation_points", 1);
-  UInt32VectorView _magnet_types("magnet_types", num_magnets);
 
-  std::vector<float> positions;
-  std::vector<float> orientations;
-  std::vector<float> magnetizations;
-  std::vector<float> radii;
-  std::vector<float> observation_points;
-
-  std::vector<float> geom_dimensions;
-  size_t cum_index = 0;
-
-  for (u_int32_t i = 0; i < num_magnets; i++) {
-
-    positions = this->magnets[i]->getPosition();
-    orientations = this->magnets[i]->getOrientation();
-    radii = this->magnets[i]->getDimensions();
-    magnetizations = this->magnets[i]->getMagnetization();
-
-    _positions(i, 0) = positions[0];
-    _positions(i, 1) = positions[1];
-    _positions(i, 2) = positions[2];
-
-    _orientations(i, 0) = orientations[0];
-    _orientations(i, 1) = orientations[1];
-    _orientations(i, 2) = orientations[2];
-    _orientations(i, 3) = orientations[3];
-
-    _magnetizations(i, 0) = magnetizations[0];
-    _magnetizations(i, 1) = magnetizations[1];
-    _magnetizations(i, 2) = magnetizations[2];
-
-    _magnet_types(i) = this->magnets[i]->getTypeID();
-
-    size_t num_parameters = this->magnets[i]->getNumOfParameters() - 10;
-    geom_dimensions = this->magnets[i]->getDimensions();
-
-    for (size_t j = 0; j < num_parameters; j++) {
-      _radii(cum_index  + j) = geom_dimensions[j];
-    }
-    cum_index += num_parameters;
-  }
-
-  std::unique_ptr<greeter::MagneticFieldSimulator> simulator = std::make_unique<greeter::MagneticFieldSimulator>(
-    _positions, _orientations, _magnetizations, _radii, _magnet_types, _observation_points
+  return std::make_unique<greeter::MagneticFieldSimulator>(
+    _magnet_parameters, _parameter_offsets, _magnet_types, _observation_points
   );
+}
 
-  return simulator;
+
+/*
+  Lay the parameters of every magnet down end to end, each block in the order
+  the field kernels read it. Doing it once here is what lets a shape take as
+  many geometry numbers as it needs, see MagnetParameters.h.
+*/
+void greeter::MagnetCollection::fillMagnetParameters(
+    FloatVectorView magnet_parameters, UInt32VectorView parameter_offsets,
+    UInt32VectorView magnet_types) const {
+
+  size_t at = 0;
+
+  for (u_int32_t i = 0; i < get_num_magnets(); i++) {
+
+    const std::vector<float> parameters = getMagnetParameters(i);
+
+    parameter_offsets(i) = (u_int32_t) at;
+    magnet_types(i) = this->magnets[i]->getTypeID();
+
+    for (size_t j = 0; j < parameters.size(); j++) {
+      magnet_parameters(at + j) = parameters[j];
+    }
+
+    at += parameters.size();
+  }
 }
 
 
@@ -210,51 +192,14 @@ uint16_t greeter::MagnetCollection::getMagnetTypeID(const size_t& index) const {
 
 std::unique_ptr<greeter::ForceSimulator> greeter::MagnetCollection::createForceSimulator() const {
 
-  const u_int32_t num_magnets = get_num_magnets();
-  const size_t tot_num_geo_parameters = getTotalNumOfGeoParameters();
+  UInt32VectorView _magnet_types("magnet_types", get_num_magnets());
+  UInt32VectorView _parameter_offsets("parameter_offsets", get_num_magnets());
+  FloatVectorView _magnet_parameters("magnet_parameters", getTotalNumOfParameters());
 
-  Float3VectorView _positions("positions", num_magnets);
-  Float4VectorView _orientations("orientations", num_magnets);
-  Float3VectorView _magnetizations("magnetizations", num_magnets);
-  FloatVectorView _dimensions("dimensions", tot_num_geo_parameters);
-  UInt32VectorView _magnet_types("magnet_types", num_magnets);
-  UInt32VectorView _geometry_offsets("geometry_offsets", num_magnets);
-
-  size_t cum_index = 0;
-
-  for (u_int32_t i = 0; i < num_magnets; i++) {
-
-    const std::vector<float> position = this->magnets[i]->getPosition();
-    const std::vector<float> orientation = this->magnets[i]->getOrientation();
-    const std::vector<float> magnetization = this->magnets[i]->getMagnetization();
-    const std::vector<float> geom_dimensions = this->magnets[i]->getDimensions();
-
-    _positions(i, 0) = position[0];
-    _positions(i, 1) = position[1];
-    _positions(i, 2) = position[2];
-
-    _orientations(i, 0) = orientation[0];
-    _orientations(i, 1) = orientation[1];
-    _orientations(i, 2) = orientation[2];
-    _orientations(i, 3) = orientation[3];
-
-    _magnetizations(i, 0) = magnetization[0];
-    _magnetizations(i, 1) = magnetization[1];
-    _magnetizations(i, 2) = magnetization[2];
-
-    _magnet_types(i) = this->magnets[i]->getTypeID();
-
-    _geometry_offsets(i) = (u_int32_t) cum_index;
-
-    for (size_t j = 0; j < geom_dimensions.size(); j++) {
-      _dimensions(cum_index + j) = geom_dimensions[j];
-    }
-    cum_index += geom_dimensions.size();
-  }
+  fillMagnetParameters(_magnet_parameters, _parameter_offsets, _magnet_types);
 
   return std::make_unique<greeter::ForceSimulator>(
-    _positions, _orientations, _magnetizations, _dimensions,
-    _magnet_types, _geometry_offsets
+    _magnet_parameters, _parameter_offsets, _magnet_types
   );
 }
 
@@ -331,7 +276,15 @@ std::vector<greeter::ForceResult> greeter::MagnetCollection::computeForces(
     );
 
     if (target.mesh.empty()) {
-      throw std::invalid_argument("No target mesher registered for this magnet type");
+
+      // Either nobody registered a mesher for the type, or the type has no
+      // volume to mesh. A charged surface is the second: it carries no moment
+      // for a force to act on.
+      throw std::invalid_argument(
+        "The magnet of type " + std::to_string(magnet.getTypeID()) +
+        " cannot be a force target: it was meshed into no cells, which means "
+        "either that no mesher is registered for it or that it encloses no "
+        "volume, as an open surface does");
     }
 
     // The vertices of a tetrahedron may well be negative, so the size of a

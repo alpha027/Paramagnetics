@@ -8,11 +8,15 @@
 namespace greeter {
 
 /*
-  Upper bound on getNumOfParameters() of any magnet class, so that a simulator
-  can pack the parameters of a magnet into a stack array without knowing its
-  shape. The registry rejects a magnet class that needs more.
+  There is no upper bound on getNumOfParameters().
+
+  There used to be, because the simulators packed the parameters of a magnet
+  into a stack array of a fixed size before evaluating its kernel. They now
+  hand the kernel a pointer into one array that holds every magnet's block,
+  so a shape may take as many numbers as it needs and two magnets of the same
+  type need not take the same number. A triangular mesh of a thousand facets
+  takes nine thousand; see MagnetParameters.h.
 */
-constexpr size_t MAX_MAGNET_PARAMETERS = 32;
 
 class Magnet {
 

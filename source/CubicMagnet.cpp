@@ -389,3 +389,44 @@ greeter::view::ShapeDescriptor greeter::CuboidMagnet::describeShape(
 
   return shape;
 }
+
+
+void greeter::CuboidMagnet::computePolarizationForCube(
+    const float* parameters, const float* observation_point,
+    float& j_x, float& j_y, float& j_z) {
+
+  j_x = 0.0f;
+  j_y = 0.0f;
+  j_z = 0.0f;
+
+  const float* position = &parameters[0];
+  const float* orientation = &parameters[3];
+  const float* dimensions = &parameters[7];
+  const float* magnetization = &parameters[10];
+
+  const float translated[3] = {
+    observation_point[0] - position[0],
+    observation_point[1] - position[1],
+    observation_point[2] - position[2]
+  };
+
+  float local[3];
+
+  greeter::Quaternion::applyInverseRotationFromQuaternion(
+    orientation, translated, local);
+
+  for (size_t axis = 0; axis < 3; axis++) {
+    if (std::fabs(local[axis]) > 0.5f * dimensions[axis]) {
+      return;
+    }
+  }
+
+  float turned[3];
+
+  greeter::Quaternion::applyRotationFromQuaternion(
+    orientation, magnetization, turned);
+
+  j_x = turned[0];
+  j_y = turned[1];
+  j_z = turned[2];
+}

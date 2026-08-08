@@ -2,11 +2,34 @@
 #define VIEW_FIELD_GRID_H
 
 #include <cstdint>
+#include <string>
 #include <vector>
 
 
 namespace greeter {
 namespace view {
+
+/*
+  Which of the four magnetic quantities a grid holds.
+
+  B is what the field kernels compute. J is the polarization of the material,
+  which is what a magnet is made of where it is and zero everywhere else. The
+  other two follow from those: H = (B - J) / mu0 and M = J / mu0.
+
+  They are not interchangeable and they are not in the same units, so a grid
+  carries which one it is rather than leaving a reader to assume.
+*/
+enum class FieldKind : uint8_t {
+  B = 0,   // magnetic flux density [T]
+  H = 1,   // magnetic field strength [A/m]
+  J = 2,   // magnetic polarization [T]
+  M = 3    // magnetization [A/m]
+};
+
+std::string getName(const FieldKind& kind);
+
+/* The unit it is measured in, "T" or "A/m". */
+std::string getUnit(const FieldKind& kind);
 
 /*
   A simulated field, together with where it was sampled.
@@ -21,6 +44,9 @@ namespace view {
   repeating its own coordinates than on the field; getPoint computes them.
 */
 struct FieldGrid {
+
+  /* Which quantity the samples are of. */
+  FieldKind kind = FieldKind::B;
 
   /* Whether the samples lie on a regular grid, and so whether the box means
      anything. A field sampled at a list of points is not a grid. */
