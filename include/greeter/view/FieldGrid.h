@@ -1,6 +1,7 @@
 #ifndef VIEW_FIELD_GRID_H
 #define VIEW_FIELD_GRID_H
 
+#include <cstddef>
 #include <cstdint>
 #include <string>
 #include <vector>

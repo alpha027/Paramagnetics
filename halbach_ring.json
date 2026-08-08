@@ -1,0 +1,27 @@
+{
+ "arrangements": [
+  {
+   "id": 1,
+   "type": "halbach_ring",
+   "parameters": {
+    "radius": 0.05,
+    "count": 16,
+    "order": 1,
+    "position": [0, 0, 0],
+    "orientation": [1, 0, 0, 0],
+    "element": {
+     "type": "cuboid",
+     "parameters": {
+      "dimensions": [0.015, 0.015, 0.015],
+      "magnetization": [1, 0, 0]
+     }
+    }
+   }
+  }
+ ],
+ "field_of_view": {
+  "x": {"min": -0.035, "max": 0.035, "n": 29},
+  "y": {"min": -0.035, "max": 0.035, "n": 29},
+  "z": {"min": -0.01, "max": 0.01, "n": 5}
+ }
+}
