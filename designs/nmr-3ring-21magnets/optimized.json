@@ -1,0 +1,513 @@
+{
+ "arrangements": [
+  {
+   "id": 1,
+   "parameters": {
+    "count": 3,
+    "element": {
+     "parameters": {
+      "dimensions": [
+       0.024,
+       0.024,
+       0.024
+      ],
+      "magnetization": [
+       1.42,
+       0.0,
+       0.0
+      ]
+     },
+     "type": "cuboid"
+    },
+    "order": 1,
+    "orientation": [
+     1.0,
+     0.0,
+     0.0,
+     0.0
+    ],
+    "position": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "radius": 0.047
+   },
+   "type": "halbach_ring"
+  },
+  {
+   "id": 2,
+   "parameters": {
+    "count": 4,
+    "element": {
+     "parameters": {
+      "dimensions": [
+       0.024,
+       0.024,
+       0.024
+      ],
+      "magnetization": [
+       1.42,
+       0.0,
+       0.0
+      ]
+     },
+     "type": "cuboid"
+    },
+    "order": 1,
+    "orientation": [
+     1.0,
+     0.0,
+     0.0,
+     0.0
+    ],
+    "position": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "radius": 0.083
+   },
+   "type": "halbach_ring"
+  },
+  {
+   "id": 3,
+   "parameters": {
+    "count": 3,
+    "element": {
+     "parameters": {
+      "dimensions": [
+       0.024,
+       0.024,
+       0.024
+      ],
+      "magnetization": [
+       1.42,
+       0.0,
+       0.0
+      ]
+     },
+     "type": "cuboid"
+    },
+    "order": 1,
+    "orientation": [
+     1.0,
+     0.0,
+     0.0,
+     0.0
+    ],
+    "position": [
+     0.0,
+     0.0,
+     0.032
+    ],
+    "radius": 0.042
+   },
+   "type": "halbach_ring"
+  },
+  {
+   "id": 4,
+   "parameters": {
+    "count": 4,
+    "element": {
+     "parameters": {
+      "dimensions": [
+       0.024,
+       0.024,
+       0.024
+      ],
+      "magnetization": [
+       1.42,
+       0.0,
+       0.0
+      ]
+     },
+     "type": "cuboid"
+    },
+    "order": 1,
+    "orientation": [
+     1.0,
+     0.0,
+     0.0,
+     0.0
+    ],
+    "position": [
+     0.0,
+     0.0,
+     0.032
+    ],
+    "radius": 0.07799999
+   },
+   "type": "halbach_ring"
+  },
+  {
+   "id": 5,
+   "parameters": {
+    "count": 3,
+    "element": {
+     "parameters": {
+      "dimensions": [
+       0.024,
+       0.024,
+       0.024
+      ],
+      "magnetization": [
+       1.42,
+       0.0,
+       0.0
+      ]
+     },
+     "type": "cuboid"
+    },
+    "order": 1,
+    "orientation": [
+     1.0,
+     0.0,
+     0.0,
+     0.0
+    ],
+    "position": [
+     0.0,
+     0.0,
+     -0.032
+    ],
+    "radius": 0.042
+   },
+   "type": "halbach_ring"
+  },
+  {
+   "id": 6,
+   "parameters": {
+    "count": 4,
+    "element": {
+     "parameters": {
+      "dimensions": [
+       0.024,
+       0.024,
+       0.024
+      ],
+      "magnetization": [
+       1.42,
+       0.0,
+       0.0
+      ]
+     },
+     "type": "cuboid"
+    },
+    "order": 1,
+    "orientation": [
+     1.0,
+     0.0,
+     0.0,
+     0.0
+    ],
+    "position": [
+     0.0,
+     0.0,
+     -0.032
+    ],
+    "radius": 0.07799999
+   },
+   "type": "halbach_ring"
+  }
+ ],
+ "field_of_view": {
+  "x": {
+   "max": 0.002,
+   "min": -0.002,
+   "n": 41
+  },
+  "y": {
+   "max": 0.002,
+   "min": -0.002,
+   "n": 41
+  },
+  "z": {
+   "max": 0.002,
+   "min": -0.002,
+   "n": 41
+  }
+ },
+ "halbach_optimization": {
+  "basis": {
+   "configurations": 102,
+   "magnets": 1071,
+   "points": 33401
+  },
+  "candidates": [
+   {
+    "count": 3,
+    "radius": 0.022
+   },
+   {
+    "count": 3,
+    "radius": 0.023
+   },
+   {
+    "count": 3,
+    "radius": 0.024
+   },
+   {
+    "count": 3,
+    "radius": 0.025
+   },
+   {
+    "count": 3,
+    "radius": 0.026
+   },
+   {
+    "count": 3,
+    "radius": 0.027
+   },
+   {
+    "count": 3,
+    "radius": 0.028
+   },
+   {
+    "count": 3,
+    "radius": 0.029
+   },
+   {
+    "count": 3,
+    "radius": 0.03
+   },
+   {
+    "count": 3,
+    "radius": 0.031
+   },
+   {
+    "count": 3,
+    "radius": 0.032
+   },
+   {
+    "count": 3,
+    "radius": 0.033
+   },
+   {
+    "count": 3,
+    "radius": 0.034
+   },
+   {
+    "count": 3,
+    "radius": 0.035
+   },
+   {
+    "count": 3,
+    "radius": 0.036
+   },
+   {
+    "count": 3,
+    "radius": 0.037
+   },
+   {
+    "count": 3,
+    "radius": 0.038
+   },
+   {
+    "count": 3,
+    "radius": 0.039
+   },
+   {
+    "count": 3,
+    "radius": 0.04
+   },
+   {
+    "count": 3,
+    "radius": 0.041
+   },
+   {
+    "count": 3,
+    "radius": 0.042
+   },
+   {
+    "count": 3,
+    "radius": 0.043
+   },
+   {
+    "count": 3,
+    "radius": 0.044
+   },
+   {
+    "count": 3,
+    "radius": 0.045
+   },
+   {
+    "count": 3,
+    "radius": 0.046
+   },
+   {
+    "count": 3,
+    "radius": 0.047
+   },
+   {
+    "count": 3,
+    "radius": 0.048
+   },
+   {
+    "count": 3,
+    "radius": 0.049
+   },
+   {
+    "count": 3,
+    "radius": 0.05
+   },
+   {
+    "count": 3,
+    "radius": 0.051
+   },
+   {
+    "count": 3,
+    "radius": 0.052
+   },
+   {
+    "count": 3,
+    "radius": 0.053
+   },
+   {
+    "count": 3,
+    "radius": 0.054
+   },
+   {
+    "count": 3,
+    "radius": 0.055
+   },
+   {
+    "count": 3,
+    "radius": 0.056
+   },
+   {
+    "count": 3,
+    "radius": 0.057
+   },
+   {
+    "count": 3,
+    "radius": 0.058
+   },
+   {
+    "count": 3,
+    "radius": 0.059
+   },
+   {
+    "count": 3,
+    "radius": 0.06
+   },
+   {
+    "count": 3,
+    "radius": 0.061
+   },
+   {
+    "count": 3,
+    "radius": 0.062
+   },
+   {
+    "count": 3,
+    "radius": 0.063
+   },
+   {
+    "count": 3,
+    "radius": 0.064
+   },
+   {
+    "count": 3,
+    "radius": 0.065
+   },
+   {
+    "count": 3,
+    "radius": 0.066
+   },
+   {
+    "count": 3,
+    "radius": 0.067
+   },
+   {
+    "count": 3,
+    "radius": 0.068
+   },
+   {
+    "count": 3,
+    "radius": 0.069
+   },
+   {
+    "count": 3,
+    "radius": 0.07
+   },
+   {
+    "count": 3,
+    "radius": 0.071
+   },
+   {
+    "count": 3,
+    "radius": 0.072
+   }
+  ],
+  "chosen": [
+   {
+    "candidate": 25,
+    "inner_count": 3,
+    "inner_radius": 0.047,
+    "outer_count": 4,
+    "outer_radius": 0.083,
+    "ring_position": 0.0
+   },
+   {
+    "candidate": 20,
+    "inner_count": 3,
+    "inner_radius": 0.042,
+    "outer_count": 4,
+    "outer_radius": 0.07799999,
+    "ring_position": 0.032
+   }
+  ],
+  "dsv": 0.004,
+  "element": {
+   "remanence": 1.42,
+   "size": 0.024
+  },
+  "field_model": "cuboid",
+  "generations_run": 25,
+  "genetic": {
+   "cx_prob": 0.55,
+   "elitism": 2,
+   "gene_mut_prob": 0.4,
+   "generations": 25,
+   "mut_prob": 0.4,
+   "population": 20000,
+   "seed": 42,
+   "tournament": 3
+  },
+  "genome": [
+   25,
+   20
+  ],
+  "magnet_count": 21,
+  "objective": "ppm_bmag",
+  "optimized": {
+   "homogeneity_ppm": 602.5099,
+   "max_T": 0.171206,
+   "mean_T": 0.1711688,
+   "min_T": 0.1711029,
+   "peak_to_peak_T": 0.0001031309,
+   "points": 33401
+  },
+  "order": 1,
+  "outer_count_offset": 1,
+  "outer_radius_offset": 0.036,
+  "resolution": 0.0001,
+  "ring_count": 3,
+  "ring_separation": 0.032,
+  "symmetry": "full",
+  "timing_s": {
+   "basis": 9.871003433,
+   "evolution": 58.460392653,
+   "verification": 0.262323371
+  },
+  "verified": {
+   "homogeneity_ppm": 602.3359,
+   "max_T": 0.171206,
+   "mean_T": 0.1711688,
+   "min_T": 0.1711029,
+   "peak_to_peak_T": 0.0001031011,
+   "points": 33401
+  }
+ }
+}

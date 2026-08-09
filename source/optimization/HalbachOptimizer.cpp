@@ -13,7 +13,8 @@ namespace optimization {
 
 FieldMetrics HalbachOptimizer::measure(
     const greeter::MagnetCollection& collection, const HalbachSpec& spec,
-    const Objective& objective, size_t& num_points) {
+    const Objective& objective, size_t& num_points,
+    std::vector<FieldSample>* samples) {
 
     /*
       Over the whole sphere, whatever symmetry the search was reduced to. An
@@ -44,6 +45,11 @@ FieldMetrics HalbachOptimizer::measure(
     std::vector<float> values;
     values.reserve(num_points);
 
+    if (samples != nullptr) {
+        samples->clear();
+        samples->reserve(num_points);
+    }
+
     for (size_t i = 0; i < num_points; i++) {
 
         const float b_x = fields[3 * i + 0];
@@ -54,6 +60,17 @@ FieldMetrics HalbachOptimizer::measure(
             objective == Objective::BMagnitude
                 ? std::sqrt(b_x * b_x + b_y * b_y + b_z * b_z)
                 : b_x);
+
+        if (samples != nullptr) {
+            FieldSample sample;
+            sample.position[0] = points[i][0];
+            sample.position[1] = points[i][1];
+            sample.position[2] = points[i][2];
+            sample.b[0] = b_x;
+            sample.b[1] = b_y;
+            sample.b[2] = b_z;
+            samples->push_back(sample);
+        }
     }
 
     return HomogeneityObjective::summarise(values);
@@ -117,7 +134,8 @@ HalbachSolution HalbachOptimizer::run(const HalbachSpec& spec,
         timer.reset();
 
         solution.verified = measure(
-            collection, spec, spec.objective, solution.verified_points);
+            collection, spec, spec.objective, solution.verified_points,
+            options.keep_field ? &solution.verified_field : nullptr);
 
         solution.verification_seconds = timer.seconds();
         solution.was_verified = true;

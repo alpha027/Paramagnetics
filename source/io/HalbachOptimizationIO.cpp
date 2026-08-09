@@ -247,6 +247,42 @@ void HalbachOptimizationIO::writeFile(
 }
 
 
+void HalbachOptimizationIO::writeFieldCSV(
+    const HalbachSolution& solution, const std::string& path) {
+
+    if (solution.verified_field.empty()) {
+        throw std::invalid_argument(
+            "This run kept no field samples, so there is nothing to write. A "
+            "run has to be asked for them, and one that skipped the "
+            "verification never took any");
+    }
+
+    std::ofstream file(path);
+
+    if (!file.is_open()) {
+        throw std::invalid_argument("Could not open " + path + " for writing");
+    }
+
+    // Nine digits, for the same reason the simulator writes nine: the whole
+    // point of these files is a field that varies in the seventh.
+    file.precision(9);
+
+    file << "x,y,z,Bx,By,Bz,Bmag" << std::endl;
+
+    for (const auto& sample : solution.verified_field) {
+
+        const double magnitude = std::sqrt(
+            (double) sample.b[0] * sample.b[0] +
+            (double) sample.b[1] * sample.b[1] +
+            (double) sample.b[2] * sample.b[2]);
+
+        file << sample.position[0] << "," << sample.position[1] << ","
+             << sample.position[2] << "," << sample.b[0] << "," << sample.b[1]
+             << "," << sample.b[2] << "," << magnitude << std::endl;
+    }
+}
+
+
 void HalbachOptimizationIO::writeHistoryCSV(
     const HalbachSolution& solution, const std::string& path) {
 
