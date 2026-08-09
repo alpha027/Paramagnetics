@@ -85,15 +85,10 @@ std::vector<float> greeter::TetrahedronMagnetIO::readMagnetization(const nlohman
 std::unique_ptr<greeter::Magnet> greeter::TetrahedronMagnetIO::createMagnet(
     const nlohmann::json& magnet) {
 
-  std::cout << "Reading position" << std::endl;
   std::vector<float> position = readPosition(magnet);
-  std::cout << "position read" << std::endl;
   std::vector<float> vertices = readVertices(magnet);
-  std::cout << "vertices read" << std::endl;
   std::vector<float> orientation = readOrientation(magnet);
-  std::cout << "orientation read" << std::endl;
   std::vector<float> magnetization = readMagnetization(magnet);
-  std::cout << "extracted all data from JSON" << std::endl;
 
   return std::make_unique<greeter::TetrahedronMagnet>(
     position, vertices, orientation, magnetization);

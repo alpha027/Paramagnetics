@@ -1,0 +1,1875 @@
+{
+ "arrangements": [
+  {
+   "id": 1,
+   "parameters": {
+    "count": 61,
+    "element": {
+     "parameters": {
+      "dimensions": [
+       0.012,
+       0.012,
+       0.012
+      ],
+      "magnetization": [
+       1.3,
+       0.0,
+       0.0
+      ]
+     },
+     "type": "cuboid"
+    },
+    "order": 1,
+    "orientation": [
+     1.0,
+     0.0,
+     0.0,
+     0.0
+    ],
+    "position": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "radius": 0.18
+   },
+   "type": "halbach_ring"
+  },
+  {
+   "id": 2,
+   "parameters": {
+    "count": 68,
+    "element": {
+     "parameters": {
+      "dimensions": [
+       0.012,
+       0.012,
+       0.012
+      ],
+      "magnetization": [
+       1.3,
+       0.0,
+       0.0
+      ]
+     },
+     "type": "cuboid"
+    },
+    "order": 1,
+    "orientation": [
+     1.0,
+     0.0,
+     0.0,
+     0.0
+    ],
+    "position": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "radius": 0.201
+   },
+   "type": "halbach_ring"
+  },
+  {
+   "id": 3,
+   "parameters": {
+    "count": 63,
+    "element": {
+     "parameters": {
+      "dimensions": [
+       0.012,
+       0.012,
+       0.012
+      ],
+      "magnetization": [
+       1.3,
+       0.0,
+       0.0
+      ]
+     },
+     "type": "cuboid"
+    },
+    "order": 1,
+    "orientation": [
+     1.0,
+     0.0,
+     0.0,
+     0.0
+    ],
+    "position": [
+     0.0,
+     0.0,
+     0.022
+    ],
+    "radius": 0.186
+   },
+   "type": "halbach_ring"
+  },
+  {
+   "id": 4,
+   "parameters": {
+    "count": 70,
+    "element": {
+     "parameters": {
+      "dimensions": [
+       0.012,
+       0.012,
+       0.012
+      ],
+      "magnetization": [
+       1.3,
+       0.0,
+       0.0
+      ]
+     },
+     "type": "cuboid"
+    },
+    "order": 1,
+    "orientation": [
+     1.0,
+     0.0,
+     0.0,
+     0.0
+    ],
+    "position": [
+     0.0,
+     0.0,
+     0.022
+    ],
+    "radius": 0.207
+   },
+   "type": "halbach_ring"
+  },
+  {
+   "id": 5,
+   "parameters": {
+    "count": 63,
+    "element": {
+     "parameters": {
+      "dimensions": [
+       0.012,
+       0.012,
+       0.012
+      ],
+      "magnetization": [
+       1.3,
+       0.0,
+       0.0
+      ]
+     },
+     "type": "cuboid"
+    },
+    "order": 1,
+    "orientation": [
+     1.0,
+     0.0,
+     0.0,
+     0.0
+    ],
+    "position": [
+     0.0,
+     0.0,
+     -0.022
+    ],
+    "radius": 0.186
+   },
+   "type": "halbach_ring"
+  },
+  {
+   "id": 6,
+   "parameters": {
+    "count": 70,
+    "element": {
+     "parameters": {
+      "dimensions": [
+       0.012,
+       0.012,
+       0.012
+      ],
+      "magnetization": [
+       1.3,
+       0.0,
+       0.0
+      ]
+     },
+     "type": "cuboid"
+    },
+    "order": 1,
+    "orientation": [
+     1.0,
+     0.0,
+     0.0,
+     0.0
+    ],
+    "position": [
+     0.0,
+     0.0,
+     -0.022
+    ],
+    "radius": 0.207
+   },
+   "type": "halbach_ring"
+  },
+  {
+   "id": 7,
+   "parameters": {
+    "count": 62,
+    "element": {
+     "parameters": {
+      "dimensions": [
+       0.012,
+       0.012,
+       0.012
+      ],
+      "magnetization": [
+       1.3,
+       0.0,
+       0.0
+      ]
+     },
+     "type": "cuboid"
+    },
+    "order": 1,
+    "orientation": [
+     1.0,
+     0.0,
+     0.0,
+     0.0
+    ],
+    "position": [
+     0.0,
+     0.0,
+     0.04400001
+    ],
+    "radius": 0.183
+   },
+   "type": "halbach_ring"
+  },
+  {
+   "id": 8,
+   "parameters": {
+    "count": 69,
+    "element": {
+     "parameters": {
+      "dimensions": [
+       0.012,
+       0.012,
+       0.012
+      ],
+      "magnetization": [
+       1.3,
+       0.0,
+       0.0
+      ]
+     },
+     "type": "cuboid"
+    },
+    "order": 1,
+    "orientation": [
+     1.0,
+     0.0,
+     0.0,
+     0.0
+    ],
+    "position": [
+     0.0,
+     0.0,
+     0.04400001
+    ],
+    "radius": 0.204
+   },
+   "type": "halbach_ring"
+  },
+  {
+   "id": 9,
+   "parameters": {
+    "count": 62,
+    "element": {
+     "parameters": {
+      "dimensions": [
+       0.012,
+       0.012,
+       0.012
+      ],
+      "magnetization": [
+       1.3,
+       0.0,
+       0.0
+      ]
+     },
+     "type": "cuboid"
+    },
+    "order": 1,
+    "orientation": [
+     1.0,
+     0.0,
+     0.0,
+     0.0
+    ],
+    "position": [
+     0.0,
+     0.0,
+     -0.04400001
+    ],
+    "radius": 0.183
+   },
+   "type": "halbach_ring"
+  },
+  {
+   "id": 10,
+   "parameters": {
+    "count": 69,
+    "element": {
+     "parameters": {
+      "dimensions": [
+       0.012,
+       0.012,
+       0.012
+      ],
+      "magnetization": [
+       1.3,
+       0.0,
+       0.0
+      ]
+     },
+     "type": "cuboid"
+    },
+    "order": 1,
+    "orientation": [
+     1.0,
+     0.0,
+     0.0,
+     0.0
+    ],
+    "position": [
+     0.0,
+     0.0,
+     -0.04400001
+    ],
+    "radius": 0.204
+   },
+   "type": "halbach_ring"
+  },
+  {
+   "id": 11,
+   "parameters": {
+    "count": 61,
+    "element": {
+     "parameters": {
+      "dimensions": [
+       0.012,
+       0.012,
+       0.012
+      ],
+      "magnetization": [
+       1.3,
+       0.0,
+       0.0
+      ]
+     },
+     "type": "cuboid"
+    },
+    "order": 1,
+    "orientation": [
+     1.0,
+     0.0,
+     0.0,
+     0.0
+    ],
+    "position": [
+     0.0,
+     0.0,
+     0.066
+    ],
+    "radius": 0.18
+   },
+   "type": "halbach_ring"
+  },
+  {
+   "id": 12,
+   "parameters": {
+    "count": 68,
+    "element": {
+     "parameters": {
+      "dimensions": [
+       0.012,
+       0.012,
+       0.012
+      ],
+      "magnetization": [
+       1.3,
+       0.0,
+       0.0
+      ]
+     },
+     "type": "cuboid"
+    },
+    "order": 1,
+    "orientation": [
+     1.0,
+     0.0,
+     0.0,
+     0.0
+    ],
+    "position": [
+     0.0,
+     0.0,
+     0.066
+    ],
+    "radius": 0.201
+   },
+   "type": "halbach_ring"
+  },
+  {
+   "id": 13,
+   "parameters": {
+    "count": 61,
+    "element": {
+     "parameters": {
+      "dimensions": [
+       0.012,
+       0.012,
+       0.012
+      ],
+      "magnetization": [
+       1.3,
+       0.0,
+       0.0
+      ]
+     },
+     "type": "cuboid"
+    },
+    "order": 1,
+    "orientation": [
+     1.0,
+     0.0,
+     0.0,
+     0.0
+    ],
+    "position": [
+     0.0,
+     0.0,
+     -0.066
+    ],
+    "radius": 0.18
+   },
+   "type": "halbach_ring"
+  },
+  {
+   "id": 14,
+   "parameters": {
+    "count": 68,
+    "element": {
+     "parameters": {
+      "dimensions": [
+       0.012,
+       0.012,
+       0.012
+      ],
+      "magnetization": [
+       1.3,
+       0.0,
+       0.0
+      ]
+     },
+     "type": "cuboid"
+    },
+    "order": 1,
+    "orientation": [
+     1.0,
+     0.0,
+     0.0,
+     0.0
+    ],
+    "position": [
+     0.0,
+     0.0,
+     -0.066
+    ],
+    "radius": 0.201
+   },
+   "type": "halbach_ring"
+  },
+  {
+   "id": 15,
+   "parameters": {
+    "count": 60,
+    "element": {
+     "parameters": {
+      "dimensions": [
+       0.012,
+       0.012,
+       0.012
+      ],
+      "magnetization": [
+       1.3,
+       0.0,
+       0.0
+      ]
+     },
+     "type": "cuboid"
+    },
+    "order": 1,
+    "orientation": [
+     1.0,
+     0.0,
+     0.0,
+     0.0
+    ],
+    "position": [
+     0.0,
+     0.0,
+     0.08799998
+    ],
+    "radius": 0.177
+   },
+   "type": "halbach_ring"
+  },
+  {
+   "id": 16,
+   "parameters": {
+    "count": 67,
+    "element": {
+     "parameters": {
+      "dimensions": [
+       0.012,
+       0.012,
+       0.012
+      ],
+      "magnetization": [
+       1.3,
+       0.0,
+       0.0
+      ]
+     },
+     "type": "cuboid"
+    },
+    "order": 1,
+    "orientation": [
+     1.0,
+     0.0,
+     0.0,
+     0.0
+    ],
+    "position": [
+     0.0,
+     0.0,
+     0.08799998
+    ],
+    "radius": 0.198
+   },
+   "type": "halbach_ring"
+  },
+  {
+   "id": 17,
+   "parameters": {
+    "count": 60,
+    "element": {
+     "parameters": {
+      "dimensions": [
+       0.012,
+       0.012,
+       0.012
+      ],
+      "magnetization": [
+       1.3,
+       0.0,
+       0.0
+      ]
+     },
+     "type": "cuboid"
+    },
+    "order": 1,
+    "orientation": [
+     1.0,
+     0.0,
+     0.0,
+     0.0
+    ],
+    "position": [
+     0.0,
+     0.0,
+     -0.08799998
+    ],
+    "radius": 0.177
+   },
+   "type": "halbach_ring"
+  },
+  {
+   "id": 18,
+   "parameters": {
+    "count": 67,
+    "element": {
+     "parameters": {
+      "dimensions": [
+       0.012,
+       0.012,
+       0.012
+      ],
+      "magnetization": [
+       1.3,
+       0.0,
+       0.0
+      ]
+     },
+     "type": "cuboid"
+    },
+    "order": 1,
+    "orientation": [
+     1.0,
+     0.0,
+     0.0,
+     0.0
+    ],
+    "position": [
+     0.0,
+     0.0,
+     -0.08799998
+    ],
+    "radius": 0.198
+   },
+   "type": "halbach_ring"
+  },
+  {
+   "id": 19,
+   "parameters": {
+    "count": 59,
+    "element": {
+     "parameters": {
+      "dimensions": [
+       0.012,
+       0.012,
+       0.012
+      ],
+      "magnetization": [
+       1.3,
+       0.0,
+       0.0
+      ]
+     },
+     "type": "cuboid"
+    },
+    "order": 1,
+    "orientation": [
+     1.0,
+     0.0,
+     0.0,
+     0.0
+    ],
+    "position": [
+     0.0,
+     0.0,
+     0.11
+    ],
+    "radius": 0.174
+   },
+   "type": "halbach_ring"
+  },
+  {
+   "id": 20,
+   "parameters": {
+    "count": 66,
+    "element": {
+     "parameters": {
+      "dimensions": [
+       0.012,
+       0.012,
+       0.012
+      ],
+      "magnetization": [
+       1.3,
+       0.0,
+       0.0
+      ]
+     },
+     "type": "cuboid"
+    },
+    "order": 1,
+    "orientation": [
+     1.0,
+     0.0,
+     0.0,
+     0.0
+    ],
+    "position": [
+     0.0,
+     0.0,
+     0.11
+    ],
+    "radius": 0.195
+   },
+   "type": "halbach_ring"
+  },
+  {
+   "id": 21,
+   "parameters": {
+    "count": 59,
+    "element": {
+     "parameters": {
+      "dimensions": [
+       0.012,
+       0.012,
+       0.012
+      ],
+      "magnetization": [
+       1.3,
+       0.0,
+       0.0
+      ]
+     },
+     "type": "cuboid"
+    },
+    "order": 1,
+    "orientation": [
+     1.0,
+     0.0,
+     0.0,
+     0.0
+    ],
+    "position": [
+     0.0,
+     0.0,
+     -0.11
+    ],
+    "radius": 0.174
+   },
+   "type": "halbach_ring"
+  },
+  {
+   "id": 22,
+   "parameters": {
+    "count": 66,
+    "element": {
+     "parameters": {
+      "dimensions": [
+       0.012,
+       0.012,
+       0.012
+      ],
+      "magnetization": [
+       1.3,
+       0.0,
+       0.0
+      ]
+     },
+     "type": "cuboid"
+    },
+    "order": 1,
+    "orientation": [
+     1.0,
+     0.0,
+     0.0,
+     0.0
+    ],
+    "position": [
+     0.0,
+     0.0,
+     -0.11
+    ],
+    "radius": 0.195
+   },
+   "type": "halbach_ring"
+  },
+  {
+   "id": 23,
+   "parameters": {
+    "count": 68,
+    "element": {
+     "parameters": {
+      "dimensions": [
+       0.012,
+       0.012,
+       0.012
+      ],
+      "magnetization": [
+       1.3,
+       0.0,
+       0.0
+      ]
+     },
+     "type": "cuboid"
+    },
+    "order": 1,
+    "orientation": [
+     1.0,
+     0.0,
+     0.0,
+     0.0
+    ],
+    "position": [
+     0.0,
+     0.0,
+     0.132
+    ],
+    "radius": 0.201
+   },
+   "type": "halbach_ring"
+  },
+  {
+   "id": 24,
+   "parameters": {
+    "count": 75,
+    "element": {
+     "parameters": {
+      "dimensions": [
+       0.012,
+       0.012,
+       0.012
+      ],
+      "magnetization": [
+       1.3,
+       0.0,
+       0.0
+      ]
+     },
+     "type": "cuboid"
+    },
+    "order": 1,
+    "orientation": [
+     1.0,
+     0.0,
+     0.0,
+     0.0
+    ],
+    "position": [
+     0.0,
+     0.0,
+     0.132
+    ],
+    "radius": 0.222
+   },
+   "type": "halbach_ring"
+  },
+  {
+   "id": 25,
+   "parameters": {
+    "count": 68,
+    "element": {
+     "parameters": {
+      "dimensions": [
+       0.012,
+       0.012,
+       0.012
+      ],
+      "magnetization": [
+       1.3,
+       0.0,
+       0.0
+      ]
+     },
+     "type": "cuboid"
+    },
+    "order": 1,
+    "orientation": [
+     1.0,
+     0.0,
+     0.0,
+     0.0
+    ],
+    "position": [
+     0.0,
+     0.0,
+     -0.132
+    ],
+    "radius": 0.201
+   },
+   "type": "halbach_ring"
+  },
+  {
+   "id": 26,
+   "parameters": {
+    "count": 75,
+    "element": {
+     "parameters": {
+      "dimensions": [
+       0.012,
+       0.012,
+       0.012
+      ],
+      "magnetization": [
+       1.3,
+       0.0,
+       0.0
+      ]
+     },
+     "type": "cuboid"
+    },
+    "order": 1,
+    "orientation": [
+     1.0,
+     0.0,
+     0.0,
+     0.0
+    ],
+    "position": [
+     0.0,
+     0.0,
+     -0.132
+    ],
+    "radius": 0.222
+   },
+   "type": "halbach_ring"
+  },
+  {
+   "id": 27,
+   "parameters": {
+    "count": 55,
+    "element": {
+     "parameters": {
+      "dimensions": [
+       0.012,
+       0.012,
+       0.012
+      ],
+      "magnetization": [
+       1.3,
+       0.0,
+       0.0
+      ]
+     },
+     "type": "cuboid"
+    },
+    "order": 1,
+    "orientation": [
+     1.0,
+     0.0,
+     0.0,
+     0.0
+    ],
+    "position": [
+     0.0,
+     0.0,
+     0.154
+    ],
+    "radius": 0.162
+   },
+   "type": "halbach_ring"
+  },
+  {
+   "id": 28,
+   "parameters": {
+    "count": 62,
+    "element": {
+     "parameters": {
+      "dimensions": [
+       0.012,
+       0.012,
+       0.012
+      ],
+      "magnetization": [
+       1.3,
+       0.0,
+       0.0
+      ]
+     },
+     "type": "cuboid"
+    },
+    "order": 1,
+    "orientation": [
+     1.0,
+     0.0,
+     0.0,
+     0.0
+    ],
+    "position": [
+     0.0,
+     0.0,
+     0.154
+    ],
+    "radius": 0.183
+   },
+   "type": "halbach_ring"
+  },
+  {
+   "id": 29,
+   "parameters": {
+    "count": 55,
+    "element": {
+     "parameters": {
+      "dimensions": [
+       0.012,
+       0.012,
+       0.012
+      ],
+      "magnetization": [
+       1.3,
+       0.0,
+       0.0
+      ]
+     },
+     "type": "cuboid"
+    },
+    "order": 1,
+    "orientation": [
+     1.0,
+     0.0,
+     0.0,
+     0.0
+    ],
+    "position": [
+     0.0,
+     0.0,
+     -0.154
+    ],
+    "radius": 0.162
+   },
+   "type": "halbach_ring"
+  },
+  {
+   "id": 30,
+   "parameters": {
+    "count": 62,
+    "element": {
+     "parameters": {
+      "dimensions": [
+       0.012,
+       0.012,
+       0.012
+      ],
+      "magnetization": [
+       1.3,
+       0.0,
+       0.0
+      ]
+     },
+     "type": "cuboid"
+    },
+    "order": 1,
+    "orientation": [
+     1.0,
+     0.0,
+     0.0,
+     0.0
+    ],
+    "position": [
+     0.0,
+     0.0,
+     -0.154
+    ],
+    "radius": 0.183
+   },
+   "type": "halbach_ring"
+  },
+  {
+   "id": 31,
+   "parameters": {
+    "count": 50,
+    "element": {
+     "parameters": {
+      "dimensions": [
+       0.012,
+       0.012,
+       0.012
+      ],
+      "magnetization": [
+       1.3,
+       0.0,
+       0.0
+      ]
+     },
+     "type": "cuboid"
+    },
+    "order": 1,
+    "orientation": [
+     1.0,
+     0.0,
+     0.0,
+     0.0
+    ],
+    "position": [
+     0.0,
+     0.0,
+     0.176
+    ],
+    "radius": 0.148
+   },
+   "type": "halbach_ring"
+  },
+  {
+   "id": 32,
+   "parameters": {
+    "count": 57,
+    "element": {
+     "parameters": {
+      "dimensions": [
+       0.012,
+       0.012,
+       0.012
+      ],
+      "magnetization": [
+       1.3,
+       0.0,
+       0.0
+      ]
+     },
+     "type": "cuboid"
+    },
+    "order": 1,
+    "orientation": [
+     1.0,
+     0.0,
+     0.0,
+     0.0
+    ],
+    "position": [
+     0.0,
+     0.0,
+     0.176
+    ],
+    "radius": 0.169
+   },
+   "type": "halbach_ring"
+  },
+  {
+   "id": 33,
+   "parameters": {
+    "count": 50,
+    "element": {
+     "parameters": {
+      "dimensions": [
+       0.012,
+       0.012,
+       0.012
+      ],
+      "magnetization": [
+       1.3,
+       0.0,
+       0.0
+      ]
+     },
+     "type": "cuboid"
+    },
+    "order": 1,
+    "orientation": [
+     1.0,
+     0.0,
+     0.0,
+     0.0
+    ],
+    "position": [
+     0.0,
+     0.0,
+     -0.176
+    ],
+    "radius": 0.148
+   },
+   "type": "halbach_ring"
+  },
+  {
+   "id": 34,
+   "parameters": {
+    "count": 57,
+    "element": {
+     "parameters": {
+      "dimensions": [
+       0.012,
+       0.012,
+       0.012
+      ],
+      "magnetization": [
+       1.3,
+       0.0,
+       0.0
+      ]
+     },
+     "type": "cuboid"
+    },
+    "order": 1,
+    "orientation": [
+     1.0,
+     0.0,
+     0.0,
+     0.0
+    ],
+    "position": [
+     0.0,
+     0.0,
+     -0.176
+    ],
+    "radius": 0.169
+   },
+   "type": "halbach_ring"
+  },
+  {
+   "id": 35,
+   "parameters": {
+    "count": 55,
+    "element": {
+     "parameters": {
+      "dimensions": [
+       0.012,
+       0.012,
+       0.012
+      ],
+      "magnetization": [
+       1.3,
+       0.0,
+       0.0
+      ]
+     },
+     "type": "cuboid"
+    },
+    "order": 1,
+    "orientation": [
+     1.0,
+     0.0,
+     0.0,
+     0.0
+    ],
+    "position": [
+     0.0,
+     0.0,
+     0.198
+    ],
+    "radius": 0.162
+   },
+   "type": "halbach_ring"
+  },
+  {
+   "id": 36,
+   "parameters": {
+    "count": 62,
+    "element": {
+     "parameters": {
+      "dimensions": [
+       0.012,
+       0.012,
+       0.012
+      ],
+      "magnetization": [
+       1.3,
+       0.0,
+       0.0
+      ]
+     },
+     "type": "cuboid"
+    },
+    "order": 1,
+    "orientation": [
+     1.0,
+     0.0,
+     0.0,
+     0.0
+    ],
+    "position": [
+     0.0,
+     0.0,
+     0.198
+    ],
+    "radius": 0.183
+   },
+   "type": "halbach_ring"
+  },
+  {
+   "id": 37,
+   "parameters": {
+    "count": 55,
+    "element": {
+     "parameters": {
+      "dimensions": [
+       0.012,
+       0.012,
+       0.012
+      ],
+      "magnetization": [
+       1.3,
+       0.0,
+       0.0
+      ]
+     },
+     "type": "cuboid"
+    },
+    "order": 1,
+    "orientation": [
+     1.0,
+     0.0,
+     0.0,
+     0.0
+    ],
+    "position": [
+     0.0,
+     0.0,
+     -0.198
+    ],
+    "radius": 0.162
+   },
+   "type": "halbach_ring"
+  },
+  {
+   "id": 38,
+   "parameters": {
+    "count": 62,
+    "element": {
+     "parameters": {
+      "dimensions": [
+       0.012,
+       0.012,
+       0.012
+      ],
+      "magnetization": [
+       1.3,
+       0.0,
+       0.0
+      ]
+     },
+     "type": "cuboid"
+    },
+    "order": 1,
+    "orientation": [
+     1.0,
+     0.0,
+     0.0,
+     0.0
+    ],
+    "position": [
+     0.0,
+     0.0,
+     -0.198
+    ],
+    "radius": 0.183
+   },
+   "type": "halbach_ring"
+  },
+  {
+   "id": 39,
+   "parameters": {
+    "count": 51,
+    "element": {
+     "parameters": {
+      "dimensions": [
+       0.012,
+       0.012,
+       0.012
+      ],
+      "magnetization": [
+       1.3,
+       0.0,
+       0.0
+      ]
+     },
+     "type": "cuboid"
+    },
+    "order": 1,
+    "orientation": [
+     1.0,
+     0.0,
+     0.0,
+     0.0
+    ],
+    "position": [
+     0.0,
+     0.0,
+     0.22
+    ],
+    "radius": 0.151
+   },
+   "type": "halbach_ring"
+  },
+  {
+   "id": 40,
+   "parameters": {
+    "count": 58,
+    "element": {
+     "parameters": {
+      "dimensions": [
+       0.012,
+       0.012,
+       0.012
+      ],
+      "magnetization": [
+       1.3,
+       0.0,
+       0.0
+      ]
+     },
+     "type": "cuboid"
+    },
+    "order": 1,
+    "orientation": [
+     1.0,
+     0.0,
+     0.0,
+     0.0
+    ],
+    "position": [
+     0.0,
+     0.0,
+     0.22
+    ],
+    "radius": 0.172
+   },
+   "type": "halbach_ring"
+  },
+  {
+   "id": 41,
+   "parameters": {
+    "count": 51,
+    "element": {
+     "parameters": {
+      "dimensions": [
+       0.012,
+       0.012,
+       0.012
+      ],
+      "magnetization": [
+       1.3,
+       0.0,
+       0.0
+      ]
+     },
+     "type": "cuboid"
+    },
+    "order": 1,
+    "orientation": [
+     1.0,
+     0.0,
+     0.0,
+     0.0
+    ],
+    "position": [
+     0.0,
+     0.0,
+     -0.22
+    ],
+    "radius": 0.151
+   },
+   "type": "halbach_ring"
+  },
+  {
+   "id": 42,
+   "parameters": {
+    "count": 58,
+    "element": {
+     "parameters": {
+      "dimensions": [
+       0.012,
+       0.012,
+       0.012
+      ],
+      "magnetization": [
+       1.3,
+       0.0,
+       0.0
+      ]
+     },
+     "type": "cuboid"
+    },
+    "order": 1,
+    "orientation": [
+     1.0,
+     0.0,
+     0.0,
+     0.0
+    ],
+    "position": [
+     0.0,
+     0.0,
+     -0.22
+    ],
+    "radius": 0.172
+   },
+   "type": "halbach_ring"
+  },
+  {
+   "id": 43,
+   "parameters": {
+    "count": 50,
+    "element": {
+     "parameters": {
+      "dimensions": [
+       0.012,
+       0.012,
+       0.012
+      ],
+      "magnetization": [
+       1.3,
+       0.0,
+       0.0
+      ]
+     },
+     "type": "cuboid"
+    },
+    "order": 1,
+    "orientation": [
+     1.0,
+     0.0,
+     0.0,
+     0.0
+    ],
+    "position": [
+     0.0,
+     0.0,
+     0.242
+    ],
+    "radius": 0.148
+   },
+   "type": "halbach_ring"
+  },
+  {
+   "id": 44,
+   "parameters": {
+    "count": 57,
+    "element": {
+     "parameters": {
+      "dimensions": [
+       0.012,
+       0.012,
+       0.012
+      ],
+      "magnetization": [
+       1.3,
+       0.0,
+       0.0
+      ]
+     },
+     "type": "cuboid"
+    },
+    "order": 1,
+    "orientation": [
+     1.0,
+     0.0,
+     0.0,
+     0.0
+    ],
+    "position": [
+     0.0,
+     0.0,
+     0.242
+    ],
+    "radius": 0.169
+   },
+   "type": "halbach_ring"
+  },
+  {
+   "id": 45,
+   "parameters": {
+    "count": 50,
+    "element": {
+     "parameters": {
+      "dimensions": [
+       0.012,
+       0.012,
+       0.012
+      ],
+      "magnetization": [
+       1.3,
+       0.0,
+       0.0
+      ]
+     },
+     "type": "cuboid"
+    },
+    "order": 1,
+    "orientation": [
+     1.0,
+     0.0,
+     0.0,
+     0.0
+    ],
+    "position": [
+     0.0,
+     0.0,
+     -0.242
+    ],
+    "radius": 0.148
+   },
+   "type": "halbach_ring"
+  },
+  {
+   "id": 46,
+   "parameters": {
+    "count": 57,
+    "element": {
+     "parameters": {
+      "dimensions": [
+       0.012,
+       0.012,
+       0.012
+      ],
+      "magnetization": [
+       1.3,
+       0.0,
+       0.0
+      ]
+     },
+     "type": "cuboid"
+    },
+    "order": 1,
+    "orientation": [
+     1.0,
+     0.0,
+     0.0,
+     0.0
+    ],
+    "position": [
+     0.0,
+     0.0,
+     -0.242
+    ],
+    "radius": 0.169
+   },
+   "type": "halbach_ring"
+  }
+ ],
+ "field_of_view": {
+  "x": {
+   "max": 0.1,
+   "min": -0.1,
+   "n": 41
+  },
+  "y": {
+   "max": 0.1,
+   "min": -0.1,
+   "n": 41
+  },
+  "z": {
+   "max": 0.1,
+   "min": -0.1,
+   "n": 41
+  }
+ },
+ "halbach_optimization": {
+  "basis": {
+   "configurations": 228,
+   "magnets": 54625,
+   "points": 4662
+  },
+  "candidates": [
+   {
+    "count": 50,
+    "radius": 0.148
+   },
+   {
+    "count": 51,
+    "radius": 0.151
+   },
+   {
+    "count": 52,
+    "radius": 0.154
+   },
+   {
+    "count": 53,
+    "radius": 0.156
+   },
+   {
+    "count": 54,
+    "radius": 0.159
+   },
+   {
+    "count": 55,
+    "radius": 0.162
+   },
+   {
+    "count": 56,
+    "radius": 0.165
+   },
+   {
+    "count": 57,
+    "radius": 0.168
+   },
+   {
+    "count": 58,
+    "radius": 0.171
+   },
+   {
+    "count": 59,
+    "radius": 0.174
+   },
+   {
+    "count": 60,
+    "radius": 0.177
+   },
+   {
+    "count": 61,
+    "radius": 0.18
+   },
+   {
+    "count": 62,
+    "radius": 0.183
+   },
+   {
+    "count": 63,
+    "radius": 0.186
+   },
+   {
+    "count": 64,
+    "radius": 0.189
+   },
+   {
+    "count": 65,
+    "radius": 0.192
+   },
+   {
+    "count": 66,
+    "radius": 0.195
+   },
+   {
+    "count": 67,
+    "radius": 0.198
+   },
+   {
+    "count": 68,
+    "radius": 0.201
+   }
+  ],
+  "chosen": [
+   {
+    "candidate": 11,
+    "inner_count": 61,
+    "inner_radius": 0.18,
+    "outer_count": 68,
+    "outer_radius": 0.201,
+    "ring_position": 0.0
+   },
+   {
+    "candidate": 13,
+    "inner_count": 63,
+    "inner_radius": 0.186,
+    "outer_count": 70,
+    "outer_radius": 0.207,
+    "ring_position": 0.022
+   },
+   {
+    "candidate": 12,
+    "inner_count": 62,
+    "inner_radius": 0.183,
+    "outer_count": 69,
+    "outer_radius": 0.204,
+    "ring_position": 0.04400001
+   },
+   {
+    "candidate": 11,
+    "inner_count": 61,
+    "inner_radius": 0.18,
+    "outer_count": 68,
+    "outer_radius": 0.201,
+    "ring_position": 0.066
+   },
+   {
+    "candidate": 10,
+    "inner_count": 60,
+    "inner_radius": 0.177,
+    "outer_count": 67,
+    "outer_radius": 0.198,
+    "ring_position": 0.08799998
+   },
+   {
+    "candidate": 9,
+    "inner_count": 59,
+    "inner_radius": 0.174,
+    "outer_count": 66,
+    "outer_radius": 0.195,
+    "ring_position": 0.11
+   },
+   {
+    "candidate": 18,
+    "inner_count": 68,
+    "inner_radius": 0.201,
+    "outer_count": 75,
+    "outer_radius": 0.222,
+    "ring_position": 0.132
+   },
+   {
+    "candidate": 5,
+    "inner_count": 55,
+    "inner_radius": 0.162,
+    "outer_count": 62,
+    "outer_radius": 0.183,
+    "ring_position": 0.154
+   },
+   {
+    "candidate": 0,
+    "inner_count": 50,
+    "inner_radius": 0.148,
+    "outer_count": 57,
+    "outer_radius": 0.169,
+    "ring_position": 0.176
+   },
+   {
+    "candidate": 5,
+    "inner_count": 55,
+    "inner_radius": 0.162,
+    "outer_count": 62,
+    "outer_radius": 0.183,
+    "ring_position": 0.198
+   },
+   {
+    "candidate": 1,
+    "inner_count": 51,
+    "inner_radius": 0.151,
+    "outer_count": 58,
+    "outer_radius": 0.172,
+    "ring_position": 0.22
+   },
+   {
+    "candidate": 0,
+    "inner_count": 50,
+    "inner_radius": 0.148,
+    "outer_count": 57,
+    "outer_radius": 0.169,
+    "ring_position": 0.242
+   }
+  ],
+  "dsv": 0.2,
+  "element": {
+   "remanence": 1.3,
+   "size": 0.012
+  },
+  "field_model": "cuboid",
+  "generations_run": 100,
+  "genetic": {
+   "cx_prob": 0.55,
+   "elitism": 1,
+   "gene_mut_prob": 0.05,
+   "generations": 100,
+   "mut_prob": 0.4,
+   "population": 10000,
+   "seed": 7,
+   "tournament": 3
+  },
+  "genome": [
+   11,
+   13,
+   12,
+   11,
+   10,
+   9,
+   18,
+   5,
+   0,
+   5,
+   1,
+   0
+  ],
+  "magnet_count": 2819,
+  "objective": "ppm_bx",
+  "optimized": {
+   "homogeneity_ppm": 1503.87,
+   "max_T": 0.05321901,
+   "mean_T": 0.05317418,
+   "min_T": 0.05313905,
+   "peak_to_peak_T": 7.996708e-05,
+   "points": 4662
+  },
+  "order": 1,
+  "outer_count_offset": 7,
+  "outer_radius_offset": 0.021,
+  "resolution": 0.005,
+  "ring_count": 23,
+  "ring_separation": 0.022,
+  "symmetry": "octant",
+  "timing_s": {
+   "basis": 73.046293053,
+   "evolution": 23.015295853,
+   "verification": 26.125628915
+  },
+  "verified": {
+   "homogeneity_ppm": 1534.972,
+   "max_T": 0.05322012,
+   "mean_T": 0.05317432,
+   "min_T": 0.0531385,
+   "peak_to_peak_T": 8.162111e-05,
+   "points": 33401
+  }
+ }
+}

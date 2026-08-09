@@ -24,6 +24,7 @@ Stands for parallel magnetic field simulations. This repository offers a user fr
 - The magnetic flux density **B**, the field strength **H**, the polarization **J** and the magnetization **M**
 - Parametrised arrangements of them, built from the parameter file rather than written out one by one
 - Parallel magnetic force and torque simulation between magnets
+- A genetic optimizer for the homogeneity of a Halbach cylinder, which writes its answer as an input file the simulator runs
 - A Qt viewer for the result, which is a separate program and needs neither Kokkos nor the input file
 - Easy and seamless workflow using a JSON parameter file
 - [Modern CMake practices](https://pabloariasal.github.io/2018/02/19/its-time-to-do-cmake-right/)
@@ -63,16 +64,16 @@ The `/full_dir_path_to_data_output` is the directory in which the simulation res
 
 ### Build and run the standalone target
 
-The compile script builds the simulator, the test suite and, when Qt 6 is
-installed, the viewer:
+The compile script builds the simulator, the Halbach optimizer, the test suite
+and, when Qt 6 is installed, the viewer:
 
 ```bash
 ./compile.sh
 ```
 
 It takes a few options: `--clean` starts over, `--debug` builds Debug,
-`--no-tests` and `--no-gui` leave parts out, `-j N` sets the number of build
-jobs. `./compile.sh --help` lists them all.
+`--no-tests`, `--no-optimizer` and `--no-gui` leave parts out, `-j N` sets the
+number of build jobs. `./compile.sh --help` lists them all.
 
 Then run an example:
 
@@ -89,6 +90,17 @@ cmake -S standalone -B build/standalone -DCMAKE_BUILD_TYPE=Release -DKokkos_ENAB
 cmake --build build/standalone -j
 ./build/standalone/Greeter --help
 ```
+
+### Build and run the Halbach optimizer
+
+```bash
+cmake -S optimizer -B build/optimizer -DCMAKE_BUILD_TYPE=Release -DKokkos_ENABLE_OPENMP=On -DCMAKE_CXX_COMPILER=g++
+cmake --build build/optimizer -j
+./build/optimizer/halbach-optimizer --help
+```
+
+See [Optimizing the homogeneity of a Halbach cylinder](#optimizing-the-homogeneity-of-a-halbach-cylinder)
+for what it does and what it writes.
 
 ### Build and run test suite
 
@@ -415,6 +427,155 @@ The magnets an arrangement generates are numbered on from the highest `id` the f
 adding an arrangement never renames a magnet that was already there. They can be named
 individually by those ids, or all at once by the arrangement they belong to, see below. See
 `arrangements.json` for a complete example.
+
+### Optimizing the homogeneity of a Halbach cylinder
+
+A Halbach cylinder for imaging is built as a stack of rings, and how uniform the field in the
+middle comes out depends on which ring diameter is used at which position along the stack. Picking
+those diameters is a search, and `halbach-optimizer` runs it:
+
+```bash
+./build/optimizer/halbach-optimizer -o output/halbach_optimized.json
+```
+
+With no configuration file the defaults are the design of `HalbachOptimisation/`, the genetic
+algorithm this is a port of: 23 rings 22 mm apart, each position choosing one of 19
+(radius, magnet count) pairs, in two layers 21 mm apart, measured over a 200 mm sphere.
+
+What comes out is **an input file of this project**, not a report. It has `arrangements` and a
+`field_of_view`, so the simulator runs it as it stands:
+
+```bash
+./build/standalone/Greeter -i output/halbach_optimized.json -s output/snapshot.json
+```
+
+What the run found travels beside them in a `halbach_optimization` object, which the readers
+ignore. That object is also a configuration file, so the output of one run is the input of the
+next:
+
+```bash
+./build/optimizer/halbach-optimizer -c output/halbach_optimized.json --seed 7
+```
+
+#### How it works
+
+The search never simulates a magnet. It rests on superposition: the field of a set of permanent
+magnets is the sum of their fields, and the rings at one position do not move when the choice at
+another position changes. So the run has three stages, and only the middle one is a search.
+
+1. **Every candidate is sampled once.** Each (ring position, ring candidate) pair — 12 × 19 of
+   them for the defaults — is laid out through the same `halbach_ring` arrangement an input file
+   goes through, and its field is worked out at every observation point. The magnets of all 228
+   configurations are packed end to end into one parameter array first, so this is a *single*
+   Kokkos parallel region a million iterations wide rather than 228 simulations.
+
+2. **A genetic algorithm picks one candidate per position.** A genome is 12 small integers, and
+   its field is the sum of 12 precomputed arrays, so scoring an individual is a walk over memory.
+   One team per individual, spread over the observation points, taking the peak, the trough and
+   the total in one pass. Selection, crossover and mutation are one further parallel region a
+   generation.
+
+3. **The answer is measured again, over the whole sphere, from the magnets themselves**, through
+   the same simulator everything else here uses. The search is reduced to an octant by default,
+   which a ring of a finite number of magnets is only nearly symmetric enough for, so the figure
+   that is optimized is not allowed to be the figure that is reported.
+
+#### Configuration
+
+`halbach_optimization.json` in the project root is the full set of defaults, written out. Every
+key is optional:
+
+| Key | Meaning |
+| --- | --- |
+| `ring_count`, `ring_separation` | the stack of rings, centred on the origin |
+| `candidates` | the `{"radius", "count"}` pairs a ring position chooses between |
+| `outer_radius_offset`, `outer_count_offset` | the second layer, relative to the first |
+| `order` | order of the rings, as `halbach_ring` means it; 1 is the dipolar ring |
+| `element` | `size` of the cube [m] and `remanence` [T] |
+| `dsv`, `resolution` | the sampled sphere and the grid over it [m] |
+| `symmetry` | `octant`, `hemisphere` or `full` — how much of the sphere the search measures |
+| `objective` | `ppm_bx` (the x component) or `ppm_bmag` (`|B|`) |
+| `field_model` | `cuboid` for the analytic kernel, `dipole` for the far field |
+| `genetic` | `population`, `generations`, `cx_prob`, `mut_prob`, `gene_mut_prob`, `tournament`, `elitism`, `seed` |
+
+The command line overrides the file: `--generations`, `--population`, `--seed`, `--symmetry`,
+`--objective`, `--field-model`. `--emit magnets` writes every magnet out one by one instead of the
+46 rings. `--history convergence.csv` writes the convergence curve. `--no-verify` skips stage
+three, for a smoke test. `halbach-optimizer --help` lists them all.
+
+`--field-model dipole` replaces each cube with the point dipole of the same moment,
+`m = V·Br/µ0`, which is the model `HalbachOptimisation/halbachFields.py` uses. It is there to
+compare against that script's numbers; `cuboid`, the default, is the field the magnets actually
+make.
+
+#### Differences from the Python it ports
+
+- `deap.tools.mutFlipBit` applies `not` to whatever it is given, which turns a gene naming one of
+  19 candidates into a 0 or a 1 and collapses most of the search space. A mutated gene is redrawn
+  from the alphabet here.
+- The best few individuals are carried into the next generation. The Python keeps its best in a
+  variable on the side and lets the population lose it.
+- The homogeneity is peak-to-peak over the *magnitude* of the mean. Dividing by the signed mean,
+  as the Python does, rewards a genome that flips the sign of the field rather than measuring it.
+- `innerRingRadii` has 19 entries there and `innerNumMagnets` has 20; the zip silently drops the
+  last. The pairing is written out here, and lists of different lengths are refused.
+- The basis keeps all three field components rather than only `Bx`, which costs nothing and is
+  what makes `objective: ppm_bmag` possible.
+
+#### What to expect
+
+Two things are worth watching in the output. The first is that the octant figure and the
+whole-sphere figure agree — on the default design they land within about 0.01% of each other,
+which is the evidence that the symmetry reduction is sound. The second is that the field the
+written file produces, run back through `Greeter`, gives the homogeneity the optimizer reported;
+a test asserts exactly that.
+
+On the default design the run settles at about **805 ppm over the 200 mm sphere**, a mean field of
+49.1 mT and a peak-to-peak spread of 0.04 mT, from a magnet of 2 971 cubes. It gets most of the
+way there inside 40 generations. `--field-model dipole`, the model the Python uses, follows the
+same trajectory generation for generation and lands at 651 ppm — close enough to say the two
+models agree about the shape of the problem, far enough apart to say which one to trust.
+
+#### What it costs
+
+The default design, on four cores of an Intel i5-8365U with `Kokkos_ENABLE_OPENMP=On`:
+
+| Stage | What it does | Time |
+| --- | --- | ---: |
+| Basis | 228 configurations, 54 625 magnets, sampled at 4 662 points | 71 s |
+| Evolution | 100 generations of 10 000 individuals | 24 s |
+| Verification | 2 971 magnets at 33 401 points | 27 s |
+| | **total** | **2 min 3 s** |
+
+The two stages that touch magnets dominate, and the search — a hundred generations of ten
+thousand individuals, some five billion field samples summed — is a fifth of the run. That is the
+whole point of precomputing the basis: the genetic algorithm is no longer where the time goes.
+
+`--field-model dipole` replaces the analytic cuboid kernel, with its two dozen transcendentals per
+evaluation, by a handful of multiplies, and the two magnet stages fall to 2.8 s and 1.5 s. The
+search itself is unchanged, since it never looks at a magnet either way.
+
+Across thread counts, on the same machine (`--kokkos-num-threads=N`, 20 generations):
+
+| Threads | Basis | Evolution |
+| ---: | ---: | ---: |
+| 1 | 199 s | 9.8 s |
+| 2 | 133 s | 11.4 s |
+| 4 | 131 s | 6.6 s |
+| 8 | 75 s | 5.3 s |
+
+Read those with the machine in mind: it has four physical cores, and a U-series part running one
+thread at nearly 3.8 GHz drops to about 2.2 GHz with all of them busy, so a good part of what four
+cores gain they give back in clock. The measure that is not confounded by that is how busy the
+cores are kept — the full run above spends 13 min 8 s of CPU time in 2 min 3 s of wall clock,
+6.4 of the 8 hardware threads. On a machine that holds its clocks the table will look better than
+this one does.
+
+Note that a run is repeatable for a given seed **and a given thread count**, but not across thread
+counts: the genetic operators draw from a thread-partitioned random pool, so eight threads and
+four do not walk the same sequence. Neither does a floating point sum of a hundred thousand
+samples come out bit for bit the same when it is split up differently. The answers agree on the
+design; they need not agree on the last digit.
 
 ### Force and torque simulation
 
