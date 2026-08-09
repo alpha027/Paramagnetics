@@ -31,14 +31,9 @@ std::vector<float> greeter::CubicMagnetIO::readMagnetization(const nlohmann::jso
 }
 
 std::unique_ptr<greeter::Magnet> greeter::CubicMagnetIO::createMagnet(const nlohmann::json& magnet) {
-  std::cout << "Reading position" << std::endl;  
   std::vector<float> position = readPosition(magnet);
-  std::cout << "position read" << std::endl;  
   std::vector<float> dimensions = readDimensions(magnet);
-  std::cout << "dimensions read" << std::endl;  
   std::vector<float> orientation = readOrientation(magnet);
-  std::cout << "orientation read" << std::endl;  
   std::vector<float> magnetization = readMagnetization(magnet);
-  std::cout << "extracted all data from JSON" << std::endl;
   return std::make_unique<greeter::CuboidMagnet>(position, dimensions, orientation, magnetization);
 }

@@ -1,12 +1,13 @@
 #!/usr/bin/env bash
 
-# Builds ParaMagneticS: the standalone simulator, the test suite and, when
-# Qt 6 is present, the viewer. Everything lands in build/.
+# Builds ParaMagneticS: the standalone simulator, the Halbach optimizer, the
+# test suite and, when Qt 6 is present, the viewer. Everything lands in build/.
 #
-#   ./compile.sh              simulator + tests, and the viewer if Qt 6 is there
+#   ./compile.sh              simulator, optimizer + tests, and the viewer if Qt 6 is there
 #   ./compile.sh --clean      wipe build/ and start over
 #   ./compile.sh --debug      Debug build instead of Release
 #   ./compile.sh --no-tests   skip the test suite
+#   ./compile.sh --no-optimizer  skip the Halbach optimizer
 #   ./compile.sh --gui        insist on the viewer, fail without Qt 6
 #   ./compile.sh --no-gui     skip the viewer even with Qt 6 installed
 #   ./compile.sh -j N         build with N jobs, all cores by default
@@ -18,16 +19,18 @@ root="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 build_type=Release
 jobs="$(nproc 2>/dev/null || echo 4)"
 with_tests=1
+with_optimizer=1
 with_gui=auto
 clean=0
 
-usage() { sed -n '3,12p' "$0" | sed 's/^# \{0,1\}//'; }
+usage() { sed -n '3,14p' "$0" | sed 's/^# \{0,1\}//'; }
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --clean)    clean=1 ;;
     --debug)    build_type=Debug ;;
     --no-tests) with_tests=0 ;;
+    --no-optimizer) with_optimizer=0 ;;
     --gui)      with_gui=1 ;;
     --no-gui)   with_gui=0 ;;
     -j|--jobs)  jobs="$2"; shift ;;
@@ -59,6 +62,12 @@ echo "== Simulator =="
 cmake -S "$root/standalone" -B "$root/build/standalone" "${flags[@]}"
 cmake --build "$root/build/standalone" -j "$jobs"
 
+if [[ "$with_optimizer" == 1 ]]; then
+  echo "== Halbach optimizer =="
+  cmake -S "$root/optimizer" -B "$root/build/optimizer" "${flags[@]}"
+  cmake --build "$root/build/optimizer" -j "$jobs"
+fi
+
 if [[ "$with_tests" == 1 ]]; then
   echo "== Tests =="
   # doctest 2.4.9 asks for a CMake older than CMake 4 will agree to, hence the
@@ -76,6 +85,7 @@ fi
 echo
 echo "Built:"
 echo "  $root/build/standalone/Greeter"
+[[ "$with_optimizer" == 1 ]] && echo "  $root/build/optimizer/halbach-optimizer"
 [[ "$with_tests" == 1 ]] && echo "  $root/build/test/GreeterTests"
 [[ "$with_gui" == 1 ]] && echo "  $root/build/gui/paramagnetics-viewer"
 echo
