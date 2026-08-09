@@ -438,6 +438,10 @@ those diameters is a search, and `halbach-optimizer` runs it:
 ./build/optimizer/halbach-optimizer -o output/halbach_optimized.json
 ```
 
+Seven worked designs live in `designs/`, one folder each, holding the configuration, the resulting
+magnet, the field it produces and the convergence of the search. `designs/regenerate.sh` rebuilds
+them all.
+
 With no configuration file the defaults are the design of `HalbachOptimisation/`, the genetic
 algorithm this is a port of: 23 rings 22 mm apart, each position choosing one of 19
 (radius, magnet count) pairs, in two layers 21 mm apart, measured over a 200 mm sphere.
@@ -454,7 +458,7 @@ ignore. That object is also a configuration file, so the output of one run is th
 next:
 
 ```bash
-./build/optimizer/halbach-optimizer -c output/halbach_optimized.json --seed 7
+./build/optimizer/halbach-optimizer -c designs/nmr-5ring-10mm-tube/optimized.json --seed 7
 ```
 
 #### How it works
@@ -482,8 +486,8 @@ another position changes. So the run has three stages, and only the middle one i
 
 #### Configuration
 
-`halbach_optimization.json` in the project root is the full set of defaults, written out. Every
-key is optional:
+`designs/imaging-200mm-dsv/config.json` is the full set of defaults, written out. Every key is
+optional, and every design under `designs/` carries its own — see `designs/README.md`:
 
 | Key | Meaning |
 | --- | --- |
@@ -500,8 +504,9 @@ key is optional:
 
 The command line overrides the file: `--generations`, `--population`, `--seed`, `--symmetry`,
 `--objective`, `--field-model`. `--emit magnets` writes every magnet out one by one instead of the
-46 rings. `--history convergence.csv` writes the convergence curve. `--no-verify` skips stage
-three, for a smoke test. `halbach-optimizer --help` lists them all.
+46 rings. `--history convergence.csv` writes the convergence curve, and `--field field.csv` writes the field
+the verification measured, one row a sample, so the answer can be plotted or a lineshape fitted
+without simulating it again. `--no-verify` skips stage three, for a smoke test. `halbach-optimizer --help` lists them all.
 
 `--field-model dipole` replaces each cube with the point dipole of the same moment,
 `m = V·Br/µ0`, which is the model `HalbachOptimisation/halbachFields.py` uses. It is there to

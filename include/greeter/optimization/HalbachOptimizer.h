@@ -16,6 +16,12 @@ struct RunOptions {
     bool verbose = true;
 
     /*
+      Whether the samples the verification takes are kept in the solution
+      rather than reduced to metrics and dropped. See HalbachSolution.
+    */
+    bool keep_field = false;
+
+    /*
       Whether the answer is measured again over the whole sphere, from the
       magnets rather than from the basis.
 
@@ -60,7 +66,8 @@ class HalbachOptimizer {
     static FieldMetrics measure(const greeter::MagnetCollection& collection,
                                 const HalbachSpec& spec,
                                 const Objective& objective,
-                                size_t& num_points);
+                                size_t& num_points,
+                                std::vector<FieldSample>* samples = nullptr);
 };
 
 }  // namespace optimization

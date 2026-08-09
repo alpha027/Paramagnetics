@@ -14,6 +14,21 @@ namespace greeter {
 namespace optimization {
 
 /*
+  One sampled point of the verification field: where it was measured and what
+  was there.
+
+  The verification already evaluates the field at every point of the sphere in
+  order to reduce it to a single number. Keeping the samples costs one array
+  and is the only record of what the magnet actually does, as against how good
+  it is, so a caller that wants to plot a slice, fit a lineshape or check a
+  gradient does not have to simulate the thing a second time.
+*/
+struct FieldSample {
+    float position[3] = {0.0f, 0.0f, 0.0f};
+    float b[3] = {0.0f, 0.0f, 0.0f};
+};
+
+/*
   What the optimizer settled on, and how good it turned out to be.
 
   There are two homogeneity figures here, and they answer different questions.
@@ -40,6 +55,13 @@ struct HalbachSolution {
     FieldMetrics verified;    // over the whole sphere, out of the simulator
     size_t verified_points = 0;
     bool was_verified = false;
+
+    /*
+      The samples the verification took, when it was asked to keep them. Empty
+      otherwise, since a sphere of a hundred thousand points is a megabyte that
+      most runs have no use for.
+    */
+    std::vector<FieldSample> verified_field;
 
     size_t num_magnets = 0;
 

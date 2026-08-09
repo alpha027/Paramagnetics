@@ -60,6 +60,19 @@ class HalbachOptimizationIO {
         const greeter::optimization::HalbachSolution& solution,
         const HalbachEmit& emit, const std::string& path);
 
+    /*
+      The field the verification measured, one row a sample: where it was
+      measured and what was there. Written at the precision a float actually
+      carries, since a homogeneous magnet is measured in parts per million of
+      its own field and six digits cannot express that.
+
+      Throws when the solution carries no samples, which is what a run that
+      was not asked to keep them looks like.
+    */
+    static void writeFieldCSV(
+        const greeter::optimization::HalbachSolution& solution,
+        const std::string& path);
+
     /* The convergence curve, one row a generation. */
     static void writeHistoryCSV(
         const greeter::optimization::HalbachSolution& solution,

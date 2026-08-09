@@ -119,6 +119,9 @@ auto main(int argc, char** argv) -> int {
          cxxopts::value<std::string>()->default_value("output/halbach_optimized.json"))
         ("history", "Also write the convergence curve, one row a generation",
          cxxopts::value<std::string>())
+        ("field", "Also write the field the verification measured, one row a "
+                  "sample: x,y,z,Bx,By,Bz,Bmag",
+         cxxopts::value<std::string>())
         ("emit", "Write the result as \"arrangements\" or as \"magnets\"",
          cxxopts::value<std::string>()->default_value("arrangements"))
         ("field-model", "\"cuboid\" for the analytic kernel of this library, "
@@ -229,6 +232,13 @@ auto main(int argc, char** argv) -> int {
             greeter::optimization::RunOptions run_options;
             run_options.verbose = false;
             run_options.verify = !parsed.count("no-verify");
+            run_options.keep_field = parsed.count("field") > 0;
+
+            if (run_options.keep_field && !run_options.verify) {
+                throw std::invalid_argument(
+                    "--field writes what the verification measured, so it "
+                    "cannot be used with --no-verify");
+            }
 
             const bool quiet = parsed.count("quiet") > 0;
 
@@ -247,6 +257,18 @@ auto main(int argc, char** argv) -> int {
             greeter::HalbachOptimizationIO::writeFile(solution, emit, output_path);
 
             std::cout << "Written to " << output_path << std::endl;
+
+            if (parsed.count("field")) {
+
+                const std::string field_path = parsed["field"].as<std::string>();
+
+                greeter::HalbachOptimizationIO::writeFieldCSV(
+                    solution, field_path);
+
+                std::cout << "Field written to " << field_path << " ("
+                          << solution.verified_field.size() << " samples)"
+                          << std::endl;
+            }
 
             if (parsed.count("history")) {
 
