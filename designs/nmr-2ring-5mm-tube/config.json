@@ -1,0 +1,267 @@
+{
+ "halbach_optimization": {
+  "_design": "The end of the line: two rings, two layers, 86 cubes of 8 mm N52, 38 mm long over the end cubes and 106 mm across, with a 57 mm free bore. As run it gives 83 mT - 3.52 MHz for protons - and 245 ppm over a 6 mm sample sphere, which covers a 4 mm liquid column over 4.5 mm. A 5 mm tube, a short coil, and a magnet that is mostly empty space.",
+  "_why_this_shape": "Two rings mirror down to a single gene. There is no profile left to shape and nothing for crossover to do: the run is a one dimensional scan over 57 radii, and the design is set by the ring separation, which the optimizer cannot touch. What it can do is choose the radius that suits the separation, and it does so consistently. A pair of order-1 Halbach rings has a flat centre when the second derivative of C/(R^2+h^2)^2.5 vanishes at the origin, which gives R^2 = 6z^2, that is separation = 0.8165 R - the Halbach analogue of the Helmholtz condition, where current loops want separation = R. Across the sweep the optimizer picked separation/R = 0.875 every time, the small excess being the compromise between the inner layer and the outer one 13 mm further out, which wants a proportionally wider separation than the inner.",
+  "ring_count": 2,
+  "ring_separation": 0.03,
+  "_ring_separation": "30 mm, and with the ratio above fixed this also fixes the radius near 34 mm, the bore near 57 mm and the field near 83 mT. That coupling is the whole character of a two ring magnet: homogeneity comes only from making the sample a small fraction of the radius, the separation must follow the radius, so a homogeneous two ring magnet is necessarily a large, weak, mostly hollow one. Swept at a 6 mm DSV: 26 mm gave 447 ppm at 110 mT, 30 mm gives 245 ppm at 83 mT, 36 mm gave 166 ppm at 60 mT, and 42 mm ran off the top of the candidate list and fell apart at 1968 ppm. There is no setting that is both homogeneous and strong.",
+  "_element": "8 mm N52 cubes, Br = 1.42 T, kept the same as the other designs so all four can be built from one order of magnets.",
+  "element": {
+   "size": 0.008,
+   "remanence": 1.42
+  },
+  "_candidates": "57 radii from 16.2 to 44.2 mm on a 0.5 mm step, the count being the densest packing that still leaves each cube 1.45 times its own side of arc. With one gene the candidate list IS the search space, so its resolution is the resolution of the answer. Note that the bottom of the list is never used here - a two ring magnet wants to be large - so the free bore is set by the radius actually chosen, not by the smallest candidate.",
+  "candidates": [
+   {
+    "radius": 0.0162,
+    "count": 8
+   },
+   {
+    "radius": 0.0167,
+    "count": 9
+   },
+   {
+    "radius": 0.0172,
+    "count": 9
+   },
+   {
+    "radius": 0.0177,
+    "count": 9
+   },
+   {
+    "radius": 0.0182,
+    "count": 9
+   },
+   {
+    "radius": 0.0187,
+    "count": 10
+   },
+   {
+    "radius": 0.0192,
+    "count": 10
+   },
+   {
+    "radius": 0.0197,
+    "count": 10
+   },
+   {
+    "radius": 0.0202,
+    "count": 10
+   },
+   {
+    "radius": 0.0207,
+    "count": 11
+   },
+   {
+    "radius": 0.0212,
+    "count": 11
+   },
+   {
+    "radius": 0.0217,
+    "count": 11
+   },
+   {
+    "radius": 0.0222,
+    "count": 12
+   },
+   {
+    "radius": 0.0227,
+    "count": 12
+   },
+   {
+    "radius": 0.0232,
+    "count": 12
+   },
+   {
+    "radius": 0.0237,
+    "count": 12
+   },
+   {
+    "radius": 0.0242,
+    "count": 13
+   },
+   {
+    "radius": 0.0247,
+    "count": 13
+   },
+   {
+    "radius": 0.0252,
+    "count": 13
+   },
+   {
+    "radius": 0.0257,
+    "count": 13
+   },
+   {
+    "radius": 0.0262,
+    "count": 14
+   },
+   {
+    "radius": 0.0267,
+    "count": 14
+   },
+   {
+    "radius": 0.0272,
+    "count": 14
+   },
+   {
+    "radius": 0.0277,
+    "count": 15
+   },
+   {
+    "radius": 0.0282,
+    "count": 15
+   },
+   {
+    "radius": 0.0287,
+    "count": 15
+   },
+   {
+    "radius": 0.0292,
+    "count": 15
+   },
+   {
+    "radius": 0.0297,
+    "count": 16
+   },
+   {
+    "radius": 0.0302,
+    "count": 16
+   },
+   {
+    "radius": 0.0307,
+    "count": 16
+   },
+   {
+    "radius": 0.0312,
+    "count": 16
+   },
+   {
+    "radius": 0.0317,
+    "count": 17
+   },
+   {
+    "radius": 0.0322,
+    "count": 17
+   },
+   {
+    "radius": 0.0327,
+    "count": 17
+   },
+   {
+    "radius": 0.0332,
+    "count": 17
+   },
+   {
+    "radius": 0.0337,
+    "count": 18
+   },
+   {
+    "radius": 0.0342,
+    "count": 18
+   },
+   {
+    "radius": 0.0347,
+    "count": 18
+   },
+   {
+    "radius": 0.0352,
+    "count": 18
+   },
+   {
+    "radius": 0.0357,
+    "count": 19
+   },
+   {
+    "radius": 0.0362,
+    "count": 19
+   },
+   {
+    "radius": 0.0367,
+    "count": 19
+   },
+   {
+    "radius": 0.0372,
+    "count": 19
+   },
+   {
+    "radius": 0.0377,
+    "count": 20
+   },
+   {
+    "radius": 0.0382,
+    "count": 20
+   },
+   {
+    "radius": 0.0387,
+    "count": 20
+   },
+   {
+    "radius": 0.0392,
+    "count": 21
+   },
+   {
+    "radius": 0.0397,
+    "count": 21
+   },
+   {
+    "radius": 0.0402,
+    "count": 21
+   },
+   {
+    "radius": 0.0407,
+    "count": 21
+   },
+   {
+    "radius": 0.0412,
+    "count": 22
+   },
+   {
+    "radius": 0.0417,
+    "count": 22
+   },
+   {
+    "radius": 0.0422,
+    "count": 22
+   },
+   {
+    "radius": 0.0427,
+    "count": 22
+   },
+   {
+    "radius": 0.0432,
+    "count": 23
+   },
+   {
+    "radius": 0.0437,
+    "count": 23
+   },
+   {
+    "radius": 0.0442,
+    "count": 23
+   }
+  ],
+  "_layers": "13 mm out with 7 more magnets, as in the other designs.",
+  "outer_radius_offset": 0.013,
+  "outer_count_offset": 7,
+  "order": 1,
+  "_dsv": "6 mm, half the five ring design's. It covers a 4 mm liquid column over 4.5 mm, so the sample is a 5 mm tube with a short coil. Asking for 8 mm on this geometry gives about 723 ppm, and 12 mm gives about 3400 ppm; two rings simply cannot hold a larger volume.",
+  "dsv": 0.006,
+  "resolution": 0.00015,
+  "symmetry": "octant",
+  "objective": "ppm_bmag",
+  "field_model": "cuboid",
+  "_genetic": "One gene and 57 possible values, so a population of 1000 sees every one of them in generation zero with better than 99 percent certainty and the remaining generations change nothing. Crossover is inert on a one gene genome. This is an exhaustive scan wearing a genetic algorithm's clothes, and the settings are sized to say so rather than to search.",
+  "genetic": {
+   "population": 1000,
+   "generations": 10,
+   "cx_prob": 0.55,
+   "mut_prob": 0.4,
+   "gene_mut_prob": 0.4,
+   "tournament": 3,
+   "elitism": 2,
+   "seed": 42
+  },
+  "_what_this_is_not": "Worth building unless the point is the exercise. At 3.5 MHz and 245 ppm over 6 mm it is weaker than the three ring design, no more homogeneous, needs a 133 mm outside diameter to hold a 5 mm tube, and uses nearly as many magnets. If the goal is the fewest parts that still do NMR, the three ring design at 179 mT is the better answer; if the goal is the smallest possible ring count, this is what that costs."
+ }
+}

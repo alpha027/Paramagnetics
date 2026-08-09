@@ -1,0 +1,244 @@
+{
+ "halbach_optimization": {
+  "_design": "Three rings under a hard budget of fewer than 24 magnets: 21 cubes of 24 mm N52, six rings of 3 and 4, 88 mm long over the end cubes and 200 mm across, with a 50 mm free bore. As run it gives 171 mT - 7.29 MHz for protons - and 602 ppm over a 4 mm sample sphere, which covers a 2 mm liquid column over 3.5 mm. That is a capillary, not the 10 mm tube the larger designs serve.",
+  "_the_constraint": "The budget, not the optimizer, designs this magnet. Three ring positions times two layers is six rings, so fewer than 24 magnets means at most three or four in each. Three is the floor: the identities that leave a Halbach ring with a uniform field inside, sum(cos 2t) = 0 and sum(cos^2 t) = N/2, first hold at N = 3. So this is the smallest three ring Halbach that is a Halbach at all, and the arithmetic is 2*3 + 4*3 + 3*1 = 21. Note also that outer_count_offset cannot be negative, so the far and much weaker outer layer is forced to carry at least as many magnets as the near one - exactly backwards for field per magnet, and unavoidable here.",
+  "ring_count": 3,
+  "ring_separation": 0.032,
+  "_ring_separation": "32 mm against 24 mm cubes. Swept on this geometry at a 4 mm DSV: 32 mm gave 531 ppm at 153 mT, 40 mm gave 308 ppm at 97 mT, 48 mm gave 200 ppm at 66 mT. Wider is flatter and weaker, as always, and the magnet grows with it. 32 mm keeps the field worth having.",
+  "_element": "24 mm N52 cubes. With only three magnets to a ring the field collapses unless each one is large, and the sweep bears that out: at the same bore and separation, 12 mm cubes gave 64 mT, 16 mm gave 131 mT, 20 mm gave 249 mT, 24 mm gave 386 mT. Be careful. A 24 mm N52 cube weighs about 100 g and the force between two of them in contact runs to hundreds of newtons; twenty-one of them is a serious injury risk to assemble by hand and needs jigs, spacers and gloves. 20 mm cubes cost about a third of the field and are meaningfully safer.",
+  "element": {
+   "size": 0.024,
+   "remanence": 1.42
+  },
+  "_candidates": "51 radii from 22 to 72 mm, every one carrying three magnets. The count is fixed rather than following the radius, because here it is set by the magnet budget and not by packing: three cubes on a 47 mm ring are nowhere near touching. The radius, not the count, is what the optimizer chooses. 22 mm is the smallest radius at which a 24 mm cube turned corner-on still clears a 10 mm bore.",
+  "candidates": [
+   {
+    "radius": 0.022,
+    "count": 3
+   },
+   {
+    "radius": 0.023,
+    "count": 3
+   },
+   {
+    "radius": 0.024,
+    "count": 3
+   },
+   {
+    "radius": 0.025,
+    "count": 3
+   },
+   {
+    "radius": 0.026,
+    "count": 3
+   },
+   {
+    "radius": 0.027,
+    "count": 3
+   },
+   {
+    "radius": 0.028,
+    "count": 3
+   },
+   {
+    "radius": 0.029,
+    "count": 3
+   },
+   {
+    "radius": 0.03,
+    "count": 3
+   },
+   {
+    "radius": 0.031,
+    "count": 3
+   },
+   {
+    "radius": 0.032,
+    "count": 3
+   },
+   {
+    "radius": 0.033,
+    "count": 3
+   },
+   {
+    "radius": 0.034,
+    "count": 3
+   },
+   {
+    "radius": 0.035,
+    "count": 3
+   },
+   {
+    "radius": 0.036,
+    "count": 3
+   },
+   {
+    "radius": 0.037,
+    "count": 3
+   },
+   {
+    "radius": 0.038,
+    "count": 3
+   },
+   {
+    "radius": 0.039,
+    "count": 3
+   },
+   {
+    "radius": 0.04,
+    "count": 3
+   },
+   {
+    "radius": 0.041,
+    "count": 3
+   },
+   {
+    "radius": 0.042,
+    "count": 3
+   },
+   {
+    "radius": 0.043,
+    "count": 3
+   },
+   {
+    "radius": 0.044,
+    "count": 3
+   },
+   {
+    "radius": 0.045,
+    "count": 3
+   },
+   {
+    "radius": 0.046,
+    "count": 3
+   },
+   {
+    "radius": 0.047,
+    "count": 3
+   },
+   {
+    "radius": 0.048,
+    "count": 3
+   },
+   {
+    "radius": 0.049,
+    "count": 3
+   },
+   {
+    "radius": 0.05,
+    "count": 3
+   },
+   {
+    "radius": 0.051,
+    "count": 3
+   },
+   {
+    "radius": 0.052,
+    "count": 3
+   },
+   {
+    "radius": 0.053,
+    "count": 3
+   },
+   {
+    "radius": 0.054,
+    "count": 3
+   },
+   {
+    "radius": 0.055,
+    "count": 3
+   },
+   {
+    "radius": 0.056,
+    "count": 3
+   },
+   {
+    "radius": 0.057,
+    "count": 3
+   },
+   {
+    "radius": 0.058,
+    "count": 3
+   },
+   {
+    "radius": 0.059,
+    "count": 3
+   },
+   {
+    "radius": 0.06,
+    "count": 3
+   },
+   {
+    "radius": 0.061,
+    "count": 3
+   },
+   {
+    "radius": 0.062,
+    "count": 3
+   },
+   {
+    "radius": 0.063,
+    "count": 3
+   },
+   {
+    "radius": 0.064,
+    "count": 3
+   },
+   {
+    "radius": 0.065,
+    "count": 3
+   },
+   {
+    "radius": 0.066,
+    "count": 3
+   },
+   {
+    "radius": 0.067,
+    "count": 3
+   },
+   {
+    "radius": 0.068,
+    "count": 3
+   },
+   {
+    "radius": 0.069,
+    "count": 3
+   },
+   {
+    "radius": 0.07,
+    "count": 3
+   },
+   {
+    "radius": 0.071,
+    "count": 3
+   },
+   {
+    "radius": 0.072,
+    "count": 3
+   }
+  ],
+  "outer_radius_offset": 0.036,
+  "outer_count_offset": 1,
+  "_layers": "36 mm out with one more magnet. A 24 mm cube reaches 16.97 mm from its centre turned corner-on, so two layers need 33.9 mm plus a former wall, which leaves 2.1 mm. At that distance the outer layer contributes only a few percent of what the inner one does while eating nearly half the budget - the price of a ring model that always builds two layers.",
+  "order": 1,
+  "_symmetry": "full, not octant, and this matters here. An order-1 Halbach ring of N magnets carries field harmonics at n = mN +- 1, so a three magnet ring carries n = 2: a gradient, which is not symmetric under the octant reflections. Optimizing over an eighth of the sphere therefore measures the wrong thing at this magnet count. It showed: the octant search returned 531 ppm but the honest whole-sphere figure for that answer was 719 ppm, while searching the whole sphere directly gives 602 ppm at a higher field. Every design here with ten or more magnets to a ring agrees between octant and full to within about one percent; these do not.",
+  "dsv": 0.004,
+  "resolution": 0.0001,
+  "symmetry": "full",
+  "objective": "ppm_bmag",
+  "field_model": "cuboid",
+  "_dsv": "4 mm. It covers a 2 mm liquid column over 3.5 mm, so the sample is a capillary or a 3 mm tube with a very short coil. Twenty-one magnets cannot hold more than that.",
+  "_genetic": "Two genes over 51 radii is 2601 combinations, so a population of 20000 enumerates the space in generation zero and the answer is the global optimum. The run is dominated by the whole-sphere objective, which is eight times the points of an octant one.",
+  "genetic": {
+   "population": 20000,
+   "generations": 25,
+   "cx_prob": 0.55,
+   "mut_prob": 0.4,
+   "gene_mut_prob": 0.4,
+   "tournament": 3,
+   "elitism": 2,
+   "seed": 42
+  },
+  "_verdict": "Buildable and just about usable, unlike the two ring version. 602 ppm at 7.3 MHz over a capillary is a relaxometry or teaching instrument at best, and the magnet is 200 mm across to hold a 2 mm sample - almost all of it empty space, which is what a two layer ring model does when it is only allowed twenty-one magnets. If the goal is few parts rather than few magnets, three_ring_halbach_optim.json at 99 magnets is 247 ppm at 7.6 MHz in a 93 mm envelope, and is the better magnet by every measure except the count."
+ }
+}

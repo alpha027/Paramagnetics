@@ -1,0 +1,78 @@
+{
+ "halbach_optimization": {
+
+  "_design": "A benchtop Halbach magnet for liquid state NMR of a ~10 mm sample tube. The tube lies along the bore (z) and B0 is transverse to it (x), so a solenoid wound round the tube gives B1 along z, perpendicular to B0, which is the sensitive and conventional arrangement. Free bore 26.7 mm, overall 111 mm across and 188 mm long over the end cubes, 789 cubes of 8 mm N52, about 2.9 kg of magnet. As run, it gives 316 mT - 13.46 MHz for protons - and 215 ppm over the 20 mm sample sphere, measured from the magnets themselves over the whole sphere and confirmed by simulating the written file back through the standalone simulator.",
+
+  "_how_to_read_this": "The optimizer measures homogeneity and nothing else, so it will always prefer to sit further from the sample: the field is flatter out there, and weaker. Nothing in the objective pushes back, so what actually decides the field is where the candidate list stops. The range of radii below is therefore less a search space than the designer's field-against-homogeneity lever, and it was picked by sweeping it on exactly this geometry, keeping the bottom of the band at 19 mm and moving the top: top 28 mm gave 1383 ppm at 410 mT (17.45 MHz, 93 mm across), top 32 mm gave 474 ppm at 359 mT (15.29 MHz, 101 mm), top 37 mm - what is set below - gives 210 ppm at 316 mT (13.46 MHz, 111 mm), and top 42 mm gave 69 ppm at 272 mT (11.57 MHz, 121 mm). Raise the top for line width, lower it for signal. 37 mm is the balance and not a discovery; if the instrument is for spectroscopy rather than relaxometry, 42 mm is the better end of that trade.",
+
+  "ring_count": 21,
+  "ring_separation": 0.009,
+
+  "_ring_geometry": "21 rings on a 9 mm pitch: the 8 mm cube plus a millimetre of glue line, so the rings are as tightly stacked as they can be. 180 mm of length against a 20 mm bore radius is a long cylinder, and length is what makes the middle of a Halbach uniform along its axis. It also buys eleven genes rather than seven, which is eleven places the optimizer can correct the fall-off at the ends.",
+
+  "_element": "8 mm N52 cubes, Br = 1.42 T, which is the polarization the cuboid kernel wants. Cube size is the other lever and was also measured, at the same 26.7 mm bore and a band reaching to 36-38 mm, with the ring pitch tracking the cube and the ring count set to keep the magnet the same length: 6 mm cubes gave 110 ppm but only 241 mT from 1043 magnets, 8 mm gave 171 ppm at 308 mT from 725, 10 mm gave 344 ppm at 379 mT from 475. Bigger cubes mean more field and fewer of them, and fewer ring positions to correct with, so worse homogeneity. 8 mm is the balance: a quarter more field than 6 mm with a third fewer magnets to buy, glue and align, and 8 mm N52 is about the largest cube that is still sane to handle by hand.",
+
+  "element": {
+   "size": 0.008,
+   "remanence": 1.42
+  },
+
+  "_candidates": "19 radii from 19 to 37 mm on a 1 mm step, the magnet count following so that each cube gets about 1.5 times its own side of arc. Two 8 mm cubes turned corner-on need 1.414 sides between centres not to touch; the tightest pair here has 1.440, so every candidate clears. The smallest radius is what sets the usable bore, because the tube has to pass the whole length of the magnet and the optimizer puts its smallest rings at the ends.",
+
+  "candidates": [
+   {"radius": 0.019, "count": 10},
+   {"radius": 0.020, "count": 10},
+   {"radius": 0.021, "count": 11},
+   {"radius": 0.022, "count": 12},
+   {"radius": 0.023, "count": 12},
+   {"radius": 0.024, "count": 13},
+   {"radius": 0.025, "count": 13},
+   {"radius": 0.026, "count": 14},
+   {"radius": 0.027, "count": 14},
+   {"radius": 0.028, "count": 15},
+   {"radius": 0.029, "count": 15},
+   {"radius": 0.030, "count": 16},
+   {"radius": 0.031, "count": 16},
+   {"radius": 0.032, "count": 17},
+   {"radius": 0.033, "count": 17},
+   {"radius": 0.034, "count": 18},
+   {"radius": 0.035, "count": 18},
+   {"radius": 0.036, "count": 19},
+   {"radius": 0.037, "count": 19}
+  ],
+
+  "_layers": "The second layer sits 13 mm further out with 7 more magnets. 13 mm is the least that clears, since an 8 mm cube reaches 5.66 mm from its centre when turned corner-on and two layers need 11.3 mm plus a former wall. The +7 holds at every radius because 13 mm of extra circumference is almost exactly 7 more magnets at this pitch.",
+
+  "outer_radius_offset": 0.013,
+  "outer_count_offset": 7,
+
+  "order": 1,
+
+  "_dsv": "A 20 mm sphere, which covers a 10 mm tube over 17.3 mm of its height - a realistic sensitive length for a solenoid on a tube this size. Keeping it a small fraction of the bore is the cheapest homogeneity there is, since the field degrades quickly towards the magnets. A longer RF coil means raising this, and the ppm will rise with it.",
+
+  "dsv": 0.02,
+  "resolution": 0.0005,
+
+  "symmetry": "octant",
+
+  "_objective": "ppm_bmag rather than the ppm_bx the imaging design uses. A nucleus precesses at a frequency set by the magnitude of the field where it sits, so |B| is what a line width is made of. In a good Halbach the field is almost all along x and the two figures nearly agree, but it is |B| that has to be flat.",
+
+  "objective": "ppm_bmag",
+  "field_model": "cuboid",
+
+  "_genetic": "Eleven genes over nineteen candidates is 19^11, and the basis here is small enough that a generation costs a fraction of a second. This converges inside about 50 generations; the rest is insurance against a run that starts badly.",
+
+  "genetic": {
+   "population": 10000,
+   "generations": 120,
+   "cx_prob": 0.55,
+   "mut_prob": 0.4,
+   "gene_mut_prob": 0.05,
+   "tournament": 3,
+   "elitism": 2,
+   "seed": 42
+  },
+
+  "_what_this_is_not": "The geometry alone. A magnet built to this still needs passive shims, a temperature controlled housing - NdFeB drifts about -1100 ppm per kelvin, which swamps everything here - and, for spectroscopy, an active shim set. Those take a hundred-odd ppm down to the sub-ppm a liquid spectrum needs. Note also that the profile the optimizer returns need not be smooth: it finds cancellations, and an irregular one will be more sensitive to build tolerance than a monotone taper. Two layers is as many as this ring model parametrizes, and it is what caps the field at a few hundred mT; more field means more layers, which you can add by hand to the arrangements in the output file."
+ }
+}

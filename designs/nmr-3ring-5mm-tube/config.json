@@ -1,0 +1,267 @@
+{
+ "halbach_optimization": {
+  "_design": "A three ring Halbach for a 5 mm NMR tube: two layers, 99 cubes of 8 mm N52, 44 mm long over the end cubes and 93 mm across, with a 36 mm free bore. As run it gives 179 mT - 7.60 MHz for protons - and 247 ppm over an 8 mm sample sphere, which covers a 4 mm liquid column over 6.9 mm of its height. The tube lies along the bore (z) and B0 is transverse (x), as in the other designs here.",
+  "_why_this_shape": "Three rings mirror down to two genes, so the search is 57^2 = 3249 combinations: an enumeration, not really an optimization. That matters, because it means the design is decided almost entirely by the two numbers the optimizer cannot touch - the ring separation and the cube size - and only trimmed by the radii it can. Compared with the five ring design in min_halbach_optim.json this is half the magnets and five sixths of the field, over a sample sphere two thirds the diameter. The rings are further apart than the cubes are thick, so the former has to hold three separated rings rather than a stack.",
+  "ring_count": 3,
+  "ring_separation": 0.018,
+  "_ring_separation": "18 mm, against 8 mm cubes, so there are 10 mm axial gaps. With this few rings the axial extent is the whole game and the separation is the strongest lever there is. Swept on this geometry at an 8 mm DSV: 14 mm gave 641 ppm at 275 mT from 85 magnets, 18 mm gives 247 ppm at 179 mT from 99, 22 mm gave 149 ppm at 114 mT from 123, 26 mm gave 36 ppm at 85 mT from 141. Spreading the rings buys homogeneity and costs field and magnets together, because the optimizer answers a wider separation by moving the rings outward. 18 mm is the point where the field is still worth having.",
+  "_element": "8 mm N52 cubes, Br = 1.42 T, the polarization the cuboid kernel wants. Same as the other small designs, so the three of them can be compared and built from one order of magnets.",
+  "element": {
+   "size": 0.008,
+   "remanence": 1.42
+  },
+  "_candidates": "57 radii from 16.2 to 44.2 mm on a 0.5 mm step, the count being the densest packing that still leaves each cube 1.45 times its own side of arc against the 1.414 two turned cubes need. The band reaches much higher than the five ring design because a widely spaced pair or triple wants a proportionally larger radius, and a list that stopped lower would simply rail. A fine step matters more here than with eleven genes: with two genes the answer is decided by which discrete (radius, count) pairs happen to exist.",
+  "candidates": [
+   {
+    "radius": 0.0162,
+    "count": 8
+   },
+   {
+    "radius": 0.0167,
+    "count": 9
+   },
+   {
+    "radius": 0.0172,
+    "count": 9
+   },
+   {
+    "radius": 0.0177,
+    "count": 9
+   },
+   {
+    "radius": 0.0182,
+    "count": 9
+   },
+   {
+    "radius": 0.0187,
+    "count": 10
+   },
+   {
+    "radius": 0.0192,
+    "count": 10
+   },
+   {
+    "radius": 0.0197,
+    "count": 10
+   },
+   {
+    "radius": 0.0202,
+    "count": 10
+   },
+   {
+    "radius": 0.0207,
+    "count": 11
+   },
+   {
+    "radius": 0.0212,
+    "count": 11
+   },
+   {
+    "radius": 0.0217,
+    "count": 11
+   },
+   {
+    "radius": 0.0222,
+    "count": 12
+   },
+   {
+    "radius": 0.0227,
+    "count": 12
+   },
+   {
+    "radius": 0.0232,
+    "count": 12
+   },
+   {
+    "radius": 0.0237,
+    "count": 12
+   },
+   {
+    "radius": 0.0242,
+    "count": 13
+   },
+   {
+    "radius": 0.0247,
+    "count": 13
+   },
+   {
+    "radius": 0.0252,
+    "count": 13
+   },
+   {
+    "radius": 0.0257,
+    "count": 13
+   },
+   {
+    "radius": 0.0262,
+    "count": 14
+   },
+   {
+    "radius": 0.0267,
+    "count": 14
+   },
+   {
+    "radius": 0.0272,
+    "count": 14
+   },
+   {
+    "radius": 0.0277,
+    "count": 15
+   },
+   {
+    "radius": 0.0282,
+    "count": 15
+   },
+   {
+    "radius": 0.0287,
+    "count": 15
+   },
+   {
+    "radius": 0.0292,
+    "count": 15
+   },
+   {
+    "radius": 0.0297,
+    "count": 16
+   },
+   {
+    "radius": 0.0302,
+    "count": 16
+   },
+   {
+    "radius": 0.0307,
+    "count": 16
+   },
+   {
+    "radius": 0.0312,
+    "count": 16
+   },
+   {
+    "radius": 0.0317,
+    "count": 17
+   },
+   {
+    "radius": 0.0322,
+    "count": 17
+   },
+   {
+    "radius": 0.0327,
+    "count": 17
+   },
+   {
+    "radius": 0.0332,
+    "count": 17
+   },
+   {
+    "radius": 0.0337,
+    "count": 18
+   },
+   {
+    "radius": 0.0342,
+    "count": 18
+   },
+   {
+    "radius": 0.0347,
+    "count": 18
+   },
+   {
+    "radius": 0.0352,
+    "count": 18
+   },
+   {
+    "radius": 0.0357,
+    "count": 19
+   },
+   {
+    "radius": 0.0362,
+    "count": 19
+   },
+   {
+    "radius": 0.0367,
+    "count": 19
+   },
+   {
+    "radius": 0.0372,
+    "count": 19
+   },
+   {
+    "radius": 0.0377,
+    "count": 20
+   },
+   {
+    "radius": 0.0382,
+    "count": 20
+   },
+   {
+    "radius": 0.0387,
+    "count": 20
+   },
+   {
+    "radius": 0.0392,
+    "count": 21
+   },
+   {
+    "radius": 0.0397,
+    "count": 21
+   },
+   {
+    "radius": 0.0402,
+    "count": 21
+   },
+   {
+    "radius": 0.0407,
+    "count": 21
+   },
+   {
+    "radius": 0.0412,
+    "count": 22
+   },
+   {
+    "radius": 0.0417,
+    "count": 22
+   },
+   {
+    "radius": 0.0422,
+    "count": 22
+   },
+   {
+    "radius": 0.0427,
+    "count": 22
+   },
+   {
+    "radius": 0.0432,
+    "count": 23
+   },
+   {
+    "radius": 0.0437,
+    "count": 23
+   },
+   {
+    "radius": 0.0442,
+    "count": 23
+   }
+  ],
+  "_layers": "13 mm out with 7 more magnets, unchanged from the other designs - an 8 mm cube reaches 5.66 mm from its centre turned corner-on, so two layers need 11.3 mm plus a former wall.",
+  "outer_radius_offset": 0.013,
+  "outer_count_offset": 7,
+  "order": 1,
+  "_dsv": "8 mm, down from the 12 mm of the five ring design. This is what the missing rings cost. It covers the 4 mm liquid column of a 5 mm tube over 6.9 mm, so this design serves a 5 mm tube rather than the 10 mm one. Opening it to 10 mm gives about 527 ppm on this geometry.",
+  "dsv": 0.008,
+  "resolution": 0.0002,
+  "symmetry": "octant",
+  "objective": "ppm_bmag",
+  "field_model": "cuboid",
+  "_genetic": "Two genes, so two point crossover has essentially nothing to cut and the search rests on mutation and on how much of the 3249 combinations generation zero samples. A population of 20000 covers 99.8 percent of the space in that first generation, so this is an enumeration in all but name and the answer is the global optimum. It costs a few seconds.",
+  "genetic": {
+   "population": 20000,
+   "generations": 20,
+   "cx_prob": 0.55,
+   "mut_prob": 0.4,
+   "gene_mut_prob": 0.4,
+   "tournament": 3,
+   "elitism": 2,
+   "seed": 42
+  },
+  "_what_this_is_not": "A spectrometer. 247 ppm at 7.6 MHz is a relaxometry instrument: fine for an FID, for T1 by inversion recovery and for T2 by CPMG, useless for chemical shift, where the whole proton range is 10 ppm. Everything else that applies to the larger designs applies here - NdFeB drifts about -1100 ppm per kelvin so the housing must be temperature controlled, an irregular radius profile is more sensitive to build tolerance than a smooth one, and two layers is all this ring model parametrizes."
+ }
+}

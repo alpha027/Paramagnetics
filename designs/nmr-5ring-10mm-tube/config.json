@@ -1,0 +1,95 @@
+{
+ "halbach_optimization": {
+
+  "_design": "The smallest Halbach this ring model will usefully build: five rings, two layers, 185 cubes of 8 mm N52 - about 0.7 kg - 60 mm long over the end cubes and 102 mm across, with a 39 mm free bore for a 10 mm NMR tube - the candidate list only guarantees 21 mm, but the optimizer never reaches for its smallest rings here. As run it gives 213 mT, 9.05 MHz for protons, and 90 ppm over a 12 mm sample sphere, measured from the magnets themselves over the whole sphere. Against the 21-ring design in small_halbach_optim.json that is a quarter of the magnets for two thirds of the field, over a sample volume rather less than half the size. The tube still lies along the bore (z) and B0 is transverse (x), so a solenoid round the tube gives B1 perpendicular to B0.",
+
+  "_what_five_rings_costs": "Less than it looks, and not where you would guess. A ring at height z contributes to the centre as 1/(1+(z/R)^2)^2.5, so rings beyond about two pitches out add almost nothing there: five rings keep 91 percent of the centre field of twenty-one. What the far rings actually buy is uniformity ALONG the axis, and that is what is lost. So this design gives up sample length, not field. The DSV is 12 mm rather than 20 mm, which covers an 8 mm liquid column over 8.9 mm of its height - one RF coil's worth, not a few centimetres of tube.",
+
+  "ring_count": 5,
+  "ring_separation": 0.013,
+
+  "_ring_geometry": "13 mm pitch, not the 9 mm that would stack 8 mm cubes as tightly as they go. With only five rings the binding constraint is how far they reach along z, so spreading them out is the strongest lever there is: measured on this geometry at a 12 mm DSV, a 9 mm pitch gave 617 ppm and a 13 mm pitch gave 90 ppm. It costs field - 285 mT falls to 213 mT - because the outer rings move away from the centre. 5 mm axial gaps between rings need a slotted former rather than a plain tube.",
+
+  "_element": "8 mm N52 cubes, Br = 1.42 T, the polarization the cuboid kernel wants. Cube size was measured at this ring count and bore: 6 mm gave 247 ppm at 243 mT from 195 magnets, 8 mm gave 139 ppm at 285 mT from 185, 10 mm gave 84 ppm at 336 mT from 159 - but the 10 mm rings hold only 10 to 14 magnets each, and ring discreteness then shows up as ripple that grows as (r/R)^(N-2), which is why 10 mm loses badly as soon as the DSV opens up: at 12 mm it gave 370 ppm against 8 mm's 90.",
+
+  "element": {
+   "size": 0.008,
+   "remanence": 1.42
+  },
+
+  "_candidates": "37 radii from 16.2 to 34.2 mm on a 0.5 mm step, with the count set to the densest packing that still leaves each cube 1.45 times its own side of arc; two 8 mm cubes turned corner-on need 1.414, and the tightest pair here has 1.450. The fine step matters more than it would with eleven genes: three genes make the search space small enough that the answer is decided by which discrete (radius, count) pairs happen to exist, and a 1 mm step with a more conservative count rule gave 395 ppm where this gives far less. It costs nothing - 37^3 is 50653 combinations, which the population below samples heavily in its first generation. The smallest radius sets the usable bore, since the tube passes the whole length and the optimizer puts its smallest rings at the ends.",
+
+  "candidates": [
+   {"radius": 0.0162, "count": 8},
+   {"radius": 0.0167, "count": 9},
+   {"radius": 0.0172, "count": 9},
+   {"radius": 0.0177, "count": 9},
+   {"radius": 0.0182, "count": 9},
+   {"radius": 0.0187, "count": 10},
+   {"radius": 0.0192, "count": 10},
+   {"radius": 0.0197, "count": 10},
+   {"radius": 0.0202, "count": 10},
+   {"radius": 0.0207, "count": 11},
+   {"radius": 0.0212, "count": 11},
+   {"radius": 0.0217, "count": 11},
+   {"radius": 0.0222, "count": 12},
+   {"radius": 0.0227, "count": 12},
+   {"radius": 0.0232, "count": 12},
+   {"radius": 0.0237, "count": 12},
+   {"radius": 0.0242, "count": 13},
+   {"radius": 0.0247, "count": 13},
+   {"radius": 0.0252, "count": 13},
+   {"radius": 0.0257, "count": 13},
+   {"radius": 0.0262, "count": 14},
+   {"radius": 0.0267, "count": 14},
+   {"radius": 0.0272, "count": 14},
+   {"radius": 0.0277, "count": 15},
+   {"radius": 0.0282, "count": 15},
+   {"radius": 0.0287, "count": 15},
+   {"radius": 0.0292, "count": 15},
+   {"radius": 0.0297, "count": 16},
+   {"radius": 0.0302, "count": 16},
+   {"radius": 0.0307, "count": 16},
+   {"radius": 0.0312, "count": 16},
+   {"radius": 0.0317, "count": 17},
+   {"radius": 0.0322, "count": 17},
+   {"radius": 0.0327, "count": 17},
+   {"radius": 0.0332, "count": 17},
+   {"radius": 0.0337, "count": 18},
+   {"radius": 0.0342, "count": 18}
+  ],
+
+  "_band": "As always here, the optimizer scores homogeneity and nothing else, so it would rather sit further out where the field is flatter and weaker; the top of this list is what stops it, and is therefore the field-against-homogeneity lever. Swept on this geometry at a 12 mm DSV: top 34 mm gives 90 ppm at 213 mT from 185 magnets, top 42 mm gives 69 ppm at 167 mT from 219, top 50 mm gives 49 ppm at 148 mT from 241. Unusually, widening the band here costs magnets as well as field, because bigger rings need more cubes - so 34 mm is the best point on every axis at once, which is why it is set there.",
+
+  "outer_radius_offset": 0.013,
+  "outer_count_offset": 7,
+
+  "_layers": "13 mm out with 7 more magnets. An 8 mm cube reaches 5.66 mm from its centre turned corner-on, so two layers need 11.3 mm plus a former wall; 1.69 mm is left. The +7 clears at every candidate, from 1.482 sides of arc at the tightest to 1.545 at the loosest.",
+
+  "order": 1,
+
+  "_dsv": "12 mm, down from the 20 mm of the longer design. This is the number five rings really cost. It covers an 8 mm liquid column - a 10 mm tube less its walls - over 8.9 mm, which is a short but real sensitive volume. Open it to 16 mm and this geometry gives about 320 ppm instead of 90.",
+
+  "dsv": 0.012,
+  "resolution": 0.0003,
+
+  "symmetry": "octant",
+  "objective": "ppm_bmag",
+  "field_model": "cuboid",
+
+  "_genetic": "A big population and a high gene mutation rate, and both are needed - this is the one place a short magnet is harder to optimize than a long one. Five rings mirror down to three genes, and a three gene genome gives two point crossover almost nothing to cut, so the search rests entirely on mutation and on how much of the space generation zero happens to sample. A small population converges in a handful of generations and stops. Measured on this problem, whose space is 37^3 = 50653: population 2000 with gene_mut_prob 0.1 settled at 103.4 ppm and stayed there from generation 6; population 20000 at 0.3 reaches 90.4 ppm; and a population of 200000, which samples 98 percent of the whole space in generation zero, also reaches 90.4 ppm and no further, so that is the global optimum and the settings below find it. The whole run still takes about half a minute.",
+
+  "genetic": {
+   "population": 20000,
+   "generations": 40,
+   "cx_prob": 0.55,
+   "mut_prob": 0.4,
+   "gene_mut_prob": 0.3,
+   "tournament": 3,
+   "elitism": 2,
+   "seed": 42
+  },
+
+  "_what_this_is_not": "A spectrometer magnet. 90 ppm over 12 mm at 9 MHz is a relaxometry and diffusion instrument, or a teaching one; liquid spectroscopy wants a longer sensitive volume and sub-ppm after shimming, and the 21-ring design is the better start for that. Everything else that applies there applies here: NdFeB drifts about -1100 ppm per kelvin so the housing has to be temperature controlled, the profile the optimizer returns need not be smooth and an irregular one is more sensitive to build tolerance, and two layers is all this ring model parametrizes."
+ }
+}

@@ -1,0 +1,458 @@
+{
+ "arrangements": [
+  {
+   "id": 1,
+   "parameters": {
+    "count": 18,
+    "element": {
+     "parameters": {
+      "dimensions": [
+       0.008,
+       0.008,
+       0.008
+      ],
+      "magnetization": [
+       1.42,
+       0.0,
+       0.0
+      ]
+     },
+     "type": "cuboid"
+    },
+    "order": 1,
+    "orientation": [
+     1.0,
+     0.0,
+     0.0,
+     0.0
+    ],
+    "position": [
+     0.0,
+     0.0,
+     0.015
+    ],
+    "radius": 0.0342
+   },
+   "type": "halbach_ring"
+  },
+  {
+   "id": 2,
+   "parameters": {
+    "count": 25,
+    "element": {
+     "parameters": {
+      "dimensions": [
+       0.008,
+       0.008,
+       0.008
+      ],
+      "magnetization": [
+       1.42,
+       0.0,
+       0.0
+      ]
+     },
+     "type": "cuboid"
+    },
+    "order": 1,
+    "orientation": [
+     1.0,
+     0.0,
+     0.0,
+     0.0
+    ],
+    "position": [
+     0.0,
+     0.0,
+     0.015
+    ],
+    "radius": 0.0472
+   },
+   "type": "halbach_ring"
+  },
+  {
+   "id": 3,
+   "parameters": {
+    "count": 18,
+    "element": {
+     "parameters": {
+      "dimensions": [
+       0.008,
+       0.008,
+       0.008
+      ],
+      "magnetization": [
+       1.42,
+       0.0,
+       0.0
+      ]
+     },
+     "type": "cuboid"
+    },
+    "order": 1,
+    "orientation": [
+     1.0,
+     0.0,
+     0.0,
+     0.0
+    ],
+    "position": [
+     0.0,
+     0.0,
+     -0.015
+    ],
+    "radius": 0.0342
+   },
+   "type": "halbach_ring"
+  },
+  {
+   "id": 4,
+   "parameters": {
+    "count": 25,
+    "element": {
+     "parameters": {
+      "dimensions": [
+       0.008,
+       0.008,
+       0.008
+      ],
+      "magnetization": [
+       1.42,
+       0.0,
+       0.0
+      ]
+     },
+     "type": "cuboid"
+    },
+    "order": 1,
+    "orientation": [
+     1.0,
+     0.0,
+     0.0,
+     0.0
+    ],
+    "position": [
+     0.0,
+     0.0,
+     -0.015
+    ],
+    "radius": 0.0472
+   },
+   "type": "halbach_ring"
+  }
+ ],
+ "field_of_view": {
+  "x": {
+   "max": 0.003,
+   "min": -0.003,
+   "n": 41
+  },
+  "y": {
+   "max": 0.003,
+   "min": -0.003,
+   "n": 41
+  },
+  "z": {
+   "max": 0.003,
+   "min": -0.003,
+   "n": 41
+  }
+ },
+ "halbach_optimization": {
+  "basis": {
+   "configurations": 57,
+   "magnets": 4398,
+   "points": 4662
+  },
+  "candidates": [
+   {
+    "count": 8,
+    "radius": 0.0162
+   },
+   {
+    "count": 9,
+    "radius": 0.0167
+   },
+   {
+    "count": 9,
+    "radius": 0.0172
+   },
+   {
+    "count": 9,
+    "radius": 0.0177
+   },
+   {
+    "count": 9,
+    "radius": 0.0182
+   },
+   {
+    "count": 10,
+    "radius": 0.0187
+   },
+   {
+    "count": 10,
+    "radius": 0.0192
+   },
+   {
+    "count": 10,
+    "radius": 0.0197
+   },
+   {
+    "count": 10,
+    "radius": 0.0202
+   },
+   {
+    "count": 11,
+    "radius": 0.0207
+   },
+   {
+    "count": 11,
+    "radius": 0.0212
+   },
+   {
+    "count": 11,
+    "radius": 0.0217
+   },
+   {
+    "count": 12,
+    "radius": 0.0222
+   },
+   {
+    "count": 12,
+    "radius": 0.0227
+   },
+   {
+    "count": 12,
+    "radius": 0.0232
+   },
+   {
+    "count": 12,
+    "radius": 0.0237
+   },
+   {
+    "count": 13,
+    "radius": 0.0242
+   },
+   {
+    "count": 13,
+    "radius": 0.0247
+   },
+   {
+    "count": 13,
+    "radius": 0.0252
+   },
+   {
+    "count": 13,
+    "radius": 0.0257
+   },
+   {
+    "count": 14,
+    "radius": 0.0262
+   },
+   {
+    "count": 14,
+    "radius": 0.0267
+   },
+   {
+    "count": 14,
+    "radius": 0.0272
+   },
+   {
+    "count": 15,
+    "radius": 0.0277
+   },
+   {
+    "count": 15,
+    "radius": 0.0282
+   },
+   {
+    "count": 15,
+    "radius": 0.0287
+   },
+   {
+    "count": 15,
+    "radius": 0.0292
+   },
+   {
+    "count": 16,
+    "radius": 0.0297
+   },
+   {
+    "count": 16,
+    "radius": 0.0302
+   },
+   {
+    "count": 16,
+    "radius": 0.0307
+   },
+   {
+    "count": 16,
+    "radius": 0.0312
+   },
+   {
+    "count": 17,
+    "radius": 0.0317
+   },
+   {
+    "count": 17,
+    "radius": 0.0322
+   },
+   {
+    "count": 17,
+    "radius": 0.0327
+   },
+   {
+    "count": 17,
+    "radius": 0.0332
+   },
+   {
+    "count": 18,
+    "radius": 0.0337
+   },
+   {
+    "count": 18,
+    "radius": 0.0342
+   },
+   {
+    "count": 18,
+    "radius": 0.0347
+   },
+   {
+    "count": 18,
+    "radius": 0.0352
+   },
+   {
+    "count": 19,
+    "radius": 0.0357
+   },
+   {
+    "count": 19,
+    "radius": 0.0362
+   },
+   {
+    "count": 19,
+    "radius": 0.0367
+   },
+   {
+    "count": 19,
+    "radius": 0.0372
+   },
+   {
+    "count": 20,
+    "radius": 0.0377
+   },
+   {
+    "count": 20,
+    "radius": 0.0382
+   },
+   {
+    "count": 20,
+    "radius": 0.0387
+   },
+   {
+    "count": 21,
+    "radius": 0.0392
+   },
+   {
+    "count": 21,
+    "radius": 0.0397
+   },
+   {
+    "count": 21,
+    "radius": 0.0402
+   },
+   {
+    "count": 21,
+    "radius": 0.0407
+   },
+   {
+    "count": 22,
+    "radius": 0.0412
+   },
+   {
+    "count": 22,
+    "radius": 0.0417
+   },
+   {
+    "count": 22,
+    "radius": 0.0422
+   },
+   {
+    "count": 22,
+    "radius": 0.0427
+   },
+   {
+    "count": 23,
+    "radius": 0.0432
+   },
+   {
+    "count": 23,
+    "radius": 0.0437
+   },
+   {
+    "count": 23,
+    "radius": 0.0442
+   }
+  ],
+  "chosen": [
+   {
+    "candidate": 36,
+    "inner_count": 18,
+    "inner_radius": 0.0342,
+    "outer_count": 25,
+    "outer_radius": 0.0472,
+    "ring_position": 0.015
+   }
+  ],
+  "dsv": 0.006,
+  "element": {
+   "remanence": 1.42,
+   "size": 0.008
+  },
+  "field_model": "cuboid",
+  "generations_run": 10,
+  "genetic": {
+   "cx_prob": 0.55,
+   "elitism": 2,
+   "gene_mut_prob": 0.4,
+   "generations": 10,
+   "mut_prob": 0.4,
+   "population": 1000,
+   "seed": 42,
+   "tournament": 3
+  },
+  "genome": [
+   36
+  ],
+  "magnet_count": 86,
+  "objective": "ppm_bmag",
+  "optimized": {
+   "homogeneity_ppm": 244.9652,
+   "max_T": 0.08276613,
+   "mean_T": 0.08275882,
+   "min_T": 0.08274586,
+   "peak_to_peak_T": 2.027303e-05,
+   "points": 4662
+  },
+  "order": 1,
+  "outer_count_offset": 7,
+  "outer_radius_offset": 0.013,
+  "resolution": 0.00015,
+  "ring_count": 2,
+  "ring_separation": 0.03,
+  "symmetry": "octant",
+  "timing_s": {
+   "basis": 6.028677939,
+   "evolution": 0.177091826,
+   "verification": 0.734222195
+  },
+  "verified": {
+   "homogeneity_ppm": 246.0453,
+   "max_T": 0.08276622,
+   "mean_T": 0.0827589,
+   "min_T": 0.08274586,
+   "peak_to_peak_T": 2.036244e-05,
+   "points": 33401
+  }
+ }
+}
