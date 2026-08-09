@@ -218,6 +218,16 @@ void writeMatrixToCSV(const std::vector<std::vector<float>>& matrix, const std::
         return;
     }
 
+    /*
+      Nine significant digits, which is what a float needs to be written and
+      read back unchanged. The default six is a part in a million of the value,
+      and a homogeneous magnet is measured in exactly that: a field of 0.21 T
+      flat to 90 ppm varies by 19 microtesla end to end, which the default
+      writes in twenty steps. The homogeneity read back off such a file is then
+      the file's rounding rather than the magnet's.
+    */
+    file.precision(9);
+
     // Write the matrix to the file
     for (const auto& row : matrix) {
         for (size_t i = 0; i < row.size(); ++i) {
