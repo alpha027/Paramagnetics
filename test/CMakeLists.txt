@@ -4,8 +4,9 @@ project(GreeterTests LANGUAGES CXX)
 
 # ---- Options ----
 
-#option(ENABLE_TEST_COVERAGE "Enable test coverage" OFF)
-#option(TEST_INSTALLED_VERSION "Test the version found by find_package" OFF)
+option(ENABLE_TEST_COVERAGE "Enable test coverage" OFF)
+option(TEST_INSTALLED_VERSION "Test the version found by find_package" OFF)
+set(CMAKE_POLICY_VERSION_MINIMUM 3.5)
 
 # --- Import tools ----
 
@@ -65,18 +66,21 @@ add_dependencies(${PROJECT_NAME} GreeterViewBoundary)
 
 # ---- Add GreeterTests ----
 
-##enable_testing()
+enable_testing()
 
 # Note: doctest and similar testing frameworks can automatically configure CMake tests. For other
 # testing frameworks add the tests target instead: add_test(NAME ${PROJECT_NAME} COMMAND
 # ${PROJECT_NAME})
 
-include(${doctest_SOURCE_DIR}/scripts/cmake/doctest.cmake)
-#doctest_discover_tests(${PROJECT_NAME})
+add_test(NAME core COMMAND ${PROJECT_NAME})
+set_tests_properties(core PROPERTIES ENVIRONMENT "OMP_NUM_THREADS=4;OMP_PROC_BIND=false")
 
 # ---- code coverage ----
 
-# if(ENABLE_TEST_COVERAGE)
-#   target_compile_options(Greeter PUBLIC -O0 -g -fprofile-arcs -ftest-coverage)
-#   target_link_options(Greeter PUBLIC -fprofile-arcs -ftest-coverage)
-# endif()
+if(ENABLE_TEST_COVERAGE)
+  if(TEST_INSTALLED_VERSION OR NOT CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+    message(FATAL_ERROR "Coverage requires a source build with GCC or Clang")
+  endif()
+  target_compile_options(Greeter PUBLIC -O0 -g --coverage)
+  target_link_options(Greeter PUBLIC --coverage)
+endif()

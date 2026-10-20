@@ -88,3 +88,6 @@ target_link_libraries(ParaMagneticSViewerTests PRIVATE
   Greeter::Greeter
   Kokkos::kokkos
 )
+
+enable_testing()
+add_test(NAME viewer-geometry COMMAND ParaMagneticSViewerTests)
