@@ -33,3 +33,6 @@ jobs:
 
       - name: run
         run: ./build/Greeter --input arrangements.json
+
+      - name: CLI regression tests
+        run: ctest --test-dir build --output-on-failure --no-tests=error
