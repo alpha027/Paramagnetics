@@ -1,22 +1,17 @@
-[![Actions Status](https://github.com/TheLartians/ModernCppStarter/workflows/MacOS/badge.svg)](https://github.com/TheLartians/ModernCppStarter/actions)
-[![Actions Status](https://github.com/TheLartians/ModernCppStarter/workflows/Windows/badge.svg)](https://github.com/TheLartians/ModernCppStarter/actions)
-[![Actions Status](https://github.com/TheLartians/ModernCppStarter/workflows/Ubuntu/badge.svg)](https://github.com/TheLartians/ModernCppStarter/actions)
-[![Actions Status](https://github.com/TheLartians/ModernCppStarter/workflows/Style/badge.svg)](https://github.com/TheLartians/ModernCppStarter/actions)
-[![Actions Status](https://github.com/TheLartians/ModernCppStarter/workflows/Install/badge.svg)](https://github.com/TheLartians/ModernCppStarter/actions)
-[![codecov](https://codecov.io/gh/TheLartians/ModernCppStarter/branch/master/graph/badge.svg)](https://codecov.io/gh/TheLartians/ModernCppStarter)
-
-<!-- <p align="center">
-  <img src="https://repository-images.githubusercontent.com/254842585/4dfa7580-7ffb-11ea-99d0-46b8fe2f4170" height="175" width="auto" />
-</p> -->
-
-
 <div align="center" style="text-align: center;">
-  <img src="magnet.webp" alt="Description of image" width="245">
+  <img src="magnet.webp" alt="Magnetic field illustration" width="245">
 </div>
 
 # ParaMagneticS
 
-Stands for parallel magnetic field simulations. This repository offers a user friendly tool to efficiently simulate the magnetic field stemming from simple magnet geometries: cuboid, sphere, tetrahedron and cylinder. ParaMagneticS is implemented in C++ and allows to explore the magnetic field for a combination of magnets. The simulations are performed in a parallel manner to reduce the design iteration time for different magnet configurations.
+ParaMagneticS is a C++17 toolkit for parallel magnetic field and force simulations.
+It combines analytical magnet kernels, parametrized arrangements, and Halbach
+homogeneity optimization. Scenes are described in JSON, and a separate Qt
+application displays scenes and saved results.
+
+The simulator executable and installed CMake target retain the legacy name
+`Greeter`, and the public C++ namespace is `greeter`. The optimizer executable
+is `halbach-optimizer`; the Qt application is `paramagnetics-viewer`.
 
 ## Features
 
@@ -27,16 +22,9 @@ Stands for parallel magnetic field simulations. This repository offers a user fr
 - A genetic optimizer for the homogeneity of a Halbach cylinder, which writes its answer as an input file the simulator runs
 - A Qt viewer for the result, which is a separate program and needs neither Kokkos nor the input file
 - Easy and seamless workflow using a JSON parameter file
-- [Modern CMake practices](https://pabloariasal.github.io/2018/02/19/its-time-to-do-cmake-right/)
-- Clean separation of library and executable code
 - Integrated test suite
 - Continuous integration via [GitHub Actions](https://help.github.com/en/actions/)
-- Code coverage via [codecov](https://codecov.io)
-<!-- - Code formatting enforced by [clang-format](https://clang.llvm.org/docs/ClangFormat.html) and [cmake-format](https://github.com/cheshirekow/cmake_format) via [Format.cmake](https://github.com/TheLartians/Format.cmake)
-- Reproducible dependency management via [CPM.cmake](https://github.com/TheLartians/CPM.cmake)
-- Installable target with automatic versioning information and header generation via [PackageProject.cmake](https://github.com/TheLartians/PackageProject.cmake)
-- Automatic [documentation](https://thelartians.github.io/ModernCppStarter) and deployment with [Doxygen](https://www.doxygen.nl) and [GitHub Pages](https://pages.github.com)
-- Support for [sanitizer tools, and more](#additional-tools) -->
+- Optional compiler coverage instrumentation
 
 ## Usage
 
@@ -48,19 +36,17 @@ To build a Docker image of the ParaMagneticS toolkit, run the following command:
 docker build -t paramagnetics .
 ```
 
-The command above builds the docker image. To run a simulation using the built Docker image, run the followin command:
+The command above builds the docker image. To run a simulation using the built Docker image, run the following command:
 
 ```bash
-OMP_PROC_BIND=true;
-docker run --rm \
+docker run --rm -e OMP_PROC_BIND=true \
            -v /full_dir_path_to_data_input:/app/data:ro \
            -v /full_dir_path_to_data_output:/app/output \
            paramagnetics
 ```
 
-The `/full_dir_path_to_data_input` is the full directory to the `input_data.json` file (see **Input Data** section), it should contain a single file.
+The `/full_dir_path_to_data_input` is the full directory to the `input_data.json` file (see **Input Data** section), it must contain a file named `input_data.json`.
 The `/full_dir_path_to_data_output` is the directory in which the simulation results will be saved.
-
 
 ### Build and run the standalone target
 
@@ -137,7 +123,8 @@ Verification samples the whole sphere at half the search grid spacing and
 also checks a lattice shifted by half a verification cell. The result records
 `verified` on the finer grid plus `verification.coarse`, `verification.shifted`,
 and `verification.refinement_change_ppm`. The exported scene uses the verified
-grid spacing so running it again samples the same lattice. Use `--verification-resolution METRES`
+grid spacing so running it again samples the same lattice. Apply the sample-sphere
+mask when recomputing homogeneity from the exported box. Use `--verification-resolution METRES`
 to choose another spacing. These are sampling checks using the same kernels,
 not an independent physics solver or a proof of convergence. Fields are summed
 in double precision; individual kernels and stored samples remain floats.
@@ -151,8 +138,8 @@ Use the following commands from the project's root directory to run the test sui
 
 ```bash
 cmake -S test -B build/test -DCMAKE_BUILD_TYPE=Release -DKokkos_ENABLE_OPENMP=On -DCMAKE_CXX_COMPILER=g++
-cmake --build build/test -DCMAKE_BUILD_TYPE=Release -DKokkos_ENABLE_OPENMP=On -DCMAKE_CXX_COMPILER=g++
-CTEST_OUTPUT_ON_FAILURE=1 cmake --build build/test --target test
+cmake --build build/test -j
+ctest --test-dir build/test --output-on-failure --no-tests=error
 
 # or simply call the executable: 
 ./build/test/GreeterTests
@@ -573,15 +560,15 @@ make.
 #### What to expect
 
 Two things are worth watching in the output. The first is that the octant figure and the
-whole-sphere figure agree — on the default design they land within about 0.01% of each other,
-which is the evidence that the symmetry reduction is sound. The second is that the field the
-written file produces, run back through `Greeter`, gives the homogeneity the optimizer reported;
-a test asserts exactly that.
+whole-sphere figure agree. A discrepancy can reveal invalid symmetry assumptions
+or sampling that is too coarse. The second is that the exported scene uses the
+verification lattice, so the simulator can reproduce the reported field samples. Compare finer and shifted
+checks before treating a homogeneity number as converged.
 
-On the default design the run settles at about **805 ppm over the 200 mm sphere**, a mean field of
+An archived run of the default design settled at about **805 ppm over the 200 mm sphere**, a mean field of
 49.1 mT and a peak-to-peak spread of 0.04 mT, from a magnet of 2 971 cubes. It gets most of the
 way there inside 40 generations. `--field-model dipole`, the model the Python uses, follows the
-same trajectory generation for generation and lands at 651 ppm — close enough to say the two
+same general search and gave 651 ppm in that archived run — close enough to say the two
 models agree about the shape of the problem, far enough apart to say which one to trust.
 
 #### What it costs
@@ -712,14 +699,12 @@ components, or ID plus six force/torque components).
 
 `run_example.sh` creates a separate directory under `output/` for each run.
 Snapshots carry the scene and results for the viewer:
-
-A snapshot carries the magnets, their shapes and where they sit, the field together with the box it
+the magnets, their shapes and where they sit, the field together with the box it
 was sampled in, and the forces keyed by magnet id.
 
 ### Build the documentation
 
-The documentation is automatically built and [published](https://thelartians.github.io/ModernCppStarter) whenever a [GitHub Release](https://help.github.com/en/github/administering-a-repository/managing-releases-in-a-repository) is created.
-To manually build documentation, call the following command.
+Build the API documentation locally with:
 
 ```bash
 cmake -S documentation -B build/doc
@@ -729,25 +714,6 @@ open build/doc/doxygen/html/index.html
 ```
 
 To build the documentation locally, you will need Doxygen, jinja2 and Pygments installed on your system.
-
-<!-- ### Build everything at once
-
-The project also includes an `all` directory that allows building all targets at the same time.
-This is useful during development, as it exposes all subprojects to your IDE and avoids redundant builds of the library.
-
-```bash
-cmake -S all -B build -DCMAKE_BUILD_TYPE=Release -DKokkos_ENABLE_OPENMP=On
-cmake --build build -DCMAKE_BUILD_TYPE=Release -DKokkos_ENABLE_OPENMP=On
-
-# run tests
-./build/test/GreeterTests
-# format code
-cmake --build build --target fix-format
-# run standalone
-./build/standalone/Greeter --help
-# build docs
-cmake --build build --target GenerateDocs
-``` -->
 
 ### Additional tools
 
@@ -773,64 +739,3 @@ Ccache can be enabled by configuring with `-DUSE_CCACHE=<ON | OFF>`.
 - **[MagPyLib](https://www.sciencedirect.com/science/article/pii/S2352711020300170)**, [repo](https://github.com/magpylib/magpylib)
 
 - **[MagTetris](https://www.sciencedirect.com/science/article/abs/pii/S1090780723000988?via%3Dihub)**, [repo](https://github.com/BioMed-EM-Lab/MagTetris)
-
-## FAQ
-
-<!-- > Can I use this for header-only libraries?
-
-Yes, however you will need to change the library type to an `INTERFACE` library as documented in the [CMakeLists.txt](CMakeLists.txt).
-See [here](https://github.com/TheLartians/StaticTypeInfo) for an example header-only library based on the template.
-
-> I don't need a standalone target / documentation. How can I get rid of it?
-
-Simply remove the standalone / documentation directory and according github workflow file.
-
-> Can I build the standalone and tests at the same time? / How can I tell my IDE about all subprojects?
-
-To keep the template modular, all subprojects derived from the library have been separated into their own CMake modules.
-This approach makes it trivial for third-party projects to re-use the projects library code.
-To allow IDEs to see the full scope of the project, the template includes the `all` directory that will create a single build for all subprojects.
-Use this as the main directory for best IDE support.
-
-> I see you are using `GLOB` to add source files in CMakeLists.txt. Isn't that evil?
-
-Glob is considered bad because any changes to the source file structure [might not be automatically caught](https://cmake.org/cmake/help/latest/command/file.html#filesystem) by CMake's builders and you will need to manually invoke CMake on changes.
-  I personally prefer the `GLOB` solution for its simplicity, but feel free to change it to explicitly listing sources.
-
-> I want create additional targets that depend on my library. Should I modify the main CMakeLists to include them?
-
-Avoid including derived projects from the libraries CMakeLists (even though it is a common sight in the C++ world), as this effectively inverts the dependency tree and makes the build system hard to reason about.
-Instead, create a new directory or project with a CMakeLists that adds the library as a dependency (e.g. like the [standalone](standalone/CMakeLists.txt) directory).
-Depending type it might make sense move these components into a separate repositories and reference a specific commit or version of the library.
-This has the advantage that individual libraries and components can be improved and updated independently.
-
-> You recommend to add external dependencies using CPM.cmake. Will this force users of my library to use CPM.cmake as well?
-
-[CPM.cmake](https://github.com/TheLartians/CPM.cmake) should be invisible to library users as it's a self-contained CMake Script.
-If problems do arise, users can always opt-out by defining the CMake or env variable [`CPM_USE_LOCAL_PACKAGES`](https://github.com/cpm-cmake/CPM.cmake#options), which will override all calls to `CPMAddPackage` with the according `find_package` call.
-This should also enable users to use the project with their favorite external C++ dependency manager, such as vcpkg or Conan.
-
-> Can I configure and build my project offline?
-
-No internet connection is required for building the project, however when using CPM missing dependencies are downloaded at configure time.
-To avoid redundant downloads, it's highly recommended to set a CPM.cmake cache directory, e.g.: `export CPM_SOURCE_CACHE=$HOME/.cache/CPM`.
-This will enable shallow clones and allow offline configurations dependencies are already available in the cache.
-
-> Can I use CPack to create a package installer for my project?
-
-As there are a lot of possible options and configurations, this is not (yet) in the scope of this template. See the [CPack documentation](https://cmake.org/cmake/help/latest/module/CPack.html) for more information on setting up CPack installers.
-
-> This is too much, I just want to play with C++ code and test some libraries.
-
-Perhaps the [MiniCppStarter](https://github.com/TheLartians/MiniCppStarter) is something for you! -->
-
-## Related projects and alternatives
-
-- [**ModernCppStarter & PVS-Studio Static Code Analyzer**](https://github.com/viva64/pvs-studio-cmake-examples/tree/master/modern-cpp-starter): Official instructions on how to use the ModernCppStarter with the PVS-Studio Static Code Analyzer.
-- [**cpp-best-practices/gui_starter_template**](https://github.com/cpp-best-practices/gui_starter_template/): A popular C++ starter project, created in 2017.
-- [**filipdutescu/modern-cpp-template**](https://github.com/filipdutescu/modern-cpp-template): A recent starter using a more traditional approach for CMake structure and dependency management.
-- [**vector-of-bool/pitchfork**](https://github.com/vector-of-bool/pitchfork/): Pitchfork is a Set of C++ Project Conventions.
-
-<!-- ## Star History
-
-[![Star History Chart](https://api.star-history.com/svg?repos=TheLartians/ModernCppStarter,cpp-best-practices/gui_starter_template,filipdutescu/modern-cpp-template&type=Date)](https://star-history.com/#TheLartians/ModernCppStarter&cpp-best-practices/gui_starter_template&filipdutescu/modern-cpp-template&Date) -->

@@ -1,5 +1,19 @@
-/** @page about About
-  @section doc ModernCppStarter Documentation 
-  This is the auto-generated documentation for the initial project of the ModernCppStarter.
-  It shows how we can use Doxygen to automatically build a browsable documentation for your projects.
+/** @page about About ParaMagneticS
+  @section overview Parallel magnetic field and force simulation
+  ParaMagneticS models permanent magnets using analytic and faceted field
+  kernels. It supports JSON scenes, parametrized arrangements, force and torque
+  integration, Halbach homogeneity optimization, and a Qt viewer.
+
+  @section architecture Library interfaces
+  The public C++ namespace is greeter and the installed CMake target is
+  Greeter::Greeter. SimulationService supplies field and force results through
+  the view data structures without exposing Kokkos types to viewer code.
+  HalbachOptimizer precomputes candidate fields, searches over ring choices,
+  and verifies the assembled result on full-volume grids.
+
+  @section execution Host execution and accuracy
+  Select AUTO, OpenMP, or Serial with PARAMAGNETICS_BACKEND. Field kernels and
+  stored samples use single precision, with double precision accumulation.
+  Verification compares finer and shifted grids; this tests sampling sensitivity
+  and does not replace independent physics validation.
 */

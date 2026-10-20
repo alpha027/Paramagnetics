@@ -88,7 +88,13 @@ NdFeB moves about −1100 ppm/K.
 ```
 
 `--check` compares the genome and the `verified` figures, not the timings.
-Every design here reproduces exactly for its seed and thread count; across
+Reproduction requires the same code version, backend, seed and thread count.
+The archived outputs predate the per-generation random streams and finer
+verification defaults. They remain simulator inputs, but `--check` can report
+changed genomes or metrics until baselines are deliberately regenerated with
+the new optimizer. This check does not update the archived files.
+
+Within a fixed version and backend, runs reproduce for their seed and thread count; across
 different thread counts the genetic operators draw from a thread-partitioned
 random pool and float sums reassociate, so the answers agree on the design but
 need not agree in the last digit.
