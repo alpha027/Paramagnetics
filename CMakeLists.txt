@@ -60,13 +60,23 @@ target_compile_options(${PROJECT_NAME} PUBLIC "$<$<COMPILE_LANG_AND_ID:CXX,MSVC>
 
 # Link dependencies
 target_link_libraries(${PROJECT_NAME} PRIVATE fmt::fmt)
-target_link_libraries(${PROJECT_NAME} PRIVATE Kokkos::kokkos)
-target_link_libraries(${PROJECT_NAME} PRIVATE nlohmann_json::nlohmann_json)
+target_link_libraries(${PROJECT_NAME} PUBLIC Kokkos::kokkos)
+target_link_libraries(${PROJECT_NAME} PUBLIC nlohmann_json::nlohmann_json)
 
 target_include_directories(
   ${PROJECT_NAME} PUBLIC $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
                          $<INSTALL_INTERFACE:include/${PROJECT_NAME}-${PROJECT_VERSION}>
 )
+
+set(PARAMAGNETICS_BACKEND "AUTO" CACHE STRING "Host execution backend: AUTO, OpenMP, Serial")
+set_property(CACHE PARAMAGNETICS_BACKEND PROPERTY STRINGS AUTO OpenMP Serial)
+string(TOUPPER "${PARAMAGNETICS_BACKEND}" backend)
+if(NOT backend MATCHES "^(AUTO|OPENMP|SERIAL)$")
+  message(FATAL_ERROR "PARAMAGNETICS_BACKEND must be AUTO, OpenMP or Serial; GPU dispatch is not supported")
+endif()
+if(NOT backend STREQUAL "AUTO")
+  target_compile_definitions(${PROJECT_NAME} PUBLIC PARAMAGNETICS_BACKEND_${backend}=1)
+endif()
 
 # ---- Create an installable target ----
 # this allows users to install and find the library via `find_package()`.
@@ -84,5 +94,5 @@ packageProject(
   INCLUDE_DESTINATION include/${PROJECT_NAME}-${PROJECT_VERSION}
   VERSION_HEADER "${VERSION_HEADER_LOCATION}"
   COMPATIBILITY SameMajorVersion
-  DEPENDENCIES "fmt 9.1.0" "nlohmann_json 3.11.3"
+  DEPENDENCIES "fmt 10.2.1" "nlohmann_json 3.11.3" "Kokkos 4.0"
 )

@@ -18,6 +18,9 @@ env:
 jobs:
   build:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        backend: [OpenMP, Serial]
 
     steps:
       - uses: actions/checkout@v3
@@ -28,7 +31,7 @@ jobs:
           key: ${{ github.workflow }}-cpm-modules-${{ hashFiles('**/CMakeLists.txt', '**/*.cmake') }}
 
       - name: configure
-        run: cmake -Stest -Bbuild -DENABLE_TEST_COVERAGE=1 -DCMAKE_BUILD_TYPE=Debug -DKokkos_ENABLE_OPENMP=ON -DCMAKE_POLICY_VERSION_MINIMUM=3.5
+        run: cmake -Stest -Bbuild -DENABLE_TEST_COVERAGE=1 -DCMAKE_BUILD_TYPE=Debug -DPARAMAGNETICS_BACKEND=${{ matrix.backend }} -DKokkos_ENABLE_SERIAL=ON -DKokkos_ENABLE_OPENMP=${{ matrix.backend == 'OpenMP' && 'ON' || 'OFF' }} -DCMAKE_POLICY_VERSION_MINIMUM=3.5
 
       - name: build
         run: cmake --build build -j4

@@ -5,55 +5,23 @@
 #include <Kokkos_Random.hpp>
 #include <Kokkos_Timer.hpp>
 
-//#define CUDASPACE 0
-#define OPENMPSPACE 1
-#define CUDAUVM 0
-#define SERIAL 0
-#define THREADS 0
-
-
-////////////////////////////////// case OPENMPSPACE ////////////////////////////
-#if OPENMPSPACE
-
-typedef Kokkos::OpenMP ExecSpace;
-typedef Kokkos::OpenMP MemSpace;
-typedef Kokkos::LayoutRight Layout;
-
+// Field dispatch uses host function pointers. Select a host backend explicitly;
+// a device-memory backend requires a separate kernel-dispatch and memory audit.
+#if defined(PARAMAGNETICS_BACKEND_OPENMP)
+#ifndef KOKKOS_ENABLE_OPENMP
+#error "ParaMagneticS OpenMP backend requires Kokkos_ENABLE_OPENMP=ON"
 #endif
-
-////////////////////////////////// case CUDASPACE //////////////////////////////
-#if CUDASPACE
-
-typedef Kokkos::Cuda ExecSpace;
-typedef Kokkos::CudaSpace MemSpace;
-typedef Kokkos::LayoutLeft Layout;
-
+using ExecSpace = Kokkos::OpenMP;
+#elif defined(PARAMAGNETICS_BACKEND_SERIAL)
+#ifndef KOKKOS_ENABLE_SERIAL
+#error "ParaMagneticS Serial backend requires Kokkos_ENABLE_SERIAL=ON"
 #endif
-
-////////////////////////////////// case SERIAL /////////////////////////////////
-#if SERIAL
-
-typedef Kokkos::Serial ExecSpace;
-typedef Kokkos::HostSpace MemSpace;
-
+using ExecSpace = Kokkos::Serial;
+#else
+using ExecSpace = Kokkos::DefaultHostExecutionSpace;
 #endif
-
-////////////////////////////////// case THREADS ////////////////////////////////
-#if THREADS
-
-typedef Kokkos::Threads ExecSpace;
-typedef Kokkos::HostSpace MemSpace;
-
-#endif
-
-////////////////////////////////// case CUDAUVM ////////////////////////////////
-#if CUDAUVM
-
-typedef Kokkos::Cuda ExecSpace;
-typedef Kokkos::CudaUVMSpace MemSpace;
-typedef Kokkos::LayoutLeft Layout;
-
-#endif
+using MemSpace = ExecSpace::memory_space;
+using Layout = Kokkos::LayoutRight;
 
 typedef Kokkos::RangePolicy< ExecSpace > range_policy;
 
@@ -92,6 +60,6 @@ struct MagnetKernel {
 typedef Kokkos::View< MagnetKernel*, Layout, MemSpace > MagnetKernelView;
 
 // random generator type def
-typedef typename Kokkos::Random_XorShift64_Pool<> RandPoolType;
+typedef typename Kokkos::Random_XorShift64_Pool<ExecSpace> RandPoolType;
 
 #endif

@@ -71,6 +71,13 @@ and, when Qt 6 is installed, the viewer:
 ./compile.sh
 ```
 
+Host execution is selectable through `-DPARAMAGNETICS_BACKEND=AUTO|OpenMP|Serial`.
+`AUTO` uses Kokkos's default host execution space. Explicit choices require the
+corresponding Kokkos backend to be enabled. `./compile.sh --backend Serial`
+builds without OpenMP; its default is OpenMP. These options select CPU execution;
+GPU kernel dispatch is not implemented. The selected backend is exported to
+consumers of the installed CMake target.
+
 It takes a few options: `--clean` starts over, `--debug` builds Debug,
 `--no-tests`, `--no-optimizer` and `--no-gui` leave parts out, `-j N` sets the
 number of build jobs. `./compile.sh --help` lists them all.

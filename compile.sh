@@ -10,6 +10,7 @@
 #   ./compile.sh --no-optimizer  skip the Halbach optimizer
 #   ./compile.sh --gui        insist on the viewer, fail without Qt 6
 #   ./compile.sh --no-gui     skip the viewer even with Qt 6 installed
+#   ./compile.sh --backend Serial  use the serial host backend (default: OpenMP)
 #   ./compile.sh -j N         build with N jobs, all cores by default
 
 set -euo pipefail
@@ -22,11 +23,13 @@ with_tests=1
 with_optimizer=1
 with_gui=auto
 clean=0
+backend=OpenMP
 
-usage() { sed -n '3,14p' "$0" | sed 's/^# \{0,1\}//'; }
+usage() { sed -n '3,15p' "$0" | sed 's/^# \{0,1\}//'; }
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
+    --backend)  backend="$2"; shift ;;
     --clean)    clean=1 ;;
     --debug)    build_type=Debug ;;
     --no-tests) with_tests=0 ;;
@@ -56,7 +59,13 @@ if [[ "$with_gui" == auto ]]; then
   fi
 fi
 
-flags=(-DCMAKE_BUILD_TYPE="$build_type" -DKokkos_ENABLE_OPENMP=On -DCMAKE_CXX_COMPILER=g++)
+case "$backend" in
+  OpenMP) openmp=ON ;;
+  Serial) openmp=OFF ;;
+  *) echo "Backend must be OpenMP or Serial" >&2; exit 1 ;;
+esac
+flags=(-DCMAKE_BUILD_TYPE="$build_type" -DPARAMAGNETICS_BACKEND="$backend"
+       -DKokkos_ENABLE_OPENMP="$openmp" -DKokkos_ENABLE_SERIAL=ON -DCMAKE_CXX_COMPILER=g++)
 
 echo "== Simulator =="
 cmake -S "$root/standalone" -B "$root/build/standalone" "${flags[@]}"
