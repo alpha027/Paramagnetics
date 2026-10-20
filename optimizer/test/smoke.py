@@ -34,6 +34,8 @@ with tempfile.TemporaryDirectory(prefix="paramagnetics-optimizer-") as directory
     assert full["verification"]["resolution_m"] == 0.005
     assert full["verified"]["points"] > full["verification"]["coarse"]["points"]
     assert full["verification"]["shifted"]["points"] > 0
+    exported = json.loads((root / "full.json").read_text())
+    assert all(exported["field_of_view"][axis]["n"] == 9 for axis in "xyz")
     assert (root / "field.csv").is_file() and (root / "history.csv").is_file()
     run("invalid.json", "--checkpoint-every", "0", success=False)
     run("state.json", "--checkpoint", "state.json", success=False)

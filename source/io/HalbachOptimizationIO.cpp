@@ -27,8 +27,8 @@ nlohmann::json vector3(const float* values) {
 
   The written file is meant to be runnable, and a file with no field of view
   and no force section is not one this library reads at all. The grid is the
-  one HalbachBasis samples, so a run of the written file lands on the points
-  the answer was measured at.
+  search lattice unless the caller supplies the verified spacing, so a run
+  of a verified solution lands on the lattice its report measured.
 */
 nlohmann::json fieldOfView(const HalbachSpec& spec) {
 
@@ -234,7 +234,11 @@ nlohmann::json HalbachOptimizationIO::write(
         data["arrangements"] = arrangements;
     }
 
-    data["field_of_view"] = fieldOfView(solution.spec);
+    auto exported_grid = solution.spec;
+    if (solution.was_verified && solution.verification_resolution > 0.0f) {
+        exported_grid.resolution = solution.verification_resolution;
+    }
+    data["field_of_view"] = fieldOfView(exported_grid);
 
     return data;
 }

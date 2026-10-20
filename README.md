@@ -136,7 +136,8 @@ geometry before searching. Dipole optimization checks the cubes it represents.
 Verification samples the whole sphere at half the search grid spacing and
 also checks a lattice shifted by half a verification cell. The result records
 `verified` on the finer grid plus `verification.coarse`, `verification.shifted`,
-and `verification.refinement_change_ppm`. Use `--verification-resolution METRES`
+and `verification.refinement_change_ppm`. The exported scene uses the verified
+grid spacing so running it again samples the same lattice. Use `--verification-resolution METRES`
 to choose another spacing. These are sampling checks using the same kernels,
 not an independent physics solver or a proof of convergence. Fields are summed
 in double precision; individual kernels and stored samples remain floats.
