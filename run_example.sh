@@ -50,14 +50,14 @@ if [[ ! -f "$input" ]]; then
   exit 1
 fi
 
-# The simulator writes its CSVs here and quietly drops them when the
-# directory is missing.
+# Each example run gets its own results directory.
 mkdir -p "$root/output"
+results="$(mktemp -d "$root/output/run-XXXXXX")"
 
 # Viewing needs a snapshot to open; make a throwaway one when the caller did
 # not ask to keep one.
 if [[ "$view" == 1 && -z "$snapshot" ]]; then
-  snapshot="$root/output/last_run.pmsnap"
+  snapshot="$results/run.pmsnap"
 fi
 
 # Pin the OpenMP threads, which Kokkos otherwise warns about on every run.
@@ -67,13 +67,13 @@ export OMP_PLACES="${OMP_PLACES:-threads}"
 echo "== Simulating $(basename "$input") =="
 
 if [[ -n "$snapshot" ]]; then
-  "$simulator" --input "$input" --snapshot "$snapshot"
+  "$simulator" --input "$input" --output-dir "$results" --snapshot "$snapshot"
 else
-  "$simulator" --input "$input"
+  "$simulator" --input "$input" --output-dir "$results"
 fi
 
 echo
-echo "Results in $root/output/"
+echo "Results in $results/"
 
 if [[ "$view" == 1 ]]; then
   echo "== Opening the viewer =="

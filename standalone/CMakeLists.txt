@@ -33,3 +33,11 @@ set_target_properties(${PROJECT_NAME} PROPERTIES CXX_STANDARD 17 OUTPUT_NAME "Gr
 target_link_libraries(${PROJECT_NAME} Greeter::Greeter cxxopts)
 target_link_libraries(${PROJECT_NAME} Kokkos::kokkos)
 target_link_libraries(${PROJECT_NAME} nlohmann_json::nlohmann_json)
+
+find_package(Python3 QUIET COMPONENTS Interpreter)
+if(Python3_Interpreter_FOUND)
+  enable_testing()
+  add_test(NAME cli-output COMMAND ${Python3_EXECUTABLE}
+    ${CMAKE_CURRENT_SOURCE_DIR}/test/output.py $<TARGET_FILE:${PROJECT_NAME}>)
+  set_tests_properties(cli-output PROPERTIES ENVIRONMENT "OMP_NUM_THREADS=2;OMP_PROC_BIND=false")
+endif()

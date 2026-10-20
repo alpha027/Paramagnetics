@@ -652,25 +652,23 @@ not recommended.
 
 ### Output Data
 
-The main script generates a *.csv* file containing the values of the magnetic field resulting from
-the provided magnets in the input JSON file.
-
-When the input file has a `force` section, a second *.csv* file `force_results.csv` is written, with
-one row per target and the columns
-
-```txt
-magnet_id, Fx, Fy, Fz, Tx, Ty, Tz
-```
-
-where the force is given in Newton and the torque in Newton metre.
-
-Neither *.csv* says where anything was measured: the field file is three numbers a sample, in the
-order the field of view lays its points out, which is x slowest and z fastest. A snapshot does say,
-and is what the viewer opens:
+The simulator requires `--input` and writes CSVs into `--output-dir` (default:
+`output/` relative to the current working directory). Missing directories are
+created. Existing results are refused unless `--overwrite` is supplied.
 
 ```bash
-./build/standalone/Greeter --input arrangements.json --snapshot run.pmsnap
+./build/standalone/Greeter --input arrangements.json --output-dir runs/example \
+                         --snapshot runs/example/run.pmsnap
 ```
+
+The field CSV contains coordinates and quantity-specific headers, for example
+`x[m],y[m],z[m],Bx[T],By[T],Bz[T]`. A force section produces `force_results.csv`
+with `magnet_id,Fx[N],Fy[N],Fz[N],Tx[N*m],Ty[N*m],Tz[N*m]`. Magnet IDs remain
+integers. `--legacy-csv` selects the old headerless layouts (three field
+components, or ID plus six force/torque components).
+
+`run_example.sh` creates a separate directory under `output/` for each run.
+Snapshots carry the scene and results for the viewer:
 
 A snapshot carries the magnets, their shapes and where they sit, the field together with the box it
 was sampled in, and the forces keyed by magnet id.

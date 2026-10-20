@@ -471,7 +471,9 @@ void greeter::view::SnapshotIO::write(
       throw std::invalid_argument("Could not write the snapshot to " + path);
     }
 
+    file.exceptions(std::ios::failbit | std::ios::badbit);
     file << toJSON(snapshot).dump(2) << std::endl;
+    file.close();
 
     return;
   }
@@ -482,7 +484,9 @@ void greeter::view::SnapshotIO::write(
     throw std::invalid_argument("Could not write the snapshot to " + path);
   }
 
+  file.exceptions(std::ios::failbit | std::ios::badbit);
   writeBinary(snapshot, file);
+  file.close();
 }
 
 

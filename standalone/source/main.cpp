@@ -8,15 +8,12 @@
 
 #include <nlohmann/json.hpp>
 #include <fstream>
+#include <filesystem>
+#include <algorithm>
+#include <stdexcept>
 
 #include <greeter/service/SimulationService.h>
 #include <greeter/view/SnapshotIO.h>
-
-
-std::vector<std::filesystem::path> getJSONFiles();
-std::string getDataPath();
-void writeMatrixToCSV(const std::vector<std::vector<float>>& matrix, const std::string& filename);
-std::string getRepoRoot();
 
 
 namespace {
@@ -62,19 +59,28 @@ auto main(int argc, char** argv) -> int {
   cxxopts::Options options("Greeter", "ParaMagneticS, parallel magnetic field and force simulation");
 
   options.add_options()
-    ("i,input", "Input file, the first JSON file of data/ by default",
+    ("i,input", "Input JSON file (required)",
      cxxopts::value<std::string>())
     ("s,snapshot", "Also write a snapshot of the run, for the viewer to open. "
                    "A .json extension writes the readable form, anything else "
                    "the compact one",
      cxxopts::value<std::string>())
+    ("o,output-dir", "Directory for CSV results, relative to the working directory",
+     cxxopts::value<std::string>()->default_value("output"))
+    ("overwrite", "Allow replacing existing result files")
+    ("legacy-csv", "Write the old headerless CSV layout without coordinates")
     ("q,quiet", "Do not announce every step of the simulation")
     ("h,help", "Print this");
 
+  // Let Kokkos consume its own options while still rejecting misspelled CLI options.
+  std::vector<char*> arguments;
+  for (int i = 0; i < argc; ++i) {
+    if (std::string(argv[i]).rfind("--kokkos-", 0) != 0) arguments.push_back(argv[i]);
+  }
   cxxopts::ParseResult parsed;
 
   try {
-    parsed = options.parse(argc, argv);
+    parsed = options.parse((int) arguments.size(), arguments.data());
   } catch (const std::exception& error) {
     std::cerr << "Error: " << error.what() << std::endl;
     return 1;
@@ -83,6 +89,11 @@ auto main(int argc, char** argv) -> int {
   if (parsed.count("help")) {
     std::cout << options.help() << std::endl;
     return 0;
+  }
+
+  if (!parsed.count("input")) {
+    std::cerr << "Error: --input is required\n" << options.help() << std::endl;
+    return 1;
   }
 
   Kokkos::initialize(argc, argv);
@@ -94,21 +105,49 @@ auto main(int argc, char** argv) -> int {
   {
     try {
 
-      std::string input_path;
-
-      if (parsed.count("input")) {
-        input_path = parsed["input"].as<std::string>();
-      } else {
-        const std::vector<std::filesystem::path> files = getJSONFiles();
-        if (files.empty()) {
-          throw std::invalid_argument("No JSON file in " + getDataPath());
-        }
-        input_path = files[0];
-      }
+      const std::string input_path = parsed["input"].as<std::string>();
+      const bool quiet = parsed.count("quiet") > 0;
+      const bool legacy = parsed.count("legacy-csv") > 0;
+      const std::filesystem::path output_dir = parsed["output-dir"].as<std::string>();
 
       greeter::service::SimulationService service;
 
       service.loadFile(input_path);
+
+      // Check every destination before running or replacing any existing result.
+      std::vector<std::filesystem::path> destinations;
+      if (service.hasFieldSection()) destinations.push_back(output_dir / "simulation_results_1.csv");
+      if (service.hasForceSection()) destinations.push_back(output_dir / "force_results.csv");
+      if (parsed.count("snapshot")) destinations.push_back(parsed["snapshot"].as<std::string>());
+      std::vector<std::filesystem::path> resolved;
+      for (const auto& path : destinations) {
+        const auto canonical = std::filesystem::weakly_canonical(path);
+        if (canonical == std::filesystem::weakly_canonical(input_path)) {
+          throw std::invalid_argument("Output would replace the input: " + path.string());
+        }
+        if (std::find(resolved.begin(), resolved.end(), canonical) != resolved.end()) {
+          throw std::invalid_argument("Two outputs share a destination: " + path.string());
+        }
+        resolved.push_back(canonical);
+        if (std::filesystem::exists(path) && !parsed.count("overwrite")) {
+          throw std::invalid_argument("Output already exists: " + path.string() +
+                                      "; choose another directory or use --overwrite");
+        }
+        if (std::filesystem::is_directory(path)) {
+          throw std::invalid_argument("Output is a directory: " + path.string());
+        }
+      }
+      for (const auto& path : destinations) {
+        if (path.has_parent_path()) std::filesystem::create_directories(path.parent_path());
+      }
+      // Throw on open, write, flush, and close failures, including full disks.
+      auto openCSV = [](const std::filesystem::path& path) {
+        std::ofstream file;
+        file.exceptions(std::ios::failbit | std::ios::badbit);
+        file.open(path);
+        file.precision(9);
+        return file;
+      };
 
       greeter::service::RunOptions run_options;
       run_options.verbose = false;
@@ -128,20 +167,23 @@ auto main(int argc, char** argv) -> int {
                     << " points" << std::endl;
         }
 
-        snapshot.field = service.simulateField(request, &progress, run_options);
+        snapshot.field = service.simulateField(request, quiet ? nullptr : &progress, run_options);
 
-        // The CSV keeps the shape it has always had, three numbers a sample.
-        // Where each of them was measured is in the snapshot.
-        std::vector<std::vector<float>> matrix;
-        matrix.reserve(snapshot.field.size());
-
-        for (size_t i = 0; i < snapshot.field.size(); i++) {
-          float b[3];
-          snapshot.field.getField(i, b);
-          matrix.push_back({b[0], b[1], b[2]});
+        auto file = openCSV(output_dir / "simulation_results_1.csv");
+        if (!legacy) {
+          const auto name = greeter::view::getName(snapshot.field.kind);
+          const auto unit = greeter::view::getUnit(snapshot.field.kind);
+          file << "x[m],y[m],z[m]," << name << "x[" << unit << "],"
+               << name << "y[" << unit << "]," << name << "z[" << unit << "]\n";
         }
-
-        writeMatrixToCSV(matrix, getRepoRoot() + "/output/simulation_results_1.csv");
+        for (size_t i = 0; i < snapshot.field.size(); i++) {
+          float point[3], b[3];
+          snapshot.field.getPoint(i, point);
+          snapshot.field.getField(i, b);
+          if (!legacy) file << point[0] << ',' << point[1] << ',' << point[2] << ',';
+          file << b[0] << ',' << b[1] << ',' << b[2] << '\n';
+        }
+        file.close();
       }
 
       if (service.hasForceSection()) {
@@ -152,18 +194,15 @@ auto main(int argc, char** argv) -> int {
 
         snapshot.forces = service.simulateForces(nullptr, run_options);
 
-        std::vector<std::vector<float>> matrix;
-        matrix.reserve(snapshot.forces.entries.size());
-
+        auto file = openCSV(output_dir / "force_results.csv");
+        if (!legacy) file << "magnet_id,Fx[N],Fy[N],Fz[N],Tx[N*m],Ty[N*m],Tz[N*m]\n";
         for (const auto& entry : snapshot.forces.entries) {
-          matrix.push_back({
-            (float) entry.id,
-            entry.force[0], entry.force[1], entry.force[2],
-            entry.torque[0], entry.torque[1], entry.torque[2]
-          });
+          file << entry.id;
+          for (const float value : entry.force) file << ',' << value;
+          for (const float value : entry.torque) file << ',' << value;
+          file << '\n';
         }
-
-        writeMatrixToCSV(matrix, getRepoRoot() + "/output/force_results.csv");
+        file.close();
       }
 
       if (parsed.count("snapshot")) {
@@ -172,7 +211,7 @@ auto main(int argc, char** argv) -> int {
 
         greeter::view::SnapshotIO::write(snapshot, snapshot_path);
 
-        std::cout << "Snapshot written to " << snapshot_path << std::endl;
+        if (!quiet) std::cout << "Snapshot written to " << snapshot_path << std::endl;
       }
 
     } catch (const std::exception& error) {
@@ -184,65 +223,4 @@ auto main(int argc, char** argv) -> int {
   Kokkos::finalize();
 
   return status;
-}
-
-std::string getRepoRoot() {
-  std::filesystem::path source_file = __FILE__;
-  std::filesystem::path repo_root = source_file.parent_path().parent_path().parent_path();
-  return repo_root;
-}
-
-std::string getDataPath() {
-  std::filesystem::path repo_root = getRepoRoot();
-  return repo_root / "data";
-}
-
-std::vector<std::filesystem::path> getJSONFiles() {
-  std::string data_path = getDataPath();
-  std::vector<std::filesystem::path> json_files;
-  for (const auto& entry : std::filesystem::directory_iterator(data_path)) {
-    if (entry.path().extension() == ".json") {
-      json_files.push_back(entry.path());
-    }
-  }
-  return json_files;
-}
-
-void writeMatrixToCSV(const std::vector<std::vector<float>>& matrix, const std::string& filename) {
-    // Open the file in write mode
-    std::ofstream file(filename);
-
-    // Check if the file is open
-    if (!file.is_open()) {
-        std::cerr << "Error: Could not open the file for writing!" << std::endl;
-        return;
-    }
-
-    /*
-      Nine significant digits, which is what a float needs to be written and
-      read back unchanged. The default six is a part in a million of the value,
-      and a homogeneous magnet is measured in exactly that: a field of 0.21 T
-      flat to 90 ppm varies by 19 microtesla end to end, which the default
-      writes in twenty steps. The homogeneity read back off such a file is then
-      the file's rounding rather than the magnet's.
-    */
-    file.precision(9);
-
-    // Write the matrix to the file
-    for (const auto& row : matrix) {
-        for (size_t i = 0; i < row.size(); ++i) {
-            file << row[i];  // Write the element
-
-            // Add a comma after all but the last element
-            if (i < row.size() - 1) {
-                file << ",";
-            }
-        }
-        file << "\n"; // End of row
-    }
-
-    // Close the file
-    file.close();
-
-    std::cout << "Matrix successfully written to " << filename << std::endl;
 }
