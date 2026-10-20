@@ -70,6 +70,9 @@ GeneticOptimizer::GeneticOptimizer(const GeneticSettings& _settings,
         throw std::invalid_argument(
             "The elitism carries over the whole population");
     }
+    if (!std::isfinite(settings.improvement_ppm) || settings.improvement_ppm < 0.0f) {
+        throw std::invalid_argument("Minimum improvement must be finite and nonnegative");
+    }
 }
 
 
@@ -188,6 +191,7 @@ std::vector<uint16_t> GeneticOptimizer::run(
 
     history.clear();
     stopped = false;
+    stalled = false;
     best_fitness = std::numeric_limits<float>::max();
     best_genome.assign(num_genes, 0);
 
@@ -255,6 +259,8 @@ std::vector<uint16_t> GeneticOptimizer::run(
     // the generation it describes. Timing only the bookkeeping below it would
     // report tens of microseconds for work that took a second.
     double previous = 0.0;
+    uint32_t last_improvement = 0;
+    float significant_best = std::numeric_limits<float>::max();
 
     for (uint32_t generation = 0; generation <= settings.generations;
          generation++) {
@@ -303,6 +309,11 @@ std::vector<uint16_t> GeneticOptimizer::run(
 
         history.push_back(record);
 
+        if (significant_best - generation_best > settings.improvement_ppm) {
+            significant_best = generation_best;
+            last_improvement = generation;
+        }
+
         if (verbose) {
             std::cout << "  generation " << generation << ": best "
                       << generation_best << " ppm, best ever " << best_fitness
@@ -311,6 +322,13 @@ std::vector<uint16_t> GeneticOptimizer::run(
 
         if (sink != nullptr && !sink->onGeneration(record)) {
             stopped = true;
+            break;
+        }
+
+        if (settings.stall_generations > 0 &&
+            generation - last_improvement >= settings.stall_generations) {
+            stopped = true;
+            stalled = true;
             break;
         }
 
@@ -388,6 +406,10 @@ const std::vector<GenerationRecord>& GeneticOptimizer::getHistory() const {
 
 bool GeneticOptimizer::wasStopped() const {
     return stopped;
+}
+
+bool GeneticOptimizer::wasStalled() const {
+    return stalled;
 }
 
 }  // namespace optimization

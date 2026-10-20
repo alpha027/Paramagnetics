@@ -124,6 +124,8 @@ HalbachSolution HalbachOptimizer::run(const HalbachSpec& spec,
 
     solution.evolution_seconds = timer.seconds();
     solution.history = optimizer.getHistory();
+    solution.stop_reason = optimizer.wasStalled() ? "stagnation"
+                         : optimizer.wasStopped() ? "cancelled" : "completed";
 
     solution.optimized = objective.evaluateGenome(solution.genome);
 

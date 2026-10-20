@@ -91,6 +91,10 @@ struct GeneticSettings {
     uint32_t elitism = 1;
 
     uint64_t seed = 42;
+
+    /* Zero disables stagnation stopping; improvements are absolute ppm. */
+    uint32_t stall_generations = 0;
+    float improvement_ppm = 0.0f;
 };
 
 /*

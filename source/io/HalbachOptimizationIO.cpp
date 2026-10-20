@@ -203,6 +203,7 @@ nlohmann::json HalbachOptimizationIO::write(
 
     record["generations_run"] =
         solution.history.empty() ? 0 : solution.history.back().generation;
+    record["stop_reason"] = solution.stop_reason;
 
     nlohmann::json data;
 

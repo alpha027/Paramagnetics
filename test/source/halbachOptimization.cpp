@@ -636,3 +636,22 @@ TEST_CASE("assembly validation checks rotated cubes, layers and axial gaps") {
     CHECK(roundtrip.clearance == spec.clearance);
   }
 }
+
+TEST_CASE("a stagnant search stops only when the option is enabled") {
+  auto spec = smallSpec();
+  spec.candidates.resize(1); // All genomes represent exactly the same magnet.
+  spec.genetic.stall_generations = 2;
+  greeter::optimization::RunOptions options;
+  options.verbose = false;
+  options.verify = false;
+  auto solution = HalbachOptimizer::run(spec, nullptr, options);
+  CHECK(solution.history.back().generation == 2);
+  CHECK(solution.stop_reason == "stagnation");
+  spec.genetic.stall_generations = 0;
+  solution = HalbachOptimizer::run(spec, nullptr, options);
+  CHECK(solution.history.back().generation == spec.genetic.generations);
+  CHECK(solution.stop_reason == "completed");
+  spec.genetic.improvement_ppm = -1;
+  CHECK_THROWS_AS(spec.validate(), std::invalid_argument);
+}
+

@@ -135,6 +135,10 @@ auto main(int argc, char** argv) -> int {
         ("g,generations", "Generations to evolve", cxxopts::value<uint32_t>())
         ("p,population", "Individuals in a generation", cxxopts::value<uint32_t>())
         ("s,seed", "Seed of the random number pool", cxxopts::value<uint64_t>())
+        ("stall-generations", "Stop after this many generations without sufficient improvement (0 disables)",
+         cxxopts::value<uint32_t>())
+        ("improvement-ppm", "Minimum absolute ppm improvement that resets the stagnation counter",
+         cxxopts::value<float>())
         ("no-verify", "Skip measuring the answer over the whole sphere")
         ("verification-resolution", "Verification grid spacing in metres (default: half the search spacing)",
          cxxopts::value<float>())
@@ -213,6 +217,13 @@ auto main(int argc, char** argv) -> int {
             }
             if (parsed.count("seed")) {
                 overrides["genetic"]["seed"] = parsed["seed"].as<uint64_t>();
+            }
+
+            if (parsed.count("stall-generations")) {
+                overrides["genetic"]["stall_generations"] = parsed["stall-generations"].as<uint32_t>();
+            }
+            if (parsed.count("improvement-ppm")) {
+                overrides["genetic"]["improvement_ppm"] = parsed["improvement-ppm"].as<float>();
             }
 
             if (!overrides.empty()) {

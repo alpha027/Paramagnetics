@@ -77,6 +77,7 @@ struct HalbachSolution {
     size_t basis_magnets = 0;
 
     std::vector<GenerationRecord> history;
+    std::string stop_reason = "completed";
 
     double basis_seconds = 0.0;
     double evolution_seconds = 0.0;

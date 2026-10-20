@@ -70,8 +70,9 @@ class GeneticOptimizer {
 
     const std::vector<GenerationRecord>& getHistory() const;
 
-    /* Whether a sink asked the run to stop before the last generation. */
+    /* Whether a sink or the stagnation policy stopped the run. */
     bool wasStopped() const;
+    bool wasStalled() const;
 
   private:
 
@@ -97,6 +98,7 @@ class GeneticOptimizer {
     std::vector<GenerationRecord> history;
 
     bool stopped = false;
+    bool stalled = false;
 };
 
 }  // namespace optimization

@@ -283,6 +283,8 @@ void HalbachSpec::readJSON(const nlohmann::json& data) {
         genetic.generations = readCount(given, "generations", genetic.generations, 1);
         genetic.tournament = readCount(given, "tournament", genetic.tournament, 1);
         genetic.elitism = readCount(given, "elitism", genetic.elitism, 0);
+        genetic.stall_generations = readCount(given, "stall_generations", genetic.stall_generations, 0);
+        genetic.improvement_ppm = readNumber(given, "improvement_ppm", genetic.improvement_ppm);
 
         genetic.cx_prob = readProbability(given, "cx_prob", genetic.cx_prob);
         genetic.mut_prob = readProbability(given, "mut_prob", genetic.mut_prob);
@@ -362,6 +364,10 @@ void HalbachSpec::validate() const {
     if (element.remanence == 0.0f) {
         throw std::invalid_argument(
             "An element of zero remanence produces no field at all");
+    }
+
+    if (!std::isfinite(genetic.improvement_ppm) || genetic.improvement_ppm < 0.0f) {
+        throw std::invalid_argument("genetic.improvement_ppm must be finite and nonnegative");
     }
 
     validateGeometry();
@@ -552,7 +558,9 @@ nlohmann::json HalbachSpec::toJSON() const {
             {"gene_mut_prob", tidy(genetic.gene_mut_prob)},
             {"tournament", genetic.tournament},
             {"elitism", genetic.elitism},
-            {"seed", genetic.seed}
+            {"seed", genetic.seed},
+            {"stall_generations", genetic.stall_generations},
+            {"improvement_ppm", tidy(genetic.improvement_ppm)}
         }}
     };
 }
