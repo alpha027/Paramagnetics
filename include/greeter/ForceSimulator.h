@@ -3,6 +3,7 @@
 
 #include <greeter/KokkosDefines.h>
 #include <greeter/ForceConfig.h>
+#include <functional>
 
 
 namespace greeter {
@@ -79,6 +80,10 @@ public:
 
     /* The same, without announcing itself, see MagneticFieldSimulator. */
     void simulate(const bool& verbose);
+
+    /* Returns false on cancellation; no partial target results are published. */
+    bool simulate(bool verbose, size_t chunk,
+                  const std::function<bool(size_t, size_t)>& progress);
 
     void fillTargets(const std::vector<greeter::TargetSpec>& targets);
 

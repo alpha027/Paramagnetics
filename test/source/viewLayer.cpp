@@ -814,3 +814,27 @@ TEST_CASE("The service computes what the collection computes") {
     }
   }
 }
+
+TEST_CASE("A force run can stop between mesh chunks and then run again") {
+  auto input = nlohmann::json::parse(ONE_OF_EACH);
+  input["force"] = {{"targets", {1}}, {"meshing", {4, 4, 4}}};
+  greeter::service::SimulationService service;
+  service.loadJSON(input);
+  greeter::service::RunOptions options;
+  options.chunk = 4;
+  StopAfter stop(8);
+  CHECK(service.simulateForces(&stop, options).empty());
+  CHECK(stop.calls == 3);
+  CHECK(stop.last_done == 8);
+  CHECK(stop.last_total == 64);
+  StopAfter finish(1000);
+  const auto chunked = service.simulateForces(&finish, options);
+  const auto whole = service.simulateForces();
+  REQUIRE(chunked.entries.size() == 1);
+  REQUIRE(whole.entries.size() == 1);
+  CHECK(finish.last_done == 64);
+  for (int axis = 0; axis < 3; ++axis) {
+    CHECK(chunked.entries[0].force[axis] == whole.entries[0].force[axis]);
+    CHECK(chunked.entries[0].torque[axis] == whole.entries[0].torque[axis]);
+  }
+}

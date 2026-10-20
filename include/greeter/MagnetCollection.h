@@ -81,7 +81,9 @@ class MagnetCollection {
 
     /* The same, quiet, for a caller that reports progress its own way. */
     std::vector<greeter::ForceResult> computeForces(
-      const greeter::ForceConfig& config, const bool& verbose) const;
+      const greeter::ForceConfig& config, const bool& verbose,
+      const std::function<bool(size_t, size_t)>& progress = {},
+      size_t chunk = 8192) const;
 
     std::vector<std::vector<float>> simulateForces(const greeter::ForceConfig& config) const;
 

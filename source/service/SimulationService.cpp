@@ -403,15 +403,14 @@ greeter::view::ForceReport greeter::service::SimulationService::simulateForces(
       "This file asks for no forces, it has no \"force\" section");
   }
 
-  if (progress != nullptr && !progress->onProgress(0, 1)) {
-    return greeter::view::ForceReport();
-  }
-
   const greeter::ForceConfig config = greeter::ForceIO::read(
     impl->input, impl->scene.magnet_ids, impl->scene.arrangements);
 
   const std::vector<greeter::ForceResult> results =
-    impl->scene.collection.computeForces(config, options.verbose);
+    impl->scene.collection.computeForces(config, options.verbose,
+      [progress](size_t done, size_t total) {
+        return progress == nullptr || progress->onProgress(done, total);
+      }, options.chunk);
 
   greeter::view::ForceReport report;
 
@@ -432,10 +431,6 @@ greeter::view::ForceReport greeter::service::SimulationService::simulateForces(
     }
 
     report.entries.push_back(entry);
-  }
-
-  if (progress != nullptr) {
-    progress->onProgress(1, 1);
   }
 
   return report;

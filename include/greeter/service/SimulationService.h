@@ -47,7 +47,7 @@ struct FieldRequest {
 struct RunOptions {
 
   /*
-    Observation points per chunk. A run is cut into chunks so that it can
+    Observation points or force mesh cells per chunk. A run is cut into chunks so that it can
     report progress and be asked to stop; smaller chunks answer sooner and
     waste a little more time between them.
   */
@@ -118,8 +118,8 @@ class SimulationService {
 
     /*
       Computes the forces the input file asks for. Throws when it asks for
-      none. Progress is reported once per run rather than per target, because
-      the targets are meshed and run together.
+      none. Progress and cancellation are checked between chunks of mesh cells.
+      A cancelled calculation returns an empty report.
     */
     greeter::view::ForceReport simulateForces(
       ProgressSink* progress = nullptr,

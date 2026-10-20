@@ -5,6 +5,7 @@
 #include <greeter/MagneticFieldMethodFactory.h>
 #include <greeter/MagnetParameters.h>
 #include <greeter/Quaternion.h>
+#include <algorithm>
 
 inline
 greeter::ForceSimulator::ForceSimulator(
@@ -152,20 +153,32 @@ void greeter::ForceSimulator::simulate() {
 
 inline
 void greeter::ForceSimulator::simulate(const bool& verbose) {
+    simulate(verbose, num_cells, {});
+}
+
+inline
+bool greeter::ForceSimulator::simulate(bool verbose, size_t chunk,
+    const std::function<bool(size_t, size_t)>& progress) {
 
     if (verbose) {
         std::cout << "Start force simulation !" << std::endl;
     }
 
-    Kokkos::parallel_for( range_policy( 0, num_cells ),
-                          *this );
-    Kokkos::fence();
+    if (progress && !progress(0, num_cells)) return false;
+    if (chunk < 1) chunk = 1;
+    for (size_t start = 0; start < num_cells; start += chunk) {
+        const size_t end = std::min(num_cells, start + chunk);
+        Kokkos::parallel_for(range_policy(start, end), *this);
+        Kokkos::fence();
+        if (progress && !progress(end, num_cells)) return false;
+    }
 
     reduceToTargets();
 
     if (verbose) {
         std::cout << "End force simulation !" << std::endl;
     }
+    return true;
 }
 
 inline

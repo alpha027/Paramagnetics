@@ -210,7 +210,8 @@ std::vector<greeter::ForceResult> greeter::MagnetCollection::computeForces(
 }
 
 std::vector<greeter::ForceResult> greeter::MagnetCollection::computeForces(
-    const greeter::ForceConfig& config, const bool& verbose) const {
+    const greeter::ForceConfig& config, const bool& verbose,
+    const std::function<bool(size_t, size_t)>& progress, size_t chunk) const {
 
   const u_int32_t num_magnets = get_num_magnets();
 
@@ -315,7 +316,7 @@ std::vector<greeter::ForceResult> greeter::MagnetCollection::computeForces(
     simulator->printMeshReport();
   }
 
-  simulator->simulate(verbose);
+  if (!simulator->simulate(verbose, chunk, progress)) return {};
 
   return simulator->getResults();
 }
