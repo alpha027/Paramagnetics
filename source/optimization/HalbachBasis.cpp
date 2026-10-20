@@ -18,7 +18,12 @@ HalbachBasis::HalbachBasis() {}
 HalbachBasis::~HalbachBasis() {}
 
 
-std::vector<std::vector<float>> makeSamplePoints(const HalbachSpec& spec) {
+std::vector<std::vector<float>> makeSamplePoints(const HalbachSpec& spec,
+                                                float grid_shift) {
+
+    if (!std::isfinite(grid_shift) || grid_shift < 0.0f || grid_shift >= 1.0f) {
+        throw std::invalid_argument("Grid shift must be in [0, 1)");
+    }
 
     // The same grid numpy.linspace gives for the box of the DSV: the number of
     // steps that fit in it, and one more for the far edge.
@@ -44,7 +49,7 @@ std::vector<std::vector<float>> makeSamplePoints(const HalbachSpec& spec) {
 
     for (int32_t i = 0; i < n; i++) {
 
-        const float x = -radius + (float) i * spacing;
+        const float x = -radius + ((float) i + grid_shift) * spacing;
 
         if (spec.symmetry == Symmetry::Octant && x < -tolerance) {
             continue;
@@ -52,7 +57,7 @@ std::vector<std::vector<float>> makeSamplePoints(const HalbachSpec& spec) {
 
         for (int32_t j = 0; j < n; j++) {
 
-            const float y = -radius + (float) j * spacing;
+            const float y = -radius + ((float) j + grid_shift) * spacing;
 
             if (spec.symmetry == Symmetry::Octant && y < -tolerance) {
                 continue;
@@ -60,7 +65,7 @@ std::vector<std::vector<float>> makeSamplePoints(const HalbachSpec& spec) {
 
             for (int32_t k = 0; k < n; k++) {
 
-                const float z = -radius + (float) k * spacing;
+                const float z = -radius + ((float) k + grid_shift) * spacing;
 
                 if (spec.symmetry != Symmetry::Full && z < -tolerance) {
                     continue;
@@ -204,9 +209,9 @@ HalbachBasis HalbachBasis::build(const HalbachSpec& spec, const bool& verbose) {
                 observation_points(point, 2)
             };
 
-            float sum_x = 0.0f;
-            float sum_y = 0.0f;
-            float sum_z = 0.0f;
+            double sum_x = 0.0;
+            double sum_y = 0.0;
+            double sum_z = 0.0;
 
             const uint32_t begin = first(configuration);
             const uint32_t end = begin + count(configuration);

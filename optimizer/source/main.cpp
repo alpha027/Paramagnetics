@@ -136,6 +136,8 @@ auto main(int argc, char** argv) -> int {
         ("p,population", "Individuals in a generation", cxxopts::value<uint32_t>())
         ("s,seed", "Seed of the random number pool", cxxopts::value<uint64_t>())
         ("no-verify", "Skip measuring the answer over the whole sphere")
+        ("verification-resolution", "Verification grid spacing in metres (default: half the search spacing)",
+         cxxopts::value<float>())
         ("q,quiet", "Do not announce every step")
         ("h,help", "Print this");
 
@@ -233,6 +235,9 @@ auto main(int argc, char** argv) -> int {
             run_options.verbose = false;
             run_options.verify = !parsed.count("no-verify");
             run_options.keep_field = parsed.count("field") > 0;
+            if (parsed.count("verification-resolution")) {
+                run_options.verification_resolution = parsed["verification-resolution"].as<float>();
+            }
 
             if (run_options.keep_field && !run_options.verify) {
                 throw std::invalid_argument(

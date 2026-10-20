@@ -297,3 +297,18 @@ TEST_CASE("A dipole takes part in a force simulation") {
 
   CHECK(lower->force[2] == doctest::Approx(expected).epsilon(0.01));
 }
+
+TEST_CASE("weak fields survive cancellation between strong sources") {
+  greeter::MagnetCollection collection;
+  auto add = [&](float moment) {
+    collection.addMagnet(std::make_unique<greeter::DipoleMagnet>(
+        std::vector<float>{0, 0, 0}, std::vector<float>{1, 0, 0, 0},
+        std::vector<float>{0, 0, moment}));
+  };
+  add(1e8f);
+  for (int i = 0; i < 1000; ++i) add(1.0f);
+  add(-1e8f);
+  const auto field = collection.simulate(std::vector<std::vector<float>>{{0, 0, 1}});
+  // On the axis at one metre, Bz = 2e-7 * moment, evaluated here in double.
+  CHECK(field[0][2] == doctest::Approx(2e-7 * 1000).epsilon(1e-5));
+}

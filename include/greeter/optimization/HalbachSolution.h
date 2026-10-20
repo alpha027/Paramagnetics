@@ -56,6 +56,13 @@ struct HalbachSolution {
     size_t verified_points = 0;
     bool was_verified = false;
 
+    /* Full-volume checks on the search grid and a shifted verification grid. */
+    FieldMetrics coarse_verified;
+    size_t coarse_verified_points = 0;
+    FieldMetrics shifted_verified;
+    size_t shifted_verified_points = 0;
+    float verification_resolution = 0.0f;
+
     /*
       The samples the verification took, when it was asked to keep them. Empty
       otherwise, since a sphere of a hundred thousand points is a megabyte that

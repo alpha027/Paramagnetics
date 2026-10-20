@@ -30,6 +30,9 @@ struct RunOptions {
       turning it off is for a smoke test and not for a result.
     */
     bool verify = true;
+
+    /* Zero uses half the actual search grid spacing. Positive values are metres. */
+    float verification_resolution = 0.0f;
 };
 
 /*
@@ -67,7 +70,8 @@ class HalbachOptimizer {
                                 const HalbachSpec& spec,
                                 const Objective& objective,
                                 size_t& num_points,
-                                std::vector<FieldSample>* samples = nullptr);
+                                std::vector<FieldSample>* samples = nullptr,
+                                float grid_shift = 0.0f);
 };
 
 }  // namespace optimization

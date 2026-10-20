@@ -99,6 +99,14 @@ cmake --build build/optimizer -j
 ./build/optimizer/halbach-optimizer --help
 ```
 
+Verification samples the whole sphere at half the search grid spacing and
+also checks a lattice shifted by half a verification cell. The result records
+`verified` on the finer grid plus `verification.coarse`, `verification.shifted`,
+and `verification.refinement_change_ppm`. Use `--verification-resolution METRES`
+to choose another spacing. These are sampling checks using the same kernels,
+not an independent physics solver or a proof of convergence. Fields are summed
+in double precision; individual kernels and stored samples remain floats.
+
 See [Optimizing the homogeneity of a Halbach cylinder](#optimizing-the-homogeneity-of-a-halbach-cylinder)
 for what it does and what it writes.
 

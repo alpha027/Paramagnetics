@@ -180,6 +180,14 @@ TEST_CASE("Force between two coaxial cuboid magnets") {
       collection.computeForces(makeConfig(1, scalarMeshing(1000), 1e-3f));
     checkVector(results_1000[0].force, expected_force_1000);
   }
+
+  SUBCASE("the finite difference is stable over a useful range of steps") {
+    const double reference = -23049.784559481;
+    for (const float step : {1e-2f, 5e-3f, 1e-3f}) {
+      const auto result = collection.computeForces(makeConfig(1, scalarMeshing(1), step));
+      CHECK(result[0].force[2] == doctest::Approx(reference).epsilon(2e-3));
+    }
+  }
 }
 
 

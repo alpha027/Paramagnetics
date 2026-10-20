@@ -194,6 +194,8 @@ void greeter::MagneticFieldSimulator::operator()( u_int64_t observation_point_in
         observation_points(observation_point_index, 2)
     };
 
+    double field[3] = {0.0, 0.0, 0.0};
+    double polarization[3] = {0.0, 0.0, 0.0};
     for (size_t i = 0; i < num_magnets; i++) {
 
         const MagnetKernel magnet = magnet_kernels(i);
@@ -209,9 +211,9 @@ void greeter::MagneticFieldSimulator::operator()( u_int64_t observation_point_in
 
         magnet.kernel(parameters, the_observation_point, bx, by, bz);
 
-        magnetic_fields(observation_point_index, 0) += bx;
-        magnetic_fields(observation_point_index, 1) += by;
-        magnetic_fields(observation_point_index, 2) += bz;
+        field[0] += bx;
+        field[1] += by;
+        field[2] += bz;
 
         if (with_polarization && magnet.polarization != nullptr) {
 
@@ -221,12 +223,16 @@ void greeter::MagneticFieldSimulator::operator()( u_int64_t observation_point_in
 
             magnet.polarization(parameters, the_observation_point, jx, jy, jz);
 
-            polarizations(observation_point_index, 0) += jx;
-            polarizations(observation_point_index, 1) += jy;
-            polarizations(observation_point_index, 2) += jz;
+            polarization[0] += jx;
+            polarization[1] += jy;
+            polarization[2] += jz;
         }
     }
 
+    for (size_t axis = 0; axis < 3; ++axis) {
+        magnetic_fields(observation_point_index, axis) = (float) field[axis];
+        if (with_polarization) polarizations(observation_point_index, axis) = (float) polarization[axis];
+    }
 }
 
 inline

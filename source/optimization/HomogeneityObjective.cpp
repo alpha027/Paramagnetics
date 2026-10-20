@@ -116,13 +116,13 @@ void HomogeneityObjective::evaluate(const PopulationView& population,
                 Kokkos::TeamThreadRange(team, the_num_points),
                 [&](const size_t& point, FieldExtent& local) {
 
-                    float value = 0.0f;
+                    double value = 0.0;
 
                     if (magnitude) {
 
-                        float b_x = 0.0f;
-                        float b_y = 0.0f;
-                        float b_z = 0.0f;
+                        double b_x = 0.0;
+                        double b_y = 0.0;
+                        double b_z = 0.0;
 
                         for (size_t gene = 0; gene < the_num_genes; gene++) {
                             const uint32_t c = configuration(gene);
@@ -169,7 +169,7 @@ FieldMetrics HomogeneityObjective::evaluateGenome(
 
     for (size_t point = 0; point < num_points; point++) {
 
-        float b[3] = {0.0f, 0.0f, 0.0f};
+        double b[3] = {0.0, 0.0, 0.0};
 
         for (size_t gene = 0; gene < num_genes; gene++) {
 

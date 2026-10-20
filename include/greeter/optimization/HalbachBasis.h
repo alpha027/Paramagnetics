@@ -92,7 +92,8 @@ class HalbachBasis {
   inside the sphere and on the side of it the symmetry asks for. The Python
   script builds the same set with a numpy mask.
 */
-std::vector<std::vector<float>> makeSamplePoints(const HalbachSpec& spec);
+std::vector<std::vector<float>> makeSamplePoints(const HalbachSpec& spec,
+                                                float grid_shift = 0.0f);
 
 }  // namespace optimization
 }  // namespace greeter

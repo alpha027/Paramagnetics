@@ -187,6 +187,12 @@ nlohmann::json HalbachOptimizationIO::write(
 
     if (solution.was_verified) {
         record["verified"] = metrics(solution.verified, solution.verified_points);
+        record["verification"] = {
+            {"resolution_m", tidy(solution.verification_resolution)},
+            {"coarse", metrics(solution.coarse_verified, solution.coarse_verified_points)},
+            {"shifted", metrics(solution.shifted_verified, solution.shifted_verified_points)},
+            {"refinement_change_ppm", tidy(solution.verified.ppm - solution.coarse_verified.ppm)}
+        };
     }
 
     record["timing_s"] = {

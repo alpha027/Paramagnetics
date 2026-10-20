@@ -483,7 +483,8 @@ TEST_CASE("what the optimizer writes is what the simulator reads") {
     size_t points = 0;
 
     const FieldMetrics measured = HalbachOptimizer::measure(
-        scene.collection, solution.spec, solution.spec.objective, points);
+        scene.collection, [&]() { auto v = solution.spec; v.resolution = solution.verification_resolution; return v; }(),
+        solution.spec.objective, points);
 
     CHECK(points == solution.verified_points);
     CHECK(measured.mean == doctest::Approx(solution.verified.mean).epsilon(1e-4));
@@ -577,4 +578,31 @@ TEST_CASE("a configuration is read, and a wrong one is refused by name") {
         spec.readJSON(nlohmann::json::parse(R"({"genetic": {"cx_prob": 2}})")),
         std::invalid_argument);
   }
+}
+
+TEST_CASE("verification uses a finer grid and an independent shifted lattice") {
+  auto spec = smallSpec();
+  spec.genetic.generations = 1;
+  greeter::optimization::RunOptions options;
+  options.verbose = false;
+  options.keep_field = true;
+  const auto solution = HalbachOptimizer::run(spec, nullptr, options);
+  CHECK(solution.verification_resolution == doctest::Approx(0.005f));
+  CHECK(solution.verified_points > solution.coarse_verified_points);
+  CHECK(solution.shifted_verified_points > 0);
+  CHECK(solution.verified_field.size() == solution.verified_points);
+  // Refinement retains the coarse lattice, so it cannot miss an old extremum.
+  CHECK(solution.verified.min <= solution.coarse_verified.min + 1e-7f);
+  CHECK(solution.verified.max >= solution.coarse_verified.max - 1e-7f);
+  auto full = spec;
+  full.symmetry = Symmetry::Full;
+  const auto shifted = makeSamplePoints(full, 0.5f);
+  for (const auto& point : shifted) {
+    CHECK(std::fabs(point[0]) > 1e-6f);
+    CHECK(std::fabs(point[1]) > 1e-6f);
+    CHECK(std::fabs(point[2]) > 1e-6f);
+  }
+  CHECK_THROWS_AS(makeSamplePoints(full, -0.5f), std::invalid_argument);
+  options.verification_resolution = -1.0f;
+  CHECK_THROWS_AS(HalbachOptimizer::run(spec, nullptr, options), std::invalid_argument);
 }

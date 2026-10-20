@@ -6,6 +6,7 @@
 
 #include <cmath>
 #include <iostream>
+#include <stdexcept>
 
 
 namespace greeter {
@@ -14,7 +15,7 @@ namespace optimization {
 FieldMetrics HalbachOptimizer::measure(
     const greeter::MagnetCollection& collection, const HalbachSpec& spec,
     const Objective& objective, size_t& num_points,
-    std::vector<FieldSample>* samples) {
+    std::vector<FieldSample>* samples, float grid_shift) {
 
     /*
       Over the whole sphere, whatever symmetry the search was reduced to. An
@@ -27,7 +28,7 @@ FieldMetrics HalbachOptimizer::measure(
     HalbachSpec full = spec;
     full.symmetry = Symmetry::Full;
 
-    const std::vector<std::vector<float>> points = makeSamplePoints(full);
+    const std::vector<std::vector<float>> points = makeSamplePoints(full, grid_shift);
 
     num_points = points.size();
 
@@ -83,6 +84,12 @@ HalbachSolution HalbachOptimizer::run(const HalbachSpec& spec,
 
     spec.validate();
 
+    if (!std::isfinite(options.verification_resolution)
+        || options.verification_resolution < 0.0f
+        || options.verification_resolution > spec.dsv) {
+        throw std::invalid_argument("Verification resolution must be zero (automatic) or in (0, dsv]");
+    }
+
     HalbachSolution solution;
     solution.spec = spec;
 
@@ -133,9 +140,24 @@ HalbachSolution HalbachOptimizer::run(const HalbachSpec& spec,
 
         timer.reset();
 
+        solution.coarse_verified = measure(
+            collection, spec, spec.objective, solution.coarse_verified_points);
+
+        HalbachSpec verification = spec;
+        const auto search_steps = std::lround(spec.dsv / spec.resolution);
+        verification.resolution = options.verification_resolution > 0.0f
+            ? options.verification_resolution : spec.dsv / (2.0f * search_steps);
+        // Record the spacing actually used, after the grid's integer rounding.
+        solution.verification_resolution = spec.dsv /
+            (float) std::lround(spec.dsv / verification.resolution);
+
         solution.verified = measure(
-            collection, spec, spec.objective, solution.verified_points,
+            collection, verification, spec.objective, solution.verified_points,
             options.keep_field ? &solution.verified_field : nullptr);
+
+        solution.shifted_verified = measure(
+            collection, verification, spec.objective, solution.shifted_verified_points,
+            nullptr, 0.5f);
 
         solution.verification_seconds = timer.seconds();
         solution.was_verified = true;
