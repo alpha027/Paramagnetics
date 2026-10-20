@@ -34,4 +34,4 @@ RUN make -C build/standalone -j$(nproc)
 
 
 # Set the default command to run tests or the application
-CMD ["/bin/bash", "-c", "cd build/standalone && ./Greeter"]
+CMD ["/app/build/standalone/Greeter", "--input", "/app/data/input_data.json", "--output-dir", "/app/output"]
