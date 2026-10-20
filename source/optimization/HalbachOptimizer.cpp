@@ -84,6 +84,9 @@ HalbachSolution HalbachOptimizer::run(const HalbachSpec& spec,
 
     spec.validate();
 
+    if (options.genetic.checkpoint_every == 0) {
+        throw std::invalid_argument("Checkpoint interval must be at least one generation");
+    }
     if (!std::isfinite(options.verification_resolution)
         || options.verification_resolution < 0.0f
         || options.verification_resolution > spec.dsv) {
@@ -120,7 +123,13 @@ HalbachSolution HalbachOptimizer::run(const HalbachSpec& spec,
 
     timer.reset();
 
-    solution.genome = optimizer.run(objective, sink, options.verbose);
+    auto genetic_options = options.genetic;
+    genetic_options.problem = spec.toJSON();
+    // Search length and stopping policy may be changed when continuing a run.
+    for (const auto* key : {"generations", "stall_generations", "improvement_ppm"}) {
+        genetic_options.problem["genetic"].erase(key);
+    }
+    solution.genome = optimizer.run(objective, sink, options.verbose, genetic_options);
 
     solution.evolution_seconds = timer.seconds();
     solution.history = optimizer.getHistory();

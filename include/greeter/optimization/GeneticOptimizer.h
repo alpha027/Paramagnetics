@@ -31,6 +31,14 @@ class GenerationSink {
     virtual bool onGeneration(const GenerationRecord& record) = 0;
 };
 
+struct GeneticRunOptions {
+    std::string checkpoint_path;
+    std::string resume_path;
+    uint32_t checkpoint_every = 1;
+    /* Identity of the field problem, checked before a checkpoint is resumed. */
+    nlohmann::json problem = nlohmann::json::object();
+};
+
 /*
   A genetic algorithm over genomes of small integers, run on the device.
 
@@ -64,7 +72,8 @@ class GeneticOptimizer {
       practice, and this makes them agree by construction.
     */
     std::vector<uint16_t> run(const HomogeneityObjective& objective,
-                              GenerationSink* sink, const bool& verbose);
+                              GenerationSink* sink, const bool& verbose,
+                              const GeneticRunOptions& options = GeneticRunOptions());
 
     float getBestFitness() const;
 

@@ -33,6 +33,8 @@ struct RunOptions {
 
     /* Zero uses half the actual search grid spacing. Positive values are metres. */
     float verification_resolution = 0.0f;
+
+    GeneticRunOptions genetic;
 };
 
 /*

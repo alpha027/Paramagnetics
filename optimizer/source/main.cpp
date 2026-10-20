@@ -9,6 +9,8 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include <filesystem>
+#include <algorithm>
 
 
 namespace {
@@ -139,6 +141,9 @@ auto main(int argc, char** argv) -> int {
          cxxopts::value<uint32_t>())
         ("improvement-ppm", "Minimum absolute ppm improvement that resets the stagnation counter",
          cxxopts::value<float>())
+        ("checkpoint", "Save the search population and history to this file", cxxopts::value<std::string>())
+        ("resume", "Continue a checkpoint with the same config, backend and thread count", cxxopts::value<std::string>())
+        ("checkpoint-every", "Checkpoint interval in generations", cxxopts::value<uint32_t>())
         ("no-verify", "Skip measuring the answer over the whole sphere")
         ("verification-resolution", "Verification grid spacing in metres (default: half the search spacing)",
          cxxopts::value<float>())
@@ -218,7 +223,6 @@ auto main(int argc, char** argv) -> int {
             if (parsed.count("seed")) {
                 overrides["genetic"]["seed"] = parsed["seed"].as<uint64_t>();
             }
-
             if (parsed.count("stall-generations")) {
                 overrides["genetic"]["stall_generations"] = parsed["stall-generations"].as<uint32_t>();
             }
@@ -246,6 +250,30 @@ auto main(int argc, char** argv) -> int {
             run_options.verbose = false;
             run_options.verify = !parsed.count("no-verify");
             run_options.keep_field = parsed.count("field") > 0;
+            if (parsed.count("checkpoint")) run_options.genetic.checkpoint_path = parsed["checkpoint"].as<std::string>();
+            if (parsed.count("resume")) run_options.genetic.resume_path = parsed["resume"].as<std::string>();
+            if (parsed.count("checkpoint-every")) run_options.genetic.checkpoint_every = parsed["checkpoint-every"].as<uint32_t>();
+
+            std::vector<std::filesystem::path> destinations = {parsed["output"].as<std::string>()};
+            for (const auto* key : {"history", "field", "checkpoint"}) {
+                if (parsed.count(key)) destinations.emplace_back(parsed[key].as<std::string>());
+            }
+            if (parsed.count("checkpoint")) destinations.emplace_back(parsed["checkpoint"].as<std::string>() + ".tmp");
+            std::vector<std::filesystem::path> resolved;
+            for (const auto& path : destinations) {
+                const auto canonical = std::filesystem::weakly_canonical(path);
+                if (std::find(resolved.begin(), resolved.end(), canonical) != resolved.end()) {
+                    throw std::invalid_argument("Two outputs share a destination: " + path.string());
+                }
+                resolved.push_back(canonical);
+                if (parsed.count("config") && canonical == std::filesystem::weakly_canonical(parsed["config"].as<std::string>())) {
+                    throw std::invalid_argument("Output would replace the configuration: " + path.string());
+                }
+                if (parsed.count("resume") && canonical == std::filesystem::weakly_canonical(parsed["resume"].as<std::string>()) &&
+                    path.string() != run_options.genetic.checkpoint_path) {
+                    throw std::invalid_argument("Only --checkpoint may replace the resumed checkpoint");
+                }
+            }
             if (parsed.count("verification-resolution")) {
                 run_options.verification_resolution = parsed["verification-resolution"].as<float>();
             }

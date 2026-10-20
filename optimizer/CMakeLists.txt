@@ -31,3 +31,11 @@ set_target_properties(
 target_link_libraries(${PROJECT_NAME} Greeter::Greeter cxxopts)
 target_link_libraries(${PROJECT_NAME} Kokkos::kokkos)
 target_link_libraries(${PROJECT_NAME} nlohmann_json::nlohmann_json)
+
+find_package(Python3 QUIET COMPONENTS Interpreter)
+if(Python3_Interpreter_FOUND)
+  enable_testing()
+  add_test(NAME optimizer-cli COMMAND ${Python3_EXECUTABLE}
+    ${CMAKE_CURRENT_SOURCE_DIR}/test/smoke.py $<TARGET_FILE:${PROJECT_NAME}>)
+  set_tests_properties(optimizer-cli PROPERTIES ENVIRONMENT "OMP_NUM_THREADS=2;OMP_PROC_BIND=false")
+endif()

@@ -106,6 +106,24 @@ cmake --build build/optimizer -j
 ./build/optimizer/halbach-optimizer --help
 ```
 
+Long searches can stop after stagnation with `--stall-generations N` and
+`--improvement-ppm X` (absolute ppm; default threshold zero). Both can also be
+set under `genetic` in the configuration. The default of zero stall generations
+disables this policy. The result records `stop_reason`.
+
+Use `--checkpoint state.json --checkpoint-every 5` to save a search, and
+`--resume state.json --checkpoint state.json` with the same configuration to
+continue it. `--generations` sets the total target generation, including work
+already saved. Checkpoints include population, best genome, history, and
+stagnation state. Resume requires matching field settings, genetic operators,
+backend and thread count; timings change when work is resumed. The random
+stream is seeded per generation, so resumed and uninterrupted runs match under
+those conditions. This changes the seeded trajectory from earlier versions;
+historical design files remain usable, but regenerating them can select a new
+genome. A checkpoint is also saved at normal completion and callback cancellation.
+The precomputed basis is rebuilt when resuming. Checkpoints replace their
+previous version through a temporary file and rename.
+
 Optimizer configurations may set `clearance` in metres (default zero). Every
 candidate is checked for collisions within and between its two layers using
 the rotated cube footprints. Clearance expands each footprint by half the gap

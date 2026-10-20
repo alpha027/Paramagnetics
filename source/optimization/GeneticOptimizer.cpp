@@ -6,6 +6,8 @@
 #include <limits>
 #include <numeric>
 #include <stdexcept>
+#include <filesystem>
+#include <fstream>
 
 
 namespace greeter {
@@ -181,7 +183,7 @@ void GeneticOptimizer::reproduce(const PopulationView& from,
 
 std::vector<uint16_t> GeneticOptimizer::run(
     const HomogeneityObjective& objective, GenerationSink* sink,
-    const bool& verbose) {
+    const bool& verbose, const GeneticRunOptions& options) {
 
     if (objective.getNumGenes() != num_genes
         || objective.getNumCandidates() != num_candidates) {
@@ -194,6 +196,76 @@ std::vector<uint16_t> GeneticOptimizer::run(
     stalled = false;
     best_fitness = std::numeric_limits<float>::max();
     best_genome.assign(num_genes, 0);
+    random_pool = RandPoolType(settings.seed);
+
+    if (options.checkpoint_every == 0) {
+        throw std::invalid_argument("Checkpoint interval must be at least one generation");
+    }
+    const nlohmann::json signature = {
+        {"population", settings.population}, {"genes", num_genes},
+        {"candidates", num_candidates}, {"seed", settings.seed},
+        {"cx_prob", settings.cx_prob}, {"mut_prob", settings.mut_prob},
+        {"gene_mut_prob", settings.gene_mut_prob}, {"tournament", settings.tournament},
+        {"elitism", settings.elitism}, {"backend", ExecSpace::name()},
+        {"concurrency", ExecSpace().concurrency()}, {"problem", options.problem}
+    };
+    nlohmann::json resumed;
+    uint32_t start_generation = 0;
+    if (!options.resume_path.empty()) {
+        std::ifstream file(options.resume_path);
+        if (!file) throw std::invalid_argument("Could not open checkpoint " + options.resume_path);
+        file >> resumed;
+        if (resumed.at("version") != 1 || resumed.at("signature") != signature) {
+            throw std::invalid_argument("Checkpoint requires the same problem, operators, backend and thread count");
+        }
+        const auto generation = resumed.at("generation").get<int64_t>();
+        if (generation < 0 || generation > settings.generations) {
+            throw std::invalid_argument("Checkpoint generation exceeds the requested search length");
+        }
+        start_generation = (uint32_t) generation;
+        if (!resumed.at("population").is_array() || resumed.at("population").size() != settings.population) {
+            throw std::invalid_argument("Invalid checkpoint population size");
+        }
+        auto readGenome = [&](const nlohmann::json& row) {
+            if (!row.is_array() || row.size() != num_genes) {
+                throw std::invalid_argument("Invalid checkpoint genome size");
+            }
+            std::vector<uint16_t> genome;
+            for (const auto& value : row) {
+                if (!value.is_number_integer() || value.get<int64_t>() < 0 ||
+                    value.get<int64_t>() >= (int64_t) num_candidates) {
+                    throw std::invalid_argument("Checkpoint gene is outside the candidate list");
+                }
+                genome.push_back(value.get<uint16_t>());
+            }
+            return genome;
+        };
+        best_genome = readGenome(resumed.at("best_genome"));
+        best_fitness = resumed.at("best_fitness").get<float>();
+        const float measured = objective.evaluateGenome(best_genome).ppm;
+        if (!std::isfinite(best_fitness) || best_fitness < 0.0f ||
+            std::fabs(measured - best_fitness) > 1e-3f * std::max(1.0f, measured)) {
+            throw std::invalid_argument("Checkpoint fitness does not match its best genome");
+        }
+        for (const auto& row : resumed.at("population")) readGenome(row);
+        for (const auto& item : resumed.at("history")) {
+            GenerationRecord record;
+            record.generation = item.at("generation").get<uint32_t>();
+            record.best = item.at("best").get<float>();
+            record.best_ever = item.at("best_ever").get<float>();
+            record.mean = item.at("mean").get<float>();
+            record.seconds = item.at("seconds").get<float>();
+            if (record.generation != history.size() || !std::isfinite(record.best) ||
+                !std::isfinite(record.best_ever) || !std::isfinite(record.mean)) {
+                throw std::invalid_argument("Invalid checkpoint history");
+            }
+            history.push_back(record);
+        }
+        if (history.size() != (size_t) start_generation + 1) {
+            throw std::invalid_argument("Checkpoint history does not reach its generation");
+        }
+        history.pop_back(); // Re-score the saved population and report this generation once.
+    }
 
     PopulationView population("population", settings.population, num_genes);
     PopulationView offspring("offspring", settings.population, num_genes);
@@ -202,7 +274,7 @@ std::vector<uint16_t> GeneticOptimizer::run(
 
     // A first generation drawn uniformly from the alphabet, which is what
     // toolbox.attr_bool does in the script this ports.
-    {
+    if (resumed.is_null()) {
         RandPoolType pool = random_pool;
         const uint32_t alphabet = (uint32_t) num_candidates;
         const uint32_t the_num_genes = (uint32_t) num_genes;
@@ -223,6 +295,14 @@ std::vector<uint16_t> GeneticOptimizer::run(
             });
 
         Kokkos::fence();
+    } else {
+        auto host = Kokkos::create_mirror_view(population);
+        for (size_t row = 0; row < settings.population; ++row) {
+            for (size_t gene = 0; gene < num_genes; ++gene) {
+                host(row, gene) = resumed["population"][row][gene].get<uint16_t>();
+            }
+        }
+        Kokkos::deep_copy(population, host);
     }
 
     objective.evaluate(population, fitness);
@@ -259,10 +339,44 @@ std::vector<uint16_t> GeneticOptimizer::run(
     // the generation it describes. Timing only the bookkeeping below it would
     // report tens of microseconds for work that took a second.
     double previous = 0.0;
-    uint32_t last_improvement = 0;
-    float significant_best = std::numeric_limits<float>::max();
+    uint32_t last_improvement = resumed.is_null() ? 0 : resumed.at("last_improvement").get<uint32_t>();
+    float significant_best = resumed.is_null() ? std::numeric_limits<float>::max()
+                                              : resumed.at("significant_best").get<float>();
+    if (last_improvement > start_generation || !std::isfinite(significant_best)) {
+        throw std::invalid_argument("Invalid checkpoint stagnation state");
+    }
 
-    for (uint32_t generation = 0; generation <= settings.generations;
+    auto checkpoint = [&](uint32_t generation) {
+        if (options.checkpoint_path.empty()) return;
+        Kokkos::deep_copy(host_population, population);
+        nlohmann::json rows = nlohmann::json::array();
+        for (size_t row = 0; row < settings.population; ++row) {
+            nlohmann::json genome = nlohmann::json::array();
+            for (size_t gene = 0; gene < num_genes; ++gene) genome.push_back(host_population(row, gene));
+            rows.push_back(std::move(genome));
+        }
+        nlohmann::json records = nlohmann::json::array();
+        for (const auto& r : history) records.push_back({
+            {"generation", r.generation}, {"best", r.best}, {"best_ever", r.best_ever},
+            {"mean", r.mean}, {"seconds", r.seconds}});
+        const nlohmann::json data = {
+            {"version", 1}, {"signature", signature}, {"generation", generation},
+            {"population", rows}, {"best_genome", best_genome}, {"best_fitness", best_fitness}, {"history", records},
+            {"last_improvement", last_improvement}, {"significant_best", significant_best}
+        };
+        const std::filesystem::path path(options.checkpoint_path);
+        if (path.has_parent_path()) std::filesystem::create_directories(path.parent_path());
+        auto temporary = path;
+        temporary += ".tmp";
+        std::ofstream file;
+        file.exceptions(std::ios::failbit | std::ios::badbit);
+        file.open(temporary);
+        file << data.dump();
+        file.close();
+        std::filesystem::rename(temporary, path);
+    };
+
+    for (uint32_t generation = start_generation; generation <= settings.generations;
          generation++) {
 
         const double now = timer.seconds();
@@ -320,13 +434,18 @@ std::vector<uint16_t> GeneticOptimizer::run(
                       << " ppm" << std::endl;
         }
 
-        if (sink != nullptr && !sink->onGeneration(record)) {
+        const bool cancelled = sink != nullptr && !sink->onGeneration(record);
+        const bool stagnant = settings.stall_generations > 0 &&
+            generation - last_improvement >= settings.stall_generations;
+        if (generation % options.checkpoint_every == 0 || cancelled || stagnant ||
+            generation == settings.generations) checkpoint(generation);
+
+        if (cancelled) {
             stopped = true;
             break;
         }
 
-        if (settings.stall_generations > 0 &&
-            generation - last_improvement >= settings.stall_generations) {
+        if (stagnant) {
             stopped = true;
             stalled = true;
             break;
@@ -338,6 +457,9 @@ std::vector<uint16_t> GeneticOptimizer::run(
             break;
         }
 
+        // Each generation owns its random stream, so resuming does not depend
+        // on opaque random-pool state from preceding generations.
+        random_pool = RandPoolType(settings.seed + 0x9e3779b97f4a7c15ULL * (generation + 1ULL));
         reproduce(population, offspring, fitness);
 
         /*

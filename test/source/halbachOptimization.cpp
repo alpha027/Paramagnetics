@@ -13,6 +13,9 @@
 #include <nlohmann/json.hpp>
 #include <cmath>
 #include <set>
+#include <filesystem>
+#include <fstream>
+#include <chrono>
 #include <string>
 #include <vector>
 
@@ -655,3 +658,46 @@ TEST_CASE("a stagnant search stops only when the option is enabled") {
   CHECK_THROWS_AS(spec.validate(), std::invalid_argument);
 }
 
+TEST_CASE("checkpoint continuation matches an uninterrupted search") {
+  const auto spec = smallSpec();
+  const auto basis = HalbachBasis::build(spec, false);
+  const HomogeneityObjective objective(basis, spec.objective);
+  const auto path = std::filesystem::temp_directory_path() /
+      ("paramagnetics-checkpoint-" + std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()));
+  struct Cleanup {
+    std::filesystem::path path;
+    ~Cleanup() { std::error_code error; std::filesystem::remove_all(path, error); }
+  } cleanup{path};
+  GeneticRunOptions options;
+  options.checkpoint_path = (path / "search.json").string();
+  options.problem = {{"geometry", "small"}};
+  struct Stop : GenerationSink {
+    bool onGeneration(const GenerationRecord& record) override { return record.generation < 2; }
+  } stop;
+  GeneticOptimizer partial(spec.genetic, basis.getNumGenes(), basis.getNumCandidates());
+  partial.run(objective, &stop, false, options);
+  REQUIRE(std::filesystem::exists(options.checkpoint_path));
+  CHECK_FALSE(std::filesystem::exists(options.checkpoint_path + ".tmp"));
+  options.resume_path = options.checkpoint_path;
+  options.checkpoint_path = (path / "continued.json").string();
+  GeneticOptimizer continued(spec.genetic, basis.getNumGenes(), basis.getNumCandidates());
+  const auto resumed = continued.run(objective, nullptr, false, options);
+  GeneticOptimizer full(spec.genetic, basis.getNumGenes(), basis.getNumCandidates());
+  const auto uninterrupted = full.run(objective, nullptr, false);
+  CHECK(resumed == uninterrupted);
+  CHECK(continued.getBestFitness() == full.getBestFitness());
+  REQUIRE(continued.getHistory().size() == full.getHistory().size());
+  for (size_t i = 0; i < full.getHistory().size(); ++i) {
+    CHECK(continued.getHistory()[i].generation == full.getHistory()[i].generation);
+    CHECK(continued.getHistory()[i].best == full.getHistory()[i].best);
+    CHECK(continued.getHistory()[i].best_ever == full.getHistory()[i].best_ever);
+  }
+  options.problem["geometry"] = "different";
+  CHECK_THROWS_AS(continued.run(objective, nullptr, false, options), std::invalid_argument);
+  options.problem["geometry"] = "small";
+  nlohmann::json invalid;
+  { std::ifstream file(options.resume_path); file >> invalid; }
+  invalid["population"][0][0] = 65535;
+  { std::ofstream file(options.resume_path); file << invalid; }
+  CHECK_THROWS_AS(continued.run(objective, nullptr, false, options), std::invalid_argument);
+}
