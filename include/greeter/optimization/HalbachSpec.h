@@ -112,6 +112,9 @@ class HalbachSpec {
     /* Throws with a message naming the field that is wrong. */
     void validate() const;
 
+    /* Rotated cube footprint, layer clearance, bore, and axial spacing checks. */
+    void validateGeometry() const;
+
     /*
       Where the rings sit along the axis, mirrored about the origin.
 
@@ -162,6 +165,7 @@ class HalbachSpec {
 
     uint32_t ring_count = 23;
     float ring_separation = 0.022f;   // [m]
+    float clearance = 0.0f;           // [m], assembly gap
 
     std::vector<RingCandidate> candidates;
 

@@ -606,3 +606,33 @@ TEST_CASE("verification uses a finer grid and an independent shifted lattice") {
   options.verification_resolution = -1.0f;
   CHECK_THROWS_AS(HalbachOptimizer::run(spec, nullptr, options), std::invalid_argument);
 }
+
+TEST_CASE("assembly validation checks rotated cubes, layers and axial gaps") {
+  auto spec = smallSpec();
+  CHECK_NOTHROW(spec.validate());
+  SUBCASE("crowded members of one ring") {
+    spec.candidates = {{0.10f, 100}};
+    CHECK_THROWS_AS(spec.validate(), std::invalid_argument);
+  }
+  SUBCASE("overlapping inner and outer layers") {
+    spec.outer_radius_offset = 0.005f;
+    CHECK_THROWS_AS(spec.validate(), std::invalid_argument);
+  }
+  SUBCASE("insufficient axial gap") {
+    spec.ring_separation = 0.009f;
+    CHECK_THROWS_AS(spec.validate(), std::invalid_argument);
+  }
+  SUBCASE("clearance is enforced even when bare blocks fit") {
+    spec.clearance = 0.015f;
+    CHECK_THROWS_AS(spec.validate(), std::invalid_argument);
+  }
+  SUBCASE("negative clearance") {
+    spec.clearance = -0.001f;
+    CHECK_THROWS_AS(spec.validate(), std::invalid_argument);
+  }
+  SUBCASE("clearance survives a configuration round trip") {
+    spec.clearance = 0.001f;
+    auto roundtrip = greeter::HalbachOptimizationIO::readSpec(spec.toJSON());
+    CHECK(roundtrip.clearance == spec.clearance);
+  }
+}

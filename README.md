@@ -99,6 +99,15 @@ cmake --build build/optimizer -j
 ./build/optimizer/halbach-optimizer --help
 ```
 
+Optimizer configurations may set `clearance` in metres (default zero). Every
+candidate is checked for collisions within and between its two layers using
+the rotated cube footprints. Clearance expands each footprint by half the gap
+on each face, which is conservative near corners. The sample sphere must clear
+the actual footprint by the requested gap, and axial ring spacing must be at
+least `element.size + clearance` so repeated candidates always fit. An invalid
+candidate rejects the configuration with its index; remove it or adjust the
+geometry before searching. Dipole optimization checks the cubes it represents.
+
 Verification samples the whole sphere at half the search grid spacing and
 also checks a lattice shifted by half a verification cell. The result records
 `verified` on the finer grid plus `verification.coarse`, `verification.shifted`,

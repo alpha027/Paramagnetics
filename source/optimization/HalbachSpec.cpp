@@ -199,6 +199,7 @@ void HalbachSpec::readJSON(const nlohmann::json& data) {
 
     ring_count = readCount(data, "ring_count", ring_count, 1);
     ring_separation = readPositive(data, "ring_separation", ring_separation);
+    clearance = readNumber(data, "clearance", clearance);
 
     outer_radius_offset =
         readNumber(data, "outer_radius_offset", outer_radius_offset);
@@ -362,6 +363,8 @@ void HalbachSpec::validate() const {
         throw std::invalid_argument(
             "An element of zero remanence produces no field at all");
     }
+
+    validateGeometry();
 }
 
 
@@ -527,6 +530,7 @@ nlohmann::json HalbachSpec::toJSON() const {
     return nlohmann::json{
         {"ring_count", ring_count},
         {"ring_separation", tidy(ring_separation)},
+        {"clearance", tidy(clearance)},
         {"candidates", candidate_list},
         {"outer_radius_offset", tidy(outer_radius_offset)},
         {"outer_count_offset", outer_count_offset},
