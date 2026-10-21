@@ -16,6 +16,8 @@ Q_DECLARE_METATYPE(greeter::view::Snapshot)
 Q_DECLARE_METATYPE(greeter::service::FieldRequest)
 Q_DECLARE_METATYPE(greeter::service::ToleranceSettings)
 Q_DECLARE_METATYPE(greeter::service::ToleranceReport)
+Q_DECLARE_METATYPE(greeter::service::SensitivitySettings)
+Q_DECLARE_METATYPE(greeter::service::SensitivityReport)
 
 namespace viewer {
 
@@ -64,6 +66,7 @@ class SimulationWorker: public QObject {
     void runField(const greeter::service::FieldRequest& request);
 
     void runTolerance(const greeter::service::ToleranceSettings& settings);
+    void runSensitivity(const greeter::service::SensitivitySettings& settings);
 
     void writeSnapshot(const QString& path);
 
@@ -74,6 +77,7 @@ class SimulationWorker: public QObject {
     void runFinished(const greeter::view::Snapshot& snapshot);
 
     void toleranceFinished(const greeter::service::ToleranceReport& report);
+    void sensitivityFinished(const greeter::service::SensitivityReport& report);
     void inputCapabilities(bool input_loaded, bool has_field,
                            const greeter::service::FieldRequest& request);
 

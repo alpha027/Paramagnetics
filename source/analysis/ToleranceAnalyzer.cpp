@@ -73,10 +73,21 @@ namespace greeter {
     service::ToleranceReport analyzeTolerance(const MagnetCollection& collection,
                                               const FieldRequest& original,
                                               const ToleranceSettings& settings,
-                                              ProgressSink* progress, const RunOptions& options) {
+                                              ProgressSink* progress, const RunOptions& options,
+                                              const std::vector<uint32_t>* selected_magnets) {
       settings.validate();
       if (collection.get_num_magnets() == 0)
         throw std::invalid_argument("Tolerance analysis needs at least one magnet");
+      std::vector<bool> selected(collection.get_num_magnets(), selected_magnets == nullptr);
+      if (selected_magnets) {
+        if (selected_magnets->empty())
+          throw std::invalid_argument("Select at least one magnet for a sensitivity study");
+        for (auto index : *selected_magnets) {
+          if (index >= selected.size() || selected[index])
+            throw std::invalid_argument("Sensitivity magnet indices must be unique and in range");
+          selected[index] = true;
+        }
+      }
       FieldRequest request = original;
       request.kind = view::FieldKind::B;
       size_t grid_count = 1;
@@ -145,7 +156,8 @@ namespace greeter {
         const size_t end = magnet + 1 < report.magnets ? offsets(magnet + 1) : nominal.size();
         const auto shape = MagnetGeometryFactory::getInstance().describeShape(
             (uint16_t)types(magnet), nominal.data() + offset);
-        if (settings.size_percent > 0.0 && shape.kind == view::ShapeKind::Unknown)
+        if (selected[magnet] && settings.size_percent > 0.0
+            && shape.kind == view::ShapeKind::Unknown)
           throw std::invalid_argument("Size tolerance is unavailable for an unregistered geometry");
         // Meshes carry a face count before their coordinates. Never scale it.
         const size_t metadata = shape.kind == view::ShapeKind::Mesh
@@ -208,12 +220,14 @@ namespace greeter {
           const size_t trial_start = done;
           try {
             Errors errors(settings.seed + 0x9e3779b97f4a7c15ULL * trial, settings.distribution);
-            for (const auto& g : geometry) {
+            for (size_t magnet = 0; magnet < geometry.size(); ++magnet) {
+              const auto& g = geometry[magnet];
+              const bool active = selected[magnet];
               std::vector<float> p(nominal.begin() + g.offset, nominal.begin() + g.offset + g.size);
               const double strength = 1.0 + errors.draw(settings.strength_percent / 100.0);
               const double size
                   = g.has_size ? 1.0 + errors.draw(settings.size_percent / 100.0) : 1.0;
-              if (!(strength > 0.0) || !(size > 0.0))
+              if (active && (!(strength > 0.0) || !(size > 0.0)))
                 throw std::runtime_error(
                     "Nonpositive strength or size drawn; trial rejected without resampling");
               for (size_t axis = 0; axis < 3; ++axis)
@@ -233,9 +247,11 @@ namespace greeter {
               for (size_t axis = 0; axis < 3; ++axis) p[g.size - 3 + axis] *= (float)strength;
               for (size_t i = g.geometry_start - g.offset; i < g.size - 3; ++i) p[i] *= (float)size;
               for (size_t i = 0; i < p.size(); ++i) {
-                if (!std::isfinite(p[i]))
+                if (active && !std::isfinite(p[i]))
                   throw std::runtime_error("A perturbed parameter is non-finite");
-                parameters(g.offset + i) = p[i];
+                // Draw for every magnet, even when it is held nominal. This preserves
+                // matched random streams when comparing different magnet groups.
+                parameters(g.offset + i) = active ? p[i] : nominal[g.offset + i];
               }
             }
             result.metrics = measure();

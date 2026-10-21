@@ -78,6 +78,7 @@ namespace viewer {
     void onRun();
     void onCancel();
     void onToleranceFinished(const greeter::service::ToleranceReport& report);
+    void onSensitivityFinished(const greeter::service::SensitivityReport& report);
 
     void onSceneReady(const greeter::view::Snapshot& snapshot, const QString& source);
     void onRunFinished(const greeter::view::Snapshot& snapshot);
@@ -124,6 +125,8 @@ namespace viewer {
     QAction* frame_action = nullptr;
     QAction* tolerance_action = nullptr;
     ToleranceDialog* tolerance_dialog = nullptr;
+    QAction* sensitivity_action = nullptr;
+    ToleranceDialog* sensitivity_dialog = nullptr;
     bool input_loaded = false;
     bool tolerance_available = false;
 

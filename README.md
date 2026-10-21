@@ -20,6 +20,7 @@ is `halbach-optimizer`; the Qt application is `paramagnetics-viewer`.
 - Parametrised arrangements of them, built from the parameter file rather than written out one by one
 - Parallel magnetic force and torque simulation between magnets
 - Seeded Monte Carlo tolerance analysis, with a GUI for manufacturing errors, statistical summaries, acceptance rates, and report exports
+- Sensitivity screening by error source, magnet or arrangement, with ranked impacts and tolerance response curves in the GUI
 - A genetic optimizer for the homogeneity of a Halbach cylinder, which writes its answer as an input file the simulator runs
 - A Qt viewer for the result, which is a separate program and needs neither Kokkos nor the input file
 - Easy and seamless workflow using a JSON parameter file
@@ -239,6 +240,52 @@ The C++ entry point is `SimulationService::analyzeTolerance(FieldRequest,
 ToleranceSettings, ProgressSink*, RunOptions)`. Its settings and results are
 plain data suitable for GUI clients without Kokkos headers. JSON/CSV writers
 are declared in `greeter/service/ToleranceAnalysis.h`.
+
+#### Sensitivity analysis
+
+Open an input scene with `field_of_view`, then choose **Simulation → Sensitivity
+analysis…**. Set the maximum tolerances using the same units, distributions and
+measurement region as the robustness study. Enable at least one nonzero error.
+Choose 2–9 tolerance levels (including the nominal zero endpoint), at least two
+random trials per nonzero point, and a screening scope:
+
+- **Error sources only** varies each enabled error type separately on all magnets.
+- **Individual magnets** also varies all enabled errors on one magnet at a time,
+  holding every other magnet nominal.
+- **Arrangements** also isolates each arrangement's expanded members; standalone
+  magnets receive their own rows. Members still have independent errors: this
+  does not model a correlated rigid movement of a ring.
+
+The setup estimates the number of random field evaluations. Start with source
+screening, then add magnet or arrangement studies when needed. Each response
+curve sweeps from zero to the configured tolerances. Positive levels reuse the
+same seeded draws; magnet/group comparisons also reuse matched streams. Full
+scenes contribute to the field throughout, including magnets held nominal.
+
+**Rankings and curves** ranks impact at full tolerance by either RMS homogeneity
+change or RMS mean-field shift. For metric `m`, the score is
+`sqrt(mean((m_trial - m_nominal)^2))` over valid trials. It includes bias as well
+as variation, and measures the magnitude of change, including improvements.
+Ranks are separate for source, magnet and arrangement rows. They depend on the
+chosen physical tolerance amounts, region and grid; they are not additive
+variance shares or an analysis of interactions. Fewer than two valid trials
+leaves a row unranked. Invalid trials remain visible and count as acceptance
+failures when limits are enabled.
+
+Select a row to see its curve and numerical values. The plot can show RMS
+homogeneity change, RMS mean-field shift, mean homogeneity, or mean field in mT.
+The zero point is the nominal design. Increase trials and grid density to check
+ranking stability before choosing manufacturing tolerances. Stop cancels between
+field chunks; incomplete results are not published or exported.
+
+**Export CSV** saves rankings, tolerance amounts and summary values for each
+positive curve point. **Export JSON** also saves the input scene, settings,
+sampling, membership by magnet index and ID, and all per-trial results for
+reproduction. Reports use `paramagnetics-sensitivity`, version 1. The C++ entry
+point is `SimulationService::analyzeSensitivity`; its plain settings, reports and
+export functions are in `greeter/service/SensitivityAnalysis.h`. The fixed
+polarization, collision, thermal and material-response limitations described
+above also apply here.
 
 #### Looking at a run somebody else did
 

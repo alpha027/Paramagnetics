@@ -11,7 +11,9 @@ namespace greeter {
                                               const service::FieldRequest& request,
                                               const service::ToleranceSettings& settings,
                                               service::ProgressSink* progress,
-                                              const service::RunOptions& options);
+                                              const service::RunOptions& options,
+                                              const std::vector<uint32_t>* selected_magnets
+                                              = nullptr);
 
   }  // namespace analysis
 }  // namespace greeter

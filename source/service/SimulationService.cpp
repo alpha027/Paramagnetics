@@ -2,6 +2,7 @@
 #include <greeter/MagnetGeometryFactory.h>
 #include <greeter/TargetMesh.h>
 #include <greeter/analysis/ToleranceAnalyzer.h>
+#include <greeter/analysis/SensitivityAnalyzer.h>
 #include <greeter/io/ForceIO.h>
 #include <greeter/io/MagnetIO.h>
 #include <greeter/io/SceneIO.h>
@@ -464,6 +465,17 @@ greeter::service::ToleranceReport greeter::service::SimulationService::analyzeTo
   impl->requireLoaded();
   auto report = greeter::analysis::analyzeTolerance(impl->scene.collection, request, settings,
                                                     progress, options);
+  report.source = impl->source;
+  report.input = impl->input;
+  return report;
+}
+
+greeter::service::SensitivityReport greeter::service::SimulationService::analyzeSensitivity(
+    const FieldRequest& request, const SensitivitySettings& settings, ProgressSink* progress,
+    const RunOptions& options) const {
+  impl->requireLoaded();
+  auto report = greeter::analysis::analyzeSensitivity(impl->scene.collection, getScene(), request,
+                                                     settings, progress, options);
   report.source = impl->source;
   report.input = impl->input;
   return report;

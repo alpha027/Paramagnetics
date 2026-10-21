@@ -80,6 +80,7 @@ namespace greeter {
     };
 
     ToleranceStatistics toleranceStatistics(std::vector<double> values);
+    nlohmann::json toleranceSettingsJSON(const ToleranceSettings& settings);
     nlohmann::json toleranceReportJSON(const ToleranceReport& report);
     void writeToleranceJSON(const ToleranceReport& report, const std::string& path);
     void writeToleranceCSV(const ToleranceReport& report, const std::string& path);

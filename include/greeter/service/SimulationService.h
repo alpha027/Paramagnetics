@@ -2,6 +2,7 @@
 #define SERVICE_SIMULATION_SERVICE_H
 
 #include <greeter/service/ToleranceAnalysis.h>
+#include <greeter/service/SensitivityAnalysis.h>
 #include <greeter/view/Snapshot.h>
 
 #include <cstdint>
@@ -131,6 +132,13 @@ class SimulationService {
     ToleranceReport analyzeTolerance(const FieldRequest& request, const ToleranceSettings& settings,
                                      ProgressSink* progress = nullptr,
                                      const RunOptions& options = RunOptions()) const;
+
+    /* One-at-a-time error-source and magnet/group studies, with matched seeded
+       draws across tolerance scales. Incomplete reports cannot be exported. */
+    SensitivityReport analyzeSensitivity(const FieldRequest& request,
+                                         const SensitivitySettings& settings,
+                                         ProgressSink* progress = nullptr,
+                                         const RunOptions& options = RunOptions()) const;
 
     /*
       Everything the input file asks for, in one go: the scene always, the

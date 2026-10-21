@@ -16,6 +16,7 @@
 
 #include <greeter/service/SimulationService.h>
 #include <greeter/service/ToleranceAnalysis.h>
+#include <greeter/service/SensitivityAnalysis.h>
 #include <greeter/view/FieldGrid.h>
 #include <greeter/view/ForceReport.h>
 #include <greeter/view/SceneSnapshot.h>

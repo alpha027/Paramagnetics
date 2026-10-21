@@ -77,6 +77,19 @@ viewer::MainWindow::MainWindow(QWidget* parent): QMainWindow(parent) {
   buildDocks();
 
   tolerance_dialog = new ToleranceDialog(this);
+  sensitivity_dialog = new ToleranceDialog(this, true);
+  connect(sensitivity_dialog, &ToleranceDialog::sensitivityRequested, this,
+          [this](const greeter::service::SensitivitySettings& settings) {
+            worker->prepareRun();
+            setBusy(true);
+            log(QString("Sensitivity analysis: %1 trials per point, seed %2")
+                    .arg(settings.tolerances.trials)
+                    .arg((qulonglong)settings.tolerances.seed));
+            QMetaObject::invokeMethod(worker, "runSensitivity", Qt::QueuedConnection,
+                                     Q_ARG(greeter::service::SensitivitySettings, settings));
+          });
+  connect(sensitivity_dialog, &ToleranceDialog::cancelRequested, this, &MainWindow::onCancel);
+  connect(worker, &SimulationWorker::sensitivityFinished, this, &MainWindow::onSensitivityFinished);
   connect(tolerance_dialog, &ToleranceDialog::analysisRequested, this,
           [this](const greeter::service::ToleranceSettings& settings) {
             worker->prepareRun();
@@ -94,6 +107,7 @@ viewer::MainWindow::MainWindow(QWidget* parent): QMainWindow(parent) {
             input_loaded = loaded;
             tolerance_available = loaded && has_field;
             tolerance_dialog->setDomain(tolerance_available, request);
+            sensitivity_dialog->setDomain(tolerance_available, request);
           });
 
   progress = new QProgressBar(this);
@@ -157,6 +171,15 @@ void viewer::MainWindow::buildActions() {
     tolerance_dialog->activateWindow();
   });
 
+  sensitivity_action = new QAction("&Sensitivity analysis…", this);
+  sensitivity_action->setObjectName("sensitivityAction");
+  sensitivity_action->setEnabled(false);
+  connect(sensitivity_action, &QAction::triggered, this, [this]() {
+    sensitivity_dialog->show();
+    sensitivity_dialog->raise();
+    sensitivity_dialog->activateWindow();
+  });
+
   frame_action = new QAction("&Frame scene", this);
   frame_action->setShortcut(Qt::Key_F);
   connect(frame_action, &QAction::triggered, this, [this]() {
@@ -181,6 +204,7 @@ void viewer::MainWindow::buildActions() {
   run_menu->addAction(cancel_action);
   run_menu->addSeparator();
   run_menu->addAction(tolerance_action);
+  run_menu->addAction(sensitivity_action);
 
   QMenu* view_menu = menuBar()->addMenu("&View");
   view_menu->addAction(frame_action);
@@ -500,6 +524,7 @@ void viewer::MainWindow::onSceneReady(const greeter::view::Snapshot& given,
 
   snapshot = given;
 
+  sensitivity_dialog->setScene(snapshot.scene);
   setBusy(false);
 
   const bool from_snapshot = !input_loaded;
@@ -643,6 +668,7 @@ void viewer::MainWindow::onProgressed(int percent, const QString& what) {
   progress->setVisible(true);
   progress->setValue(percent);
   tolerance_dialog->setProgress(percent);
+  sensitivity_dialog->setProgress(percent);
 
   status_label->setText(QString("%1: %2%").arg(what).arg(percent));
 }
@@ -690,7 +716,9 @@ void viewer::MainWindow::setBusy(const bool& busy) {
   reload_action->setEnabled(!busy && !input_path.isEmpty());
   run_action->setEnabled(!busy && input_loaded);
   tolerance_action->setEnabled(!busy && tolerance_available);
+  sensitivity_action->setEnabled(!busy && tolerance_available);
   tolerance_dialog->setRunning(busy);
+  sensitivity_dialog->setRunning(busy);
 }
 
 void viewer::MainWindow::onToleranceFinished(const greeter::service::ToleranceReport& report) {
@@ -702,6 +730,15 @@ void viewer::MainWindow::onToleranceFinished(const greeter::service::ToleranceRe
   log(text);
   status_label->setText(text);
   if (tolerance_dialog->isVisible()) tolerance_dialog->raise();
+}
+
+void viewer::MainWindow::onSensitivityFinished(const greeter::service::SensitivityReport& report) {
+  setBusy(false);
+  sensitivity_dialog->setSensitivityReport(report);
+  const QString text = QString("Sensitivity analysis complete: %1 cases").arg(report.cases.size());
+  log(text);
+  status_label->setText(text);
+  if (sensitivity_dialog->isVisible()) sensitivity_dialog->raise();
 }
 
 void viewer::MainWindow::log(const QString& text) {

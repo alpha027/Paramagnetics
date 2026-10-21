@@ -12,6 +12,7 @@
 #include <QPainter>
 #include <QProgressBar>
 #include <QPushButton>
+#include <QScrollArea>
 #include <QSpinBox>
 #include <QTabWidget>
 #include <QTableWidget>
@@ -19,6 +20,8 @@
 #include <algorithm>
 #include <cmath>
 #include <stdexcept>
+
+#include "SensitivityResults.h"
 
 namespace {
   using namespace greeter::service;
@@ -88,9 +91,10 @@ namespace {
   QString number(double value) { return QString::number(value, 'g', 8); }
 }  // namespace
 
-viewer::ToleranceDialog::ToleranceDialog(QWidget* parent) : QDialog(parent) {
-  setObjectName("toleranceDialog");
-  setWindowTitle("Tolerance and robustness analysis");
+viewer::ToleranceDialog::ToleranceDialog(QWidget* parent, bool sensitivity_mode)
+    : QDialog(parent), sensitivity_mode(sensitivity_mode) {
+  setObjectName(sensitivity_mode ? "sensitivityDialog" : "toleranceDialog");
+  setWindowTitle(sensitivity_mode ? "Sensitivity analysis" : "Tolerance and robustness analysis");
   resize(1060, 760);
   auto* layout = new QVBoxLayout(this);
   tabs = new QTabWidget(this);
@@ -102,7 +106,7 @@ viewer::ToleranceDialog::ToleranceDialog(QWidget* parent) : QDialog(parent) {
   form->addRow(domain);
   trials = new QSpinBox(controls);
   trials->setObjectName("tolTrials");
-  trials->setRange(1, 10000);
+  trials->setRange(sensitivity_mode ? 2 : 1, 10000);
   trials->setValue(100);
   seed = new QLineEdit("42", controls);
   seed->setObjectName("tolSeed");
@@ -126,7 +130,7 @@ viewer::ToleranceDialog::ToleranceDialog(QWidget* parent) : QDialog(parent) {
   minimum_field = toleranceSpin(controls, "tolMinimumField", 1e9, 0);
   ppm_limit->setSpecialValueText("Disabled");
   minimum_field->setSpecialValueText("Disabled");
-  form->addRow("Random assemblies", trials);
+  form->addRow(sensitivity_mode ? "Random trials per curve point" : "Random assemblies", trials);
   form->addRow("Random seed", seed);
   form->addRow("Distribution", distribution);
   form->addRow("Measurement region", region);
@@ -138,6 +142,36 @@ viewer::ToleranceDialog::ToleranceDialog(QWidget* parent) : QDialog(parent) {
   form->addRow("Isotropic size error [%]", size);
   form->addRow("Accept homogeneity up to [ppm]", ppm_limit);
   form->addRow("Require mean |B| of at least [mT]", minimum_field);
+  if (sensitivity_mode) {
+    grouping = new QComboBox(controls);
+    grouping->setObjectName("sensitivityGrouping");
+    grouping->addItems({"Error sources only", "Error sources + individual magnets",
+                        "Error sources + arrangements (ungrouped magnets individually)"});
+    sweep_points = new QSpinBox(controls);
+    sweep_points->setObjectName("sensitivitySweepPoints");
+    sweep_points->setRange(2, 9);
+    sweep_points->setValue(5);
+    work_estimate = new QLabel(controls);
+    work_estimate->setObjectName("sensitivityWorkEstimate");
+    work_estimate->setWordWrap(true);
+    form->addRow("Screening scope", grouping);
+    form->addRow("Tolerance levels, including zero", sweep_points);
+    form->addRow(work_estimate);
+    auto* method = new QLabel(
+        "Each source varies alone from zero to its configured tolerance. "
+        "Magnet/group studies vary all enabled errors on only that group; "
+        "members still receive independent errors. All other magnets remain nominal. "
+        "The same seeded draws are reused across positive tolerance levels. "
+        "Ranks show RMS impact at full tolerance; this screening does not measure interactions.",
+        controls);
+    method->setWordWrap(true);
+    form->addRow(method);
+    connect(grouping, &QComboBox::currentIndexChanged, this, [this]() { updateWorkEstimate(); });
+    connect(sweep_points, &QSpinBox::valueChanged, this, [this]() { updateWorkEstimate(); });
+    connect(trials, &QSpinBox::valueChanged, this, [this]() { updateWorkEstimate(); });
+    for (auto* spin : {strength, position, direction, tilt, size})
+      connect(spin, &QDoubleSpinBox::valueChanged, this, [this]() { updateWorkEstimate(); });
+  }
   auto* note = new QLabel(
       "Errors are independent for each magnet, including arrangement members. "
       "Angles describe rotation-vector components. Size scales each body about its local origin; "
@@ -148,7 +182,11 @@ viewer::ToleranceDialog::ToleranceDialog(QWidget* parent) : QDialog(parent) {
       controls);
   note->setWordWrap(true);
   form->addRow(note);
-  tabs->addTab(controls, "Setup");
+  auto* scroll = new QScrollArea(tabs);
+  scroll->setWidgetResizable(true);
+  scroll->setFrameShape(QFrame::NoFrame);
+  scroll->setWidget(controls);
+  tabs->addTab(scroll, "Setup");
 
   auto* results = new QWidget(tabs);
   auto* results_layout = new QVBoxLayout(results);
@@ -176,6 +214,12 @@ viewer::ToleranceDialog::ToleranceDialog(QWidget* parent) : QDialog(parent) {
   trial_table->horizontalHeader()->setStretchLastSection(true);
   results_layout->addWidget(trial_table);
   tabs->addTab(results, "Results");
+  if (sensitivity_mode) {
+    tabs->removeTab(1);
+    results->hide();
+    sensitivity_results = new SensitivityResults(tabs);
+    tabs->addTab(sensitivity_results, "Rankings and curves");
+  }
   status = new QLabel(this);
   status->setObjectName("tolStatus");
   status->setWordWrap(true);
@@ -198,9 +242,11 @@ viewer::ToleranceDialog::ToleranceDialog(QWidget* parent) : QDialog(parent) {
   connect(buttons, &QDialogButtonBox::rejected, this, &ToleranceDialog::reject);
   connect(run, &QPushButton::clicked, this, [this]() {
     try {
-      const auto request = settings();
       status->clear();
-      emit analysisRequested(request);
+      if (this->sensitivity_mode)
+        emit sensitivityRequested(sensitivitySettings());
+      else
+        emit analysisRequested(settings());
     } catch (const std::exception& error) {
       status->setText(QString::fromUtf8(error.what()));
     }
@@ -209,6 +255,47 @@ viewer::ToleranceDialog::ToleranceDialog(QWidget* parent) : QDialog(parent) {
   connect(csv, &QPushButton::clicked, this, [this]() { exportReport(false); });
   connect(json, &QPushButton::clicked, this, [this]() { exportReport(true); });
   setDomain(false, FieldRequest());
+}
+
+greeter::service::SensitivitySettings viewer::ToleranceDialog::sensitivitySettings() const {
+  SensitivitySettings s;
+  s.tolerances = settings();
+  s.grouping = static_cast<SensitivityGrouping>(grouping->currentIndex());
+  s.sweep_points = (uint32_t)sweep_points->value();
+  s.validate();
+  return s;
+}
+
+void viewer::ToleranceDialog::setScene(const greeter::view::SceneSnapshot& scene) {
+  magnet_count = scene.magnets.size();
+  std::vector<bool> grouped(magnet_count, false);
+  group_count = 0;
+  for (const auto& arrangement : scene.arrangements) {
+    if (arrangement.members.empty()) continue;
+    ++group_count;
+    for (auto member : arrangement.members)
+      if (member < magnet_count) grouped[member] = true;
+  }
+  group_count += std::count(grouped.begin(), grouped.end(), false);
+  updateWorkEstimate();
+}
+
+void viewer::ToleranceDialog::updateWorkEstimate() {
+  if (!work_estimate) return;
+  size_t cases = 0;
+  for (auto* spin : {strength, position, direction, tilt, size})
+    if (spin->value() > 0) ++cases;
+  if (grouping->currentIndex() == 1) cases += magnet_count;
+  if (grouping->currentIndex() == 2) cases += group_count;
+  const size_t studies = cases * (sweep_points->value() - 1);
+  work_estimate->setText(
+      QString("%1 cases × %2 nonzero levels × %3 trials = %4 random field evaluations, "
+              "plus nominal evaluations. Individual-magnet studies may take much longer than "
+              "source-only studies.")
+          .arg(cases)
+          .arg(sweep_points->value() - 1)
+          .arg(trials->value())
+          .arg(studies * trials->value()));
 }
 
 greeter::service::ToleranceSettings viewer::ToleranceDialog::settings() const {
@@ -237,6 +324,8 @@ void viewer::ToleranceDialog::setDomain(bool enabled, const FieldRequest& reques
   available = enabled;
   has_report = false;
   report = ToleranceReport();
+  sensitivity_report = SensitivityReport();
+  if (sensitivity_results) sensitivity_results->clear();
   statistics->setRowCount(0);
   trial_table->setRowCount(0);
   static_cast<Histogram*>(histogram)->values.clear();
@@ -360,18 +449,34 @@ void viewer::ToleranceDialog::setReport(const ToleranceReport& given) {
   updateButtons();
 }
 
+void viewer::ToleranceDialog::setSensitivityReport(const SensitivityReport& given) {
+  if (!given.complete || given.cancelled || !sensitivity_results) return;
+  sensitivity_report = given;
+  has_report = true;
+  sensitivity_results->setReport(given);
+  tabs->setCurrentIndex(1);
+  updateButtons();
+}
+
 void viewer::ToleranceDialog::exportReport(bool as_json) {
   const QString path = QFileDialog::getSaveFileName(
-      this, "Export tolerance study", as_json ? "tolerance.json" : "tolerance.csv",
+      this, sensitivity_mode ? "Export sensitivity study" : "Export tolerance study",
+      sensitivity_mode ? (as_json ? "sensitivity.json" : "sensitivity.csv")
+                       : (as_json ? "tolerance.json" : "tolerance.csv"),
       as_json ? "JSON report (*.json)" : "CSV results (*.csv)");
   if (path.isEmpty()) return;
   try {
-    if (!report.source.empty()
+    const auto& source = sensitivity_mode ? sensitivity_report.source : report.source;
+    if (!source.empty()
         && QFileInfo(path).canonicalFilePath()
-               == QFileInfo(QString::fromStdString(report.source)).canonicalFilePath()
+               == QFileInfo(QString::fromStdString(source)).canonicalFilePath()
         && !QFileInfo(path).canonicalFilePath().isEmpty())
       throw std::invalid_argument("Choose a destination other than the input scene");
-    if (as_json)
+    if (sensitivity_mode && as_json)
+      writeSensitivityJSON(sensitivity_report, path.toStdString());
+    else if (sensitivity_mode)
+      writeSensitivityCSV(sensitivity_report, path.toStdString());
+    else if (as_json)
       writeToleranceJSON(report, path.toStdString());
     else
       writeToleranceCSV(report, path.toStdString());

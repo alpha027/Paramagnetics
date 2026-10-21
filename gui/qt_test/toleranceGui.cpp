@@ -157,6 +157,93 @@ private slots:
     QCOMPARE(dialog->findChild<QTableWidget*>("tolTrialsTable")->rowCount(), 3);
   }
 
+  void sensitivityMenuRunsRankingsCurvesAndExports() {
+    QTemporaryDir directory;
+    viewer::MainWindow window;
+    window.openAtStart(fixture(directory.path()));
+    auto* action = window.findChild<QAction*>("sensitivityAction");
+    QVERIFY(action);
+    QTRY_VERIFY(action->isEnabled());
+    action->trigger();
+    auto* dialog = window.findChild<viewer::ToleranceDialog*>("sensitivityDialog");
+    QVERIFY(dialog);
+    QVERIFY(dialog->isVisible());
+    exactControls(dialog, 30);
+    dialog->findChild<QDoubleSpinBox*>("tolStrength")->setValue(1);
+    dialog->findChild<QDoubleSpinBox*>("tolPosition")->setValue(0.1);
+    dialog->findChild<QDoubleSpinBox*>("tolSize")->setValue(0.25);
+    dialog->findChild<QComboBox*>("sensitivityGrouping")->setCurrentIndex(1);
+    dialog->findChild<QSpinBox*>("sensitivitySweepPoints")->setValue(3);
+    QCOMPARE(dialog->sensitivitySettings().grouping,
+             greeter::service::SensitivityGrouping::Magnets);
+    QVERIFY(dialog->findChild<QLabel*>("sensitivityWorkEstimate")->text().contains("240 random"));
+    QTest::mouseClick(dialog->findChild<QPushButton*>("tolRun"), Qt::LeftButton);
+    auto* csv = dialog->findChild<QPushButton*>("tolExportCsv");
+    QTRY_VERIFY_WITH_TIMEOUT(csv->isEnabled(), 15000);
+    auto* ranks = dialog->findChild<QTableWidget*>("sensitivityRankings");
+    auto* points = dialog->findChild<QTableWidget*>("sensitivityCurvePoints");
+    QCOMPARE(ranks->rowCount(), 4);
+    QCOMPARE(points->rowCount(), 3);
+    QCOMPARE(points->item(0, 0)->text(), QString("0 (nominal)"));
+    dialog->findChild<QComboBox*>("sensitivityRankMetric")->setCurrentIndex(1);
+    QCOMPARE(ranks->item(0, 1)->text(), QString("1"));
+    QVERIFY(ranks->item(0, 5)->text().toDouble() > 0);
+    ranks->selectRow(3);  // individual-magnet curve
+    dialog->findChild<QComboBox*>("sensitivityCurveMetric")->setCurrentIndex(3);
+    QVERIFY(points->item(2, 1)->text().toDouble() > 0);
+    QVERIFY(dialog->findChild<QLabel*>("sensitivitySummary")->text().contains("4 cases"));
+
+    const QString json_path = directory.path() + "/sensitivity.json";
+    chooseFile(&window, json_path);
+    QTest::mouseClick(dialog->findChild<QPushButton*>("tolExportJson"), Qt::LeftButton);
+    QFile json_file(json_path);
+    QVERIFY(json_file.open(QIODevice::ReadOnly));
+    const auto report = nlohmann::json::parse(json_file.readAll().toStdString());
+    QCOMPARE(report["format"].get<std::string>(), std::string("paramagnetics-sensitivity"));
+    QCOMPARE(report["cases"].size(), size_t(4));
+    QCOMPARE(report["cases"][3]["magnet_ids"][0].get<int>(), 7);
+    QCOMPARE(report["cases"][0]["curve"][1]["study"]["trials"].size(), size_t(30));
+    const QString csv_path = directory.path() + "/sensitivity.csv";
+    chooseFile(&window, csv_path);
+    QTest::mouseClick(csv, Qt::LeftButton);
+    QFile csv_file(csv_path);
+    QVERIFY(csv_file.open(QIODevice::ReadOnly));
+    QCOMPARE(csv_file.readAll().trimmed().split('\n').size(), 9);
+    if (!qEnvironmentVariableIsEmpty("PARAMAGNETICS_GUI_SCREENSHOT")) {
+      const QString prefix = qEnvironmentVariable("PARAMAGNETICS_GUI_SCREENSHOT");
+      QVERIFY(dialog->grab().save(prefix + ".sensitivity-results.png"));
+      dialog->findChild<QTabWidget*>()->setCurrentIndex(0);
+      QTest::qWait(20);
+      QVERIFY(dialog->grab().save(prefix + ".sensitivity-setup.png"));
+    }
+  }
+
+  void sensitivityImmediateStopCanRestartAndInvalidSetupDoesNotRun() {
+    QTemporaryDir directory;
+    viewer::MainWindow window;
+    window.openAtStart(fixture(directory.path()));
+    auto* action = window.findChild<QAction*>("sensitivityAction");
+    QTRY_VERIFY(action->isEnabled());
+    action->trigger();
+    auto* dialog = window.findChild<viewer::ToleranceDialog*>("sensitivityDialog");
+    exactControls(dialog, 10000);
+    QSignalSpy requested(dialog, &viewer::ToleranceDialog::sensitivityRequested);
+    auto* run = dialog->findChild<QPushButton*>("tolRun");
+    QTest::mouseClick(run, Qt::LeftButton);
+    QCOMPARE(requested.count(), 0);
+    QVERIFY(dialog->findChild<QLabel*>("tolStatus")->text().contains("nonzero"));
+    dialog->findChild<QDoubleSpinBox*>("tolStrength")->setValue(1);
+    QTest::mouseClick(run, Qt::LeftButton);
+    QTest::mouseClick(dialog->findChild<QPushButton*>("tolStop"), Qt::LeftButton);
+    QTRY_VERIFY_WITH_TIMEOUT(run->isEnabled(), 15000);
+    QCOMPARE(dialog->findChild<QTableWidget*>("sensitivityRankings")->rowCount(), 0);
+    QVERIFY(!dialog->findChild<QPushButton*>("tolExportCsv")->isEnabled());
+    dialog->findChild<QSpinBox*>("tolTrials")->setValue(4);
+    QTest::mouseClick(run, Qt::LeftButton);
+    QTRY_VERIFY_WITH_TIMEOUT(dialog->findChild<QPushButton*>("tolExportCsv")->isEnabled(), 15000);
+    QCOMPARE(dialog->findChild<QTableWidget*>("sensitivityRankings")->rowCount(), 1);
+  }
+
   void jsonSnapshotCannotAnalyzeThePreviouslyLoadedScene() {
     QTemporaryDir directory;
     const QString source = fixture(directory.path());
@@ -174,6 +261,10 @@ private slots:
     QVERIFY(QMetaObject::invokeMethod(&window, "onOpenSnapshot", Qt::DirectConnection));
     QTRY_VERIFY(window.windowTitle().contains("snapshot.json"));
     QVERIFY(!action->isEnabled());
+    QVERIFY(!window.findChild<QAction*>("sensitivityAction")->isEnabled());
+    QVERIFY(!window.findChild<viewer::ToleranceDialog*>("sensitivityDialog")
+                 ->findChild<QPushButton*>("tolRun")
+                 ->isEnabled());
     QVERIFY(!window.findChild<viewer::ToleranceDialog*>()
                  ->findChild<QPushButton*>("tolRun")
                  ->isEnabled());
@@ -190,6 +281,9 @@ int main(int argc, char** argv) {
     qRegisterMetaType<greeter::service::FieldRequest>("greeter::service::FieldRequest");
     qRegisterMetaType<greeter::service::ToleranceSettings>("greeter::service::ToleranceSettings");
     qRegisterMetaType<greeter::service::ToleranceReport>("greeter::service::ToleranceReport");
+    qRegisterMetaType<greeter::service::SensitivitySettings>(
+        "greeter::service::SensitivitySettings");
+    qRegisterMetaType<greeter::service::SensitivityReport>("greeter::service::SensitivityReport");
     ToleranceGuiTest test;
     result = QTest::qExec(&test, argc, argv);
   }

@@ -85,6 +85,22 @@ namespace greeter {
       }
     }  // namespace
 
+    nlohmann::json toleranceSettingsJSON(const ToleranceSettings& s) {
+      return {
+          {"trials", s.trials},
+          {"seed", s.seed},
+          {"distribution", s.distribution == ToleranceDistribution::Uniform ? "uniform" : "normal"},
+          {"region", s.region == ToleranceRegion::Box ? "box" : "inscribed_sphere"},
+          {"points_per_axis", s.points_per_axis},
+          {"strength_percent", s.strength_percent},
+          {"position_mm", s.position_mm},
+          {"direction_degrees_per_axis", s.direction_degrees},
+          {"body_tilt_degrees_per_axis", s.body_tilt_degrees},
+          {"size_percent", s.size_percent},
+          {"homogeneity_limit_ppm", s.homogeneity_limit_ppm},
+          {"minimum_mean_T", s.minimum_mean_T}};
+    }
+
     nlohmann::json toleranceReportJSON(const ToleranceReport& r) {
       requireComplete(r);
       const auto& s = r.settings;
@@ -107,20 +123,7 @@ namespace greeter {
           {"precision", "float32 kernels and samples, float64 accumulation and statistics"},
           {"magnet_count", r.magnets},
           {"sample_count", r.points},
-          {"settings",
-           {{"trials", s.trials},
-            {"seed", s.seed},
-            {"distribution",
-             s.distribution == ToleranceDistribution::Uniform ? "uniform" : "normal"},
-            {"region", s.region == ToleranceRegion::Box ? "box" : "inscribed_sphere"},
-            {"points_per_axis", s.points_per_axis},
-            {"strength_percent", s.strength_percent},
-            {"position_mm", s.position_mm},
-            {"direction_degrees_per_axis", s.direction_degrees},
-            {"body_tilt_degrees_per_axis", s.body_tilt_degrees},
-            {"size_percent", s.size_percent},
-            {"homogeneity_limit_ppm", s.homogeneity_limit_ppm},
-            {"minimum_mean_T", s.minimum_mean_T}}},
+          {"settings", toleranceSettingsJSON(s)},
           {"nominal", metrics(r.nominal)},
           {"trials", trials},
           {"summary",

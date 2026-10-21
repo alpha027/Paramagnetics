@@ -55,6 +55,8 @@ int main(int argc, char** argv) {
     qRegisterMetaType<greeter::service::FieldRequest>("greeter::service::FieldRequest");
     qRegisterMetaType<greeter::service::ToleranceSettings>("greeter::service::ToleranceSettings");
     qRegisterMetaType<greeter::service::ToleranceReport>("greeter::service::ToleranceReport");
+    qRegisterMetaType<greeter::service::SensitivitySettings>("greeter::service::SensitivitySettings");
+    qRegisterMetaType<greeter::service::SensitivityReport>("greeter::service::SensitivityReport");
 
     QCommandLineParser parser;
     parser.setApplicationDescription(

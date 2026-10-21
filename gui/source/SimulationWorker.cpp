@@ -205,6 +205,28 @@ void viewer::SimulationWorker::runTolerance(const greeter::service::ToleranceSet
   busy = false;
 }
 
+void viewer::SimulationWorker::runSensitivity(const greeter::service::SensitivitySettings& settings) {
+  if (!input_available || !service.isLoaded()) {
+    emit failed("Open an input scene before running sensitivity analysis");
+    return;
+  }
+  busy = true;
+  try {
+    greeter::service::FieldRequest request;
+    if (!service.getFieldRequest(request))
+      throw std::invalid_argument("Sensitivity analysis requires a field_of_view in the input scene");
+    WorkerProgress progress(*this, "sensitivity analysis");
+    auto report = service.analyzeSensitivity(request, settings, &progress);
+    if (report.cancelled || cancel_requested)
+      emit cancelled();
+    else
+      emit sensitivityFinished(report);
+  } catch (const std::exception& error) {
+    emit failed(QString::fromUtf8(error.what()));
+  }
+  busy = false;
+}
+
 void viewer::SimulationWorker::writeSnapshot(const QString& path) {
 
   try {
