@@ -53,6 +53,8 @@ int main(int argc, char** argv) {
     // signal, and Qt has to have been told their names to copy them.
     qRegisterMetaType<greeter::view::Snapshot>("greeter::view::Snapshot");
     qRegisterMetaType<greeter::service::FieldRequest>("greeter::service::FieldRequest");
+    qRegisterMetaType<greeter::service::ToleranceSettings>("greeter::service::ToleranceSettings");
+    qRegisterMetaType<greeter::service::ToleranceReport>("greeter::service::ToleranceReport");
 
     QCommandLineParser parser;
     parser.setApplicationDescription(

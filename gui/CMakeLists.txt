@@ -91,3 +91,27 @@ target_link_libraries(ParaMagneticSViewerTests PRIVATE
 
 enable_testing()
 add_test(NAME viewer-geometry COMMAND ParaMagneticSViewerTests)
+
+find_package(Qt6 QUIET COMPONENTS Test)
+if(TARGET Qt6::Test)
+  set(widget_sources ${sources})
+  list(REMOVE_ITEM widget_sources ${CMAKE_CURRENT_SOURCE_DIR}/source/main.cpp)
+  add_executable(
+    ParaMagneticSViewerIntegrationTests ${CMAKE_CURRENT_SOURCE_DIR}/qt_test/toleranceGui.cpp
+                                        ${widget_sources} ${headers}
+  )
+  set_target_properties(ParaMagneticSViewerIntegrationTests PROPERTIES CXX_STANDARD 17)
+  target_include_directories(
+    ParaMagneticSViewerIntegrationTests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/source
+  )
+  target_link_libraries(
+    ParaMagneticSViewerIntegrationTests PRIVATE Greeter::Greeter Qt6::Test Qt6::Widgets
+                                                Qt6::OpenGLWidgets
+  )
+  add_test(NAME viewer-integration COMMAND ParaMagneticSViewerIntegrationTests)
+  set_tests_properties(
+    viewer-integration
+    PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen;OMP_NUM_THREADS=2;OMP_PROC_BIND=false"
+               TIMEOUT 90
+  )
+endif()

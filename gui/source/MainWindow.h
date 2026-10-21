@@ -24,16 +24,17 @@ class QTreeWidgetItem;
 
 namespace viewer {
 
-/*
-  The window.
+  class ToleranceDialog;
 
-  Owns the worker and the thread it runs on, and does nothing itself but
-  arrange widgets and pass things between them. The simulation is on the far
-  side of the worker, and the drawing is on the far side of the viewport.
-*/
-class MainWindow: public QMainWindow {
+  /*
+    The window.
 
-  Q_OBJECT
+    Owns the worker and the thread it runs on, and does nothing itself but
+    arrange widgets and pass things between them. The simulation is on the far
+    side of the worker, and the drawing is on the far side of the viewport.
+  */
+  class MainWindow : public QMainWindow {
+    Q_OBJECT
 
   public:
 
@@ -76,6 +77,7 @@ class MainWindow: public QMainWindow {
     void onReload();
     void onRun();
     void onCancel();
+    void onToleranceFinished(const greeter::service::ToleranceReport& report);
 
     void onSceneReady(const greeter::view::Snapshot& snapshot, const QString& source);
     void onRunFinished(const greeter::view::Snapshot& snapshot);
@@ -120,6 +122,10 @@ class MainWindow: public QMainWindow {
     QAction* run_action = nullptr;
     QAction* cancel_action = nullptr;
     QAction* frame_action = nullptr;
+    QAction* tolerance_action = nullptr;
+    ToleranceDialog* tolerance_dialog = nullptr;
+    bool input_loaded = false;
+    bool tolerance_available = false;
 
     QTreeWidget* scene_tree = nullptr;
     QTableWidget* force_table = nullptr;

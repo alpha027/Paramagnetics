@@ -1,12 +1,13 @@
 #ifndef SERVICE_SIMULATION_SERVICE_H
 #define SERVICE_SIMULATION_SERVICE_H
 
+#include <greeter/service/ToleranceAnalysis.h>
 #include <greeter/view/Snapshot.h>
-#include <nlohmann/json.hpp>
+
 #include <cstdint>
 #include <memory>
+#include <nlohmann/json.hpp>
 #include <string>
-
 
 namespace greeter {
 namespace service {
@@ -124,6 +125,12 @@ class SimulationService {
     greeter::view::ForceReport simulateForces(
       ProgressSink* progress = nullptr,
       const RunOptions& options = RunOptions()) const;
+
+    /* Monte Carlo robustness of |B|. The loaded scene is never modified.
+       Cancellation returns a flagged report; incomplete studies cannot be exported. */
+    ToleranceReport analyzeTolerance(const FieldRequest& request, const ToleranceSettings& settings,
+                                     ProgressSink* progress = nullptr,
+                                     const RunOptions& options = RunOptions()) const;
 
     /*
       Everything the input file asks for, in one go: the scene always, the

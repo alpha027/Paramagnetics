@@ -14,7 +14,8 @@
 // copy them by name.
 Q_DECLARE_METATYPE(greeter::view::Snapshot)
 Q_DECLARE_METATYPE(greeter::service::FieldRequest)
-
+Q_DECLARE_METATYPE(greeter::service::ToleranceSettings)
+Q_DECLARE_METATYPE(greeter::service::ToleranceReport)
 
 namespace viewer {
 
@@ -43,6 +44,8 @@ class SimulationWorker: public QObject {
 
     /* Safe from any thread, at any time. */
     void cancel() { cancel_requested = true; }
+    /* Clear cancellation before queuing a new run, so an immediate Stop cannot be lost. */
+    void prepareRun() { cancel_requested = false; }
 
     bool isBusy() const { return busy; }
 
@@ -60,6 +63,8 @@ class SimulationWorker: public QObject {
     /* Simulates a field in a box of the viewer's choosing. */
     void runField(const greeter::service::FieldRequest& request);
 
+    void runTolerance(const greeter::service::ToleranceSettings& settings);
+
     void writeSnapshot(const QString& path);
 
   signals:
@@ -67,6 +72,10 @@ class SimulationWorker: public QObject {
     void sceneReady(const greeter::view::Snapshot& snapshot, const QString& source);
 
     void runFinished(const greeter::view::Snapshot& snapshot);
+
+    void toleranceFinished(const greeter::service::ToleranceReport& report);
+    void inputCapabilities(bool input_loaded, bool has_field,
+                           const greeter::service::FieldRequest& request);
 
     void progressed(int percent, const QString& what);
 
@@ -86,6 +95,7 @@ class SimulationWorker: public QObject {
 
     std::atomic<bool> cancel_requested{false};
     std::atomic<bool> busy{false};
+    bool input_available = false;
 };
 
 }  // namespace viewer

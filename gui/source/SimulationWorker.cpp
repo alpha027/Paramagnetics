@@ -57,6 +57,8 @@ void viewer::SimulationWorker::loadInput(const QString& path) {
 
   busy = true;
   cancel_requested = false;
+  input_available = false;
+  emit inputCapabilities(false, false, greeter::service::FieldRequest());
 
   try {
 
@@ -64,6 +66,10 @@ void viewer::SimulationWorker::loadInput(const QString& path) {
 
     latest = greeter::view::Snapshot();
     latest.scene = service.getScene();
+    greeter::service::FieldRequest request;
+    const bool has_field = service.getFieldRequest(request);
+    input_available = true;
+    emit inputCapabilities(true, has_field, request);
 
     emit message(QString("Read %1 magnets from %2")
                    .arg(latest.scene.magnets.size())
@@ -83,6 +89,8 @@ void viewer::SimulationWorker::loadSnapshot(const QString& path) {
 
   busy = true;
   cancel_requested = false;
+  input_available = false;
+  emit inputCapabilities(false, false, greeter::service::FieldRequest());
 
   try {
 
@@ -119,14 +127,12 @@ void viewer::SimulationWorker::run() {
 
 void viewer::SimulationWorker::runField(
     const greeter::service::FieldRequest& request) {
-
-  if (!service.isLoaded()) {
+  if (!input_available || !service.isLoaded()) {
     emit failed("No input file has been opened");
     return;
   }
 
   busy = true;
-  cancel_requested = false;
 
   try {
 
@@ -177,6 +183,27 @@ void viewer::SimulationWorker::runField(
   busy = false;
 }
 
+void viewer::SimulationWorker::runTolerance(const greeter::service::ToleranceSettings& settings) {
+  if (!input_available || !service.isLoaded()) {
+    emit failed("Open an input scene before running tolerance analysis");
+    return;
+  }
+  busy = true;
+  try {
+    greeter::service::FieldRequest request;
+    if (!service.getFieldRequest(request))
+      throw std::invalid_argument("Tolerance analysis requires a field_of_view in the input scene");
+    WorkerProgress progress(*this, "tolerance analysis");
+    auto report = service.analyzeTolerance(request, settings, &progress);
+    if (report.cancelled || cancel_requested)
+      emit cancelled();
+    else
+      emit toleranceFinished(report);
+  } catch (const std::exception& error) {
+    emit failed(QString::fromUtf8(error.what()));
+  }
+  busy = false;
+}
 
 void viewer::SimulationWorker::writeSnapshot(const QString& path) {
 

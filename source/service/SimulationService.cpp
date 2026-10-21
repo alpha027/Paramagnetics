@@ -1,15 +1,14 @@
-#include <greeter/service/SimulationService.h>
-
 #include <greeter/MagnetCollection.h>
 #include <greeter/MagnetGeometryFactory.h>
+#include <greeter/TargetMesh.h>
+#include <greeter/analysis/ToleranceAnalyzer.h>
 #include <greeter/io/ForceIO.h>
 #include <greeter/io/MagnetIO.h>
 #include <greeter/io/SceneIO.h>
-#include <greeter/TargetMesh.h>
+#include <greeter/service/SimulationService.h>
 
 #include <fstream>
 #include <stdexcept>
-
 
 size_t greeter::service::FieldRequest::getSampleCount() const {
   return (size_t) counts[0] * (size_t) counts[1] * (size_t) counts[2];
@@ -457,4 +456,15 @@ greeter::view::Snapshot greeter::service::SimulationService::run(
   }
 
   return snapshot;
+}
+
+greeter::service::ToleranceReport greeter::service::SimulationService::analyzeTolerance(
+    const FieldRequest& request, const ToleranceSettings& settings, ProgressSink* progress,
+    const RunOptions& options) const {
+  impl->requireLoaded();
+  auto report = greeter::analysis::analyzeTolerance(impl->scene.collection, request, settings,
+                                                    progress, options);
+  report.source = impl->source;
+  report.input = impl->input;
+  return report;
 }

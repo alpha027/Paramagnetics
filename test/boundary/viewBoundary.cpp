@@ -14,6 +14,8 @@
   See test/CMakeLists.txt for the target that compiles it.
 */
 
+#include <greeter/service/SimulationService.h>
+#include <greeter/service/ToleranceAnalysis.h>
 #include <greeter/view/FieldGrid.h>
 #include <greeter/view/ForceReport.h>
 #include <greeter/view/SceneSnapshot.h>
@@ -21,8 +23,6 @@
 #include <greeter/view/ShapeMesh.h>
 #include <greeter/view/Snapshot.h>
 #include <greeter/view/SnapshotIO.h>
-
-#include <greeter/service/SimulationService.h>
 
 // The renderer turns an orientation into a matrix, so this one has to stay
 // reachable from the far side of the boundary too.

@@ -19,6 +19,7 @@ is `halbach-optimizer`; the Qt application is `paramagnetics-viewer`.
 - The magnetic flux density **B**, the field strength **H**, the polarization **J** and the magnetization **M**
 - Parametrised arrangements of them, built from the parameter file rather than written out one by one
 - Parallel magnetic force and torque simulation between magnets
+- Seeded Monte Carlo tolerance analysis, with a GUI for manufacturing errors, statistical summaries, acceptance rates, and report exports
 - A genetic optimizer for the homogeneity of a Halbach cylinder, which writes its answer as an input file the simulator runs
 - A Qt viewer for the result, which is a separate program and needs neither Kokkos nor the input file
 - Easy and seamless workflow using a JSON parameter file
@@ -178,6 +179,66 @@ figure repeatedly:
 ```bash
 ./build/gui/paramagnetics-viewer arrangements.json --show slice,lines,magnets --draw field.png
 ```
+
+#### Tolerance and robustness analysis
+
+Open a scene containing `field_of_view`, then choose **Simulation → Tolerance
+and robustness…**. For a small magnet-design example, open
+`designs/nmr-5ring-10mm-tube/optimized.json`. No optimizer run is needed.
+
+In **Setup**, select the trial count and seed, uniform or normal errors, the
+measurement box or its inscribed sphere, and the analysis grid density. The
+analysis uses the input box's bounds, with its own sampling density, and always
+measures magnetic flux density magnitude **|B|**, regardless of the viewer's
+selected quantity. Degenerate axes are sampled once; spherical regions need
+three nonzero extents. Increase the grid density to check sampling sensitivity.
+
+The error controls apply independently to every expanded magnet, including
+members of arrangements:
+
+| Control | Meaning |
+| --- | --- |
+| Strength [%] | Relative remanence/polarization error, or relative moment error for a dipole |
+| Position [mm/axis] | Independent translations along the global x, y, and z axes |
+| Magnetization direction [degrees/axis] | Rotation-vector components in the local magnet frame; rotates polarization independently of the body |
+| Body tilt [degrees/axis] | Rigid rotation-vector components along global axes, about the magnet's position |
+| Size [%] | One isotropic scale about each body's local origin; preserves mesh topology; does not apply to point dipoles |
+
+Uniform inputs specify **± bounds** for each sampled quantity. Normal inputs
+specify **one standard deviation**, without clipping or resampling. These are
+independent errors, not correlated batch effects. Normal draws with a nonpositive
+strength or size are marked invalid and count as failed assemblies. Non-finite
+field samples also invalidate a trial. Invalid trials are excluded from summary
+statistics and remain in the acceptance-rate denominator.
+
+Press **Run analysis**. It runs on the worker thread, reports progress, and can
+be stopped between field chunks using either Stop button. The nominal scene and
+its displayed simulation stay unchanged. Cancelled studies do not publish or
+export partial results. Snapshot files cannot start a study; open their original
+input scene instead.
+
+**Results** shows the nominal design, individual assemblies, a homogeneity
+histogram, and the mean, sample standard deviation, P5, median, P95, minimum and
+maximum of each metric. Homogeneity is `(max |B| - min |B|) / mean |B| × 10⁶` over
+the selected samples. Mean-field shift is signed relative to the nominal mean.
+Optional homogeneity and minimum-field limits produce an empirical acceptance
+rate. With limits disabled, no acceptance probability is reported.
+
+**Export CSV** writes a header, nominal row 0, and one row per random trial,
+including errors and acceptance status. **Export JSON** also includes the source
+scene, complete settings, seed, sampling bounds/counts, backend and summary
+statistics. Reproduction requires the same solver version and settings; this
+sampling does not use Kokkos's thread-partitioned random pool. Reports use the
+format identifier `paramagnetics-tolerance`, version 1.
+
+This is a fixed-polarization field study. It does not check collisions of
+perturbed bodies, thermal drift, or material response. Sizes, positions, and
+rotations should stay within the physical range of the assembly being studied.
+
+The C++ entry point is `SimulationService::analyzeTolerance(FieldRequest,
+ToleranceSettings, ProgressSink*, RunOptions)`. Its settings and results are
+plain data suitable for GUI clients without Kokkos headers. JSON/CSV writers
+are declared in `greeter/service/ToleranceAnalysis.h`.
 
 #### Looking at a run somebody else did
 

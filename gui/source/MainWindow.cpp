@@ -25,10 +25,10 @@
 #include <QToolBar>
 #include <QTreeWidget>
 #include <QVBoxLayout>
-
 #include <cmath>
 #include <cstdio>
 
+#include "ToleranceDialog.h"
 
 namespace {
 
@@ -75,6 +75,26 @@ viewer::MainWindow::MainWindow(QWidget* parent): QMainWindow(parent) {
 
   buildActions();
   buildDocks();
+
+  tolerance_dialog = new ToleranceDialog(this);
+  connect(tolerance_dialog, &ToleranceDialog::analysisRequested, this,
+          [this](const greeter::service::ToleranceSettings& settings) {
+            worker->prepareRun();
+            setBusy(true);
+            log(QString("Tolerance analysis: %1 trials, seed %2")
+                    .arg(settings.trials)
+                    .arg((qulonglong)settings.seed));
+            QMetaObject::invokeMethod(worker, "runTolerance", Qt::QueuedConnection,
+                                      Q_ARG(greeter::service::ToleranceSettings, settings));
+          });
+  connect(tolerance_dialog, &ToleranceDialog::cancelRequested, this, &MainWindow::onCancel);
+  connect(worker, &SimulationWorker::toleranceFinished, this, &MainWindow::onToleranceFinished);
+  connect(worker, &SimulationWorker::inputCapabilities, this,
+          [this](bool loaded, bool has_field, const greeter::service::FieldRequest& request) {
+            input_loaded = loaded;
+            tolerance_available = loaded && has_field;
+            tolerance_dialog->setDomain(tolerance_available, request);
+          });
 
   progress = new QProgressBar(this);
   progress->setMaximumWidth(200);
@@ -128,6 +148,15 @@ void viewer::MainWindow::buildActions() {
   cancel_action->setEnabled(false);
   connect(cancel_action, &QAction::triggered, this, &MainWindow::onCancel);
 
+  tolerance_action = new QAction("&Tolerance and robustness…", this);
+  tolerance_action->setObjectName("toleranceAction");
+  tolerance_action->setEnabled(false);
+  connect(tolerance_action, &QAction::triggered, this, [this]() {
+    tolerance_dialog->show();
+    tolerance_dialog->raise();
+    tolerance_dialog->activateWindow();
+  });
+
   frame_action = new QAction("&Frame scene", this);
   frame_action->setShortcut(Qt::Key_F);
   connect(frame_action, &QAction::triggered, this, [this]() {
@@ -150,6 +179,8 @@ void viewer::MainWindow::buildActions() {
   QMenu* run_menu = menuBar()->addMenu("&Simulation");
   run_menu->addAction(run_action);
   run_menu->addAction(cancel_action);
+  run_menu->addSeparator();
+  run_menu->addAction(tolerance_action);
 
   QMenu* view_menu = menuBar()->addMenu("&View");
   view_menu->addAction(frame_action);
@@ -445,7 +476,7 @@ void viewer::MainWindow::onReload() {
 
 
 void viewer::MainWindow::onRun() {
-
+  worker->prepareRun();
   setBusy(true);
 
   log("Running");
@@ -471,9 +502,9 @@ void viewer::MainWindow::onSceneReady(const greeter::view::Snapshot& given,
 
   setBusy(false);
 
-  const bool from_snapshot = source.endsWith(".pmsnap", Qt::CaseInsensitive);
+  const bool from_snapshot = !input_loaded;
 
-  run_action->setEnabled(!from_snapshot);
+  run_action->setEnabled(input_loaded);
   reload_action->setEnabled(!input_path.isEmpty());
   save_snapshot_action->setEnabled(true);
 
@@ -611,6 +642,7 @@ void viewer::MainWindow::onProgressed(int percent, const QString& what) {
 
   progress->setVisible(true);
   progress->setValue(percent);
+  tolerance_dialog->setProgress(percent);
 
   status_label->setText(QString("%1: %2%").arg(what).arg(percent));
 }
@@ -656,9 +688,21 @@ void viewer::MainWindow::setBusy(const bool& busy) {
   open_input_action->setEnabled(!busy);
   open_snapshot_action->setEnabled(!busy);
   reload_action->setEnabled(!busy && !input_path.isEmpty());
-  run_action->setEnabled(!busy && !input_path.isEmpty());
+  run_action->setEnabled(!busy && input_loaded);
+  tolerance_action->setEnabled(!busy && tolerance_available);
+  tolerance_dialog->setRunning(busy);
 }
 
+void viewer::MainWindow::onToleranceFinished(const greeter::service::ToleranceReport& report) {
+  setBusy(false);
+  tolerance_dialog->setReport(report);
+  const QString text = QString("Tolerance analysis complete: %1 trials, %2 valid")
+                           .arg(report.trials.size())
+                           .arg(report.valid_trials);
+  log(text);
+  status_label->setText(text);
+  if (tolerance_dialog->isVisible()) tolerance_dialog->raise();
+}
 
 void viewer::MainWindow::log(const QString& text) {
   log_view->appendPlainText(text);
