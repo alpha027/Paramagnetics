@@ -21,6 +21,7 @@ is `halbach-optimizer`; the Qt application is `paramagnetics-viewer`.
 - Parallel magnetic force and torque simulation between magnets
 - Seeded Monte Carlo tolerance analysis, with a GUI for manufacturing errors, statistical summaries, acceptance rates, and report exports
 - Sensitivity screening by error source, magnet or arrangement, with ranked impacts and tolerance response curves in the GUI
+- Robust re-ranking of nominal Halbach finalists, with GUI controls, fresh Monte Carlo validation and a runnable selected-design export
 - A genetic optimizer for the homogeneity of a Halbach cylinder, which writes its answer as an input file the simulator runs
 - A Qt viewer for the result, which is a separate program and needs neither Kokkos nor the input file
 - Easy and seamless workflow using a JSON parameter file
@@ -286,6 +287,75 @@ point is `SimulationService::analyzeSensitivity`; its plain settings, reports an
 export functions are in `greeter/service/SensitivityAnalysis.h`. The fixed
 polarization, collision, thermal and material-response limitations described
 above also apply here.
+
+#### Robust optimization
+
+Choose **Simulation → Robust optimization…**, then **Choose optimizer
+configuration…**. Select a Halbach configuration such as
+`designs/nmr-5ring-10mm-tube/config.json`, or a previously exported optimized
+design containing `halbach_optimization`. This workflow is independent of the
+scene currently displayed in the viewer.
+
+The configuration supplies geometry, nominal search spacing, symmetry and
+genetic operators. The GUI overrides population, generations and search seed,
+and uses the nominal **|B|** objective. The search retains up to 32 distinct,
+best nominal genomes visited across its generations. Fewer finalists can be
+available when the search visits fewer unique genomes. The ordinary optimizer
+does not collect finalists unless explicitly requested; its existing search
+behavior is preserved.
+
+The shortlist is re-ranked using Monte Carlo studies on the **full DSV sphere**,
+with the configured per-magnet manufacturing errors. All candidates use the
+same screening seed; candidates with different magnet counts map draws to
+different members. The nominal search grid and the screening grid are separate.
+Choose one robust objective:
+
+| Objective | Ranking and requirements |
+| --- | --- |
+| Minimize P95 homogeneity | Lowest empirical 95th-percentile homogeneity; optional limits apply to P95 homogeneity and P5 mean field |
+| Maximize P5 mean field | Highest empirical 5th-percentile mean field; the same optional quantile limits apply |
+| Maximize acceptance rate | Highest fraction satisfying both enabled per-assembly limits; invalid trials count as failures; at least one limit is required |
+
+P95/P5 ranking requires **every screening trial to be valid**, so invalid draws
+cannot make the tail appear better by being excluded. Acceptance-rate ranking
+requires at least two valid trials and counts failures over **all** trials.
+Eligible candidates that meet requirements rank first, followed by the chosen
+score, nominal search ppm and genome as deterministic tie breakers. For the
+acceptance objective, requirements mean achieving the requested empirical
+acceptance fraction. If none meets requirements, the best eligible alternative
+is retained and clearly marked as failing; a study with no eligible candidate
+reports an error instead of exporting a misleading winner.
+
+The winner alone is validated using a separate seed and trial count, optionally
+on a finer grid. Screening and validation trial streams must be disjoint,
+including possible overlap from offset seeds. Validation never changes the
+winner or selects a second candidate. Both the screening and fresh validation
+outcomes remain visible in **Candidates and validation**. A failed requirement
+is preserved in reports and exported designs. Quantile constraints are separate
+empirical checks, not a joint probability guarantee or a confidence bound.
+
+Start with a small shortlist, trial counts and odd grid densities (3–101 per
+axis); increase trials and density to check stability. The search grid is
+limited to 200 intervals per axis and the nominal basis to 20 million samples
+in this interactive workflow. A finer grid belongs in a configuration with an
+appropriately smaller candidate list. **Stop** cancels between basis chunks,
+generations and Monte Carlo field chunks. Incomplete runs are not published
+or exportable.
+
+**Export and view design** writes the exact arrangement geometry used for
+screening/validation, with the validation grid and a `robust_optimization`
+record, then opens it in the viewer. **Export CSV** saves ranked screening rows
+plus the winner's fresh validation row. **Export JSON** saves the original and
+effective configurations, settings, search history, genomes, every screening
+trial, fresh validation, and selected design. The report format is
+`paramagnetics-robust-optimization`, version 1. The Kokkos-free C++ entry point
+and writers are declared in `greeter/service/RobustOptimization.h`.
+
+This first version re-ranks a nominal shortlist; it does not perform a global
+search of the robust objective, model correlated manufacturing batches, or
+check collisions, temperature or material response. The nominal metadata in an
+exported design describes the reduced search lattice; robust summaries describe
+the full DSV sphere and carry their own grids and trial counts.
 
 #### Looking at a run somebody else did
 

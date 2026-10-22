@@ -37,6 +37,13 @@ struct GeneticRunOptions {
     uint32_t checkpoint_every = 1;
     /* Identity of the field problem, checked before a checkpoint is resumed. */
     nlohmann::json problem = nlohmann::json::object();
+    /* Optional distinct nominal finalists across the generations visited in this run. */
+    uint32_t archive_size = 0;
+};
+
+struct GeneticCandidate {
+    std::vector<uint16_t> genome;
+    float fitness = 0.0f;
 };
 
 /*
@@ -78,6 +85,7 @@ class GeneticOptimizer {
     float getBestFitness() const;
 
     const std::vector<GenerationRecord>& getHistory() const;
+    const std::vector<GeneticCandidate>& getCandidates() const { return candidates; }
 
     /* Whether a sink or the stagnation policy stopped the run. */
     bool wasStopped() const;
@@ -105,6 +113,7 @@ class GeneticOptimizer {
     float best_fitness;
 
     std::vector<GenerationRecord> history;
+    std::vector<GeneticCandidate> candidates;
 
     bool stopped = false;
     bool stalled = false;

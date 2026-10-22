@@ -2,6 +2,7 @@
 #define VIEWER_SIMULATION_WORKER_H
 
 #include <greeter/service/SimulationService.h>
+#include <greeter/service/RobustOptimization.h>
 #include <greeter/view/Snapshot.h>
 
 #include <QObject>
@@ -18,6 +19,8 @@ Q_DECLARE_METATYPE(greeter::service::ToleranceSettings)
 Q_DECLARE_METATYPE(greeter::service::ToleranceReport)
 Q_DECLARE_METATYPE(greeter::service::SensitivitySettings)
 Q_DECLARE_METATYPE(greeter::service::SensitivityReport)
+Q_DECLARE_METATYPE(greeter::service::RobustOptimizationRequest)
+Q_DECLARE_METATYPE(greeter::service::RobustOptimizationReport)
 
 namespace viewer {
 
@@ -67,6 +70,7 @@ class SimulationWorker: public QObject {
 
     void runTolerance(const greeter::service::ToleranceSettings& settings);
     void runSensitivity(const greeter::service::SensitivitySettings& settings);
+    void runRobustOptimization(const greeter::service::RobustOptimizationRequest& request);
 
     void writeSnapshot(const QString& path);
 
@@ -78,6 +82,7 @@ class SimulationWorker: public QObject {
 
     void toleranceFinished(const greeter::service::ToleranceReport& report);
     void sensitivityFinished(const greeter::service::SensitivityReport& report);
+    void robustOptimizationFinished(const greeter::service::RobustOptimizationReport& report);
     void inputCapabilities(bool input_loaded, bool has_field,
                            const greeter::service::FieldRequest& request);
 

@@ -29,6 +29,7 @@
 #include <cstdio>
 
 #include "ToleranceDialog.h"
+#include "RobustOptimizationDialog.h"
 
 namespace {
 
@@ -78,6 +79,18 @@ viewer::MainWindow::MainWindow(QWidget* parent): QMainWindow(parent) {
 
   tolerance_dialog = new ToleranceDialog(this);
   sensitivity_dialog = new ToleranceDialog(this, true);
+  robust_dialog = new RobustOptimizationDialog(this);
+  connect(robust_dialog, &RobustOptimizationDialog::optimizationRequested, this,
+          [this](const greeter::service::RobustOptimizationRequest& request) {
+            worker->prepareRun();
+            setBusy(true);
+            log(QString("Robust optimization: up to %1 finalists").arg(request.settings.shortlist));
+            QMetaObject::invokeMethod(worker, "runRobustOptimization", Qt::QueuedConnection,
+                                     Q_ARG(greeter::service::RobustOptimizationRequest, request));
+          });
+  connect(robust_dialog, &RobustOptimizationDialog::cancelRequested, this, &MainWindow::onCancel);
+  connect(robust_dialog, &RobustOptimizationDialog::designExported, this, &MainWindow::openAtStart);
+  connect(worker, &SimulationWorker::robustOptimizationFinished, this, &MainWindow::onRobustOptimizationFinished);
   connect(sensitivity_dialog, &ToleranceDialog::sensitivityRequested, this,
           [this](const greeter::service::SensitivitySettings& settings) {
             worker->prepareRun();
@@ -114,7 +127,7 @@ viewer::MainWindow::MainWindow(QWidget* parent): QMainWindow(parent) {
   progress->setMaximumWidth(200);
   progress->setVisible(false);
 
-  status_label = new QLabel("Open an input file to begin", this);
+  status_label = new QLabel("Open an input scene or choose Simulation → Robust optimization", this);
 
   statusBar()->addWidget(status_label, 1);
   statusBar()->addPermanentWidget(progress);
@@ -180,6 +193,14 @@ void viewer::MainWindow::buildActions() {
     sensitivity_dialog->activateWindow();
   });
 
+  robust_action = new QAction("&Robust optimization…", this);
+  robust_action->setObjectName("robustOptimizationAction");
+  connect(robust_action, &QAction::triggered, this, [this]() {
+    robust_dialog->show();
+    robust_dialog->raise();
+    robust_dialog->activateWindow();
+  });
+
   frame_action = new QAction("&Frame scene", this);
   frame_action->setShortcut(Qt::Key_F);
   connect(frame_action, &QAction::triggered, this, [this]() {
@@ -205,6 +226,7 @@ void viewer::MainWindow::buildActions() {
   run_menu->addSeparator();
   run_menu->addAction(tolerance_action);
   run_menu->addAction(sensitivity_action);
+  run_menu->addAction(robust_action);
 
   QMenu* view_menu = menuBar()->addMenu("&View");
   view_menu->addAction(frame_action);
@@ -669,6 +691,7 @@ void viewer::MainWindow::onProgressed(int percent, const QString& what) {
   progress->setValue(percent);
   tolerance_dialog->setProgress(percent);
   sensitivity_dialog->setProgress(percent);
+  robust_dialog->setProgress(percent);
 
   status_label->setText(QString("%1: %2%").arg(what).arg(percent));
 }
@@ -679,6 +702,7 @@ void viewer::MainWindow::onFailed(const QString& text) {
   setBusy(false);
 
   log("Error: " + text);
+  robust_dialog->setMessage(text);
 
   QMessageBox::warning(this, "ParaMagneticS", text);
 
@@ -691,6 +715,7 @@ void viewer::MainWindow::onCancelled() {
   setBusy(false);
 
   log("Stopped");
+  robust_dialog->setMessage("Stopped; incomplete robust results were discarded.");
 
   status_label->setText("Stopped");
 }
@@ -719,6 +744,8 @@ void viewer::MainWindow::setBusy(const bool& busy) {
   sensitivity_action->setEnabled(!busy && tolerance_available);
   tolerance_dialog->setRunning(busy);
   sensitivity_dialog->setRunning(busy);
+  robust_action->setEnabled(!busy);
+  robust_dialog->setRunning(busy);
 }
 
 void viewer::MainWindow::onToleranceFinished(const greeter::service::ToleranceReport& report) {
@@ -739,6 +766,17 @@ void viewer::MainWindow::onSensitivityFinished(const greeter::service::Sensitivi
   log(text);
   status_label->setText(text);
   if (sensitivity_dialog->isVisible()) sensitivity_dialog->raise();
+}
+
+void viewer::MainWindow::onRobustOptimizationFinished(const greeter::service::RobustOptimizationReport& report) {
+  setBusy(false);
+  robust_dialog->setReport(report);
+  const QString text = QString("Robust optimization complete: %1 finalists; fresh validation requirements %2")
+                           .arg(report.candidates.size())
+                           .arg(greeter::service::robustMeetsRequirements(report.validation, report.request.settings) ? "met" : "not met");
+  log(text);
+  status_label->setText(text);
+  if (robust_dialog->isVisible()) robust_dialog->raise();
 }
 
 void viewer::MainWindow::log(const QString& text) {

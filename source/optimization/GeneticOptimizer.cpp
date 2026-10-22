@@ -5,6 +5,7 @@
 #include <iostream>
 #include <limits>
 #include <numeric>
+#include <map>
 #include <stdexcept>
 #include <filesystem>
 #include <fstream>
@@ -192,6 +193,9 @@ std::vector<uint16_t> GeneticOptimizer::run(
     }
 
     history.clear();
+    candidates.clear();
+    if (options.archive_size > 1024)
+        throw std::invalid_argument("Keep at most 1024 nominal finalists");
     stopped = false;
     stalled = false;
     best_fitness = std::numeric_limits<float>::max();
@@ -402,6 +406,28 @@ std::vector<uint16_t> GeneticOptimizer::run(
         }
 
         const float generation_best = host_fitness(best_index);
+
+        if (options.archive_size > 0) {
+            Kokkos::deep_copy(host_population, population);
+            std::map<std::vector<uint16_t>, float> distinct;
+            for (const auto& c : candidates) distinct.emplace(c.genome, c.fitness);
+            for (size_t row = 0; row < settings.population; ++row) {
+                if (!std::isfinite(host_fitness(row))) continue;
+                std::vector<uint16_t> genome(num_genes);
+                for (size_t gene = 0; gene < num_genes; ++gene)
+                    genome[gene] = host_population(row, gene);
+                distinct.emplace(std::move(genome), host_fitness(row));
+            }
+            if (best_fitness < std::numeric_limits<float>::max())
+                distinct.emplace(best_genome, best_fitness);
+            candidates.clear();
+            for (const auto& c : distinct) candidates.push_back({c.first, c.second});
+            std::sort(candidates.begin(), candidates.end(), [](const auto& a, const auto& b) {
+                return a.fitness != b.fitness ? a.fitness < b.fitness
+                                               : a.genome < b.genome;
+            });
+            if (candidates.size() > options.archive_size) candidates.resize(options.archive_size);
+        }
 
         if (generation_best < best_fitness) {
 

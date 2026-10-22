@@ -4,6 +4,7 @@
 #include <greeter/KokkosDefines.h>
 #include <greeter/optimization/HalbachSpec.h>
 #include <vector>
+#include <functional>
 
 
 namespace greeter {
@@ -53,7 +54,10 @@ class HalbachBasis {
       packs one collection, so that the whole precomputation is a single
       parallel region a million iterations wide.
     */
-    static HalbachBasis build(const HalbachSpec& spec, const bool& verbose);
+    /* A false progress response returns an empty basis. With a sink, sampling
+       is chunked so the GUI can cancel without waiting for the entire basis. */
+    static HalbachBasis build(const HalbachSpec& spec, const bool& verbose,
+                              const std::function<bool(size_t, size_t)>& progress = {});
 
     /* The observation points that were sampled, three floats each. */
     const std::vector<std::vector<float>>& getPoints() const;

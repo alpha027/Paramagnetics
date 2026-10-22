@@ -25,6 +25,7 @@ class QTreeWidgetItem;
 namespace viewer {
 
   class ToleranceDialog;
+  class RobustOptimizationDialog;
 
   /*
     The window.
@@ -79,6 +80,7 @@ namespace viewer {
     void onCancel();
     void onToleranceFinished(const greeter::service::ToleranceReport& report);
     void onSensitivityFinished(const greeter::service::SensitivityReport& report);
+    void onRobustOptimizationFinished(const greeter::service::RobustOptimizationReport& report);
 
     void onSceneReady(const greeter::view::Snapshot& snapshot, const QString& source);
     void onRunFinished(const greeter::view::Snapshot& snapshot);
@@ -127,6 +129,8 @@ namespace viewer {
     ToleranceDialog* tolerance_dialog = nullptr;
     QAction* sensitivity_action = nullptr;
     ToleranceDialog* sensitivity_dialog = nullptr;
+    QAction* robust_action = nullptr;
+    RobustOptimizationDialog* robust_dialog = nullptr;
     bool input_loaded = false;
     bool tolerance_available = false;
 

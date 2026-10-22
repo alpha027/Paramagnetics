@@ -20,6 +20,7 @@
 #include <QtTest>
 
 #include "MainWindow.h"
+#include "RobustOptimizationDialog.h"
 #include "ToleranceDialog.h"
 
 namespace {
@@ -50,6 +51,27 @@ namespace {
     dialog->findChild<QSpinBox*>("tolTrials")->setValue(trials);
     for (const char* name : {"tolStrength", "tolPosition", "tolDirection", "tolTilt", "tolSize"})
       dialog->findChild<QDoubleSpinBox*>(name)->setValue(0);
+  }
+  QString robustFixture(const QString& directory) {
+    const QString path = directory + "/optimizer.json";
+    QFile file(path);
+    if (!file.open(QIODevice::WriteOnly)) return {};
+    file.write(R"({"ring_count":1,"ring_separation":0.03,
+      "candidates":[{"radius":0.10,"count":8},{"radius":0.12,"count":10}],
+      "outer_radius_offset":0.03,"outer_count_offset":2,
+      "element":{"size":0.01,"remanence":1.3},"dsv":0.02,"resolution":0.01,
+      "symmetry":"full","objective":"ppm_bmag","field_model":"cuboid",
+      "genetic":{"population":32,"generations":2,"seed":7}})");
+    return path;
+  }
+  void robustControls(viewer::RobustOptimizationDialog* dialog) {
+    dialog->findChild<QSpinBox*>("robustPopulation")->setValue(32);
+    dialog->findChild<QSpinBox*>("robustGenerations")->setValue(2);
+    dialog->findChild<QSpinBox*>("robustShortlist")->setValue(4);
+    dialog->findChild<QSpinBox*>("robustTrials")->setValue(8);
+    dialog->findChild<QSpinBox*>("robustValidationTrials")->setValue(12);
+    dialog->findChild<QSpinBox*>("robustDensity")->setValue(3);
+    dialog->findChild<QSpinBox*>("robustValidationDensity")->setValue(5);
   }
 }  // namespace
 
@@ -244,6 +266,94 @@ private slots:
     QCOMPARE(dialog->findChild<QTableWidget*>("sensitivityRankings")->rowCount(), 1);
   }
 
+  void robustOptimizationRunsFromMenuExportsAndOpensTheTestedDesign() {
+    QTemporaryDir directory;
+    viewer::MainWindow window;
+    auto* action = window.findChild<QAction*>("robustOptimizationAction");
+    QVERIFY(action);
+    QVERIFY(action->isEnabled());  // optimizer configuration is independent of the displayed scene
+    action->trigger();
+    auto* dialog = window.findChild<viewer::RobustOptimizationDialog*>();
+    QVERIFY(dialog && dialog->isVisible());
+    auto* run = dialog->findChild<QPushButton*>("robustRun");
+    QVERIFY(!run->isEnabled());
+    const QString source = robustFixture(directory.path());
+    chooseFile(dialog, source);
+    QTest::mouseClick(dialog->findChild<QPushButton*>("robustBrowse"), Qt::LeftButton);
+    QVERIFY(run->isEnabled());
+    robustControls(dialog);
+    dialog->findChild<QDoubleSpinBox*>("robustMinimumField")
+        ->setValue(100000);  // explicit unmet requirement
+    dialog->findChild<QComboBox*>("robustObjective")->setCurrentIndex(1);
+    QCOMPARE(dialog->request().settings.screening.minimum_mean_T, 100.0);
+    QCOMPARE(dialog->request().settings.objective, greeter::service::RobustObjective::P05MeanField);
+    QTest::mouseClick(run, Qt::LeftButton);
+    auto* csv = dialog->findChild<QPushButton*>("robustExportCsv");
+    QTRY_VERIFY_WITH_TIMEOUT(csv->isEnabled(), 15000);
+    QCOMPARE(dialog->findChild<QTableWidget*>("robustCandidates")->rowCount(), 2);
+    auto* validation = dialog->findChild<QTableWidget*>("robustValidation");
+    QCOMPARE(validation->rowCount(), 2);
+    QCOMPARE(validation->item(1, 1)->text(), QString("2026"));
+    QCOMPARE(validation->item(1, 7)->text(), QString("No"));
+    QVERIFY(dialog->findChild<QLabel*>("robustSummary")->text().contains("NOT MET"));
+    const QString report_path = directory.path() + "/robust-report.json";
+    chooseFile(dialog, report_path);
+    QTest::mouseClick(dialog->findChild<QPushButton*>("robustExportJson"), Qt::LeftButton);
+    QFile json_file(report_path);
+    QVERIFY(json_file.open(QIODevice::ReadOnly));
+    auto report = nlohmann::json::parse(json_file.readAll().toStdString());
+    QCOMPARE(report["format"].get<std::string>(), std::string("paramagnetics-robust-optimization"));
+    QCOMPARE(report["candidates"].size(), size_t(2));
+    QVERIFY(!report["validation_requirements_met"].get<bool>());
+    const QString csv_path = directory.path() + "/robust.csv";
+    chooseFile(dialog, csv_path);
+    QTest::mouseClick(csv, Qt::LeftButton);
+    QFile csv_file(csv_path);
+    QVERIFY(csv_file.open(QIODevice::ReadOnly));
+    QCOMPARE(csv_file.readAll().trimmed().split('\n').size(), 4);
+    if (!qEnvironmentVariableIsEmpty("PARAMAGNETICS_GUI_SCREENSHOT")) {
+      const QString prefix = qEnvironmentVariable("PARAMAGNETICS_GUI_SCREENSHOT");
+      QVERIFY(dialog->grab().save(prefix + ".robust-results.png"));
+      dialog->findChild<QTabWidget*>()->setCurrentIndex(0);
+      QTest::qWait(20);
+      QVERIFY(dialog->grab().save(prefix + ".robust-setup.png"));
+    }
+    const QString design_path = directory.path() + "/robust-design.json";
+    chooseFile(dialog, design_path);
+    QTest::mouseClick(dialog->findChild<QPushButton*>("robustExportDesign"), Qt::LeftButton);
+    QTRY_VERIFY(window.windowTitle().contains("robust-design.json"));
+    QVERIFY(window.findChild<QAction*>("toleranceAction")->isEnabled());
+    greeter::service::SimulationService replay;
+    replay.loadFile(design_path.toStdString());
+    QVERIFY(replay.isLoaded());
+    QVERIFY(replay.getInput() == report["selected_design"]);
+  }
+
+  void robustOptimizationValidatesSeedsAndCancelsBeforeBasisWork() {
+    QTemporaryDir directory;
+    viewer::MainWindow window;
+    window.findChild<QAction*>("robustOptimizationAction")->trigger();
+    auto* dialog = window.findChild<viewer::RobustOptimizationDialog*>();
+    chooseFile(dialog, robustFixture(directory.path()));
+    QTest::mouseClick(dialog->findChild<QPushButton*>("robustBrowse"), Qt::LeftButton);
+    robustControls(dialog);
+    auto* run = dialog->findChild<QPushButton*>("robustRun");
+    QSignalSpy requested(dialog, &viewer::RobustOptimizationDialog::optimizationRequested);
+    dialog->findChild<QLineEdit*>("robustValidationSeed")->setText("42");
+    QTest::mouseClick(run, Qt::LeftButton);
+    QCOMPARE(requested.count(), 0);
+    QVERIFY(dialog->findChild<QLabel*>("robustStatus")->text().contains("fresh"));
+    dialog->findChild<QLineEdit*>("robustValidationSeed")->setText("2026");
+    QTest::mouseClick(run, Qt::LeftButton);
+    QTest::mouseClick(dialog->findChild<QPushButton*>("robustStop"), Qt::LeftButton);
+    QTRY_VERIFY_WITH_TIMEOUT(run->isEnabled(), 15000);
+    QCOMPARE(dialog->findChild<QTableWidget*>("robustCandidates")->rowCount(), 0);
+    QVERIFY(!dialog->findChild<QPushButton*>("robustExportDesign")->isEnabled());
+    QTest::mouseClick(run, Qt::LeftButton);
+    QTRY_VERIFY_WITH_TIMEOUT(dialog->findChild<QPushButton*>("robustExportDesign")->isEnabled(),
+                             15000);
+  }
+
   void jsonSnapshotCannotAnalyzeThePreviouslyLoadedScene() {
     QTemporaryDir directory;
     const QString source = fixture(directory.path());
@@ -284,6 +394,10 @@ int main(int argc, char** argv) {
     qRegisterMetaType<greeter::service::SensitivitySettings>(
         "greeter::service::SensitivitySettings");
     qRegisterMetaType<greeter::service::SensitivityReport>("greeter::service::SensitivityReport");
+    qRegisterMetaType<greeter::service::RobustOptimizationRequest>(
+        "greeter::service::RobustOptimizationRequest");
+    qRegisterMetaType<greeter::service::RobustOptimizationReport>(
+        "greeter::service::RobustOptimizationReport");
     ToleranceGuiTest test;
     result = QTest::qExec(&test, argc, argv);
   }

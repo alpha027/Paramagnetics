@@ -6,6 +6,7 @@
 #include <greeter/arrangements/HalbachRingArrangement.h>
 
 #include <cmath>
+#include <algorithm>
 #include <iostream>
 #include <stdexcept>
 
@@ -90,7 +91,8 @@ std::vector<std::vector<float>> makeSamplePoints(const HalbachSpec& spec,
 }
 
 
-HalbachBasis HalbachBasis::build(const HalbachSpec& spec, const bool& verbose) {
+HalbachBasis HalbachBasis::build(const HalbachSpec& spec, const bool& verbose,
+                                const std::function<bool(size_t, size_t)>& progress) {
 
     spec.validate();
 
@@ -102,6 +104,8 @@ HalbachBasis HalbachBasis::build(const HalbachSpec& spec, const bool& verbose) {
 
     const size_t num_points = basis.points.size();
     const size_t num_configurations = basis.num_genes * basis.num_candidates;
+    const size_t work = num_configurations * num_points;
+    if (progress && !progress(0, work)) return HalbachBasis();
 
     /*
       Every configuration's magnets, one after the other in a single
@@ -117,6 +121,7 @@ HalbachBasis HalbachBasis::build(const HalbachSpec& spec, const bool& verbose) {
 
     for (size_t gene = 0; gene < basis.num_genes; gene++) {
         for (size_t candidate = 0; candidate < basis.num_candidates; candidate++) {
+            if (progress && !progress(0, work)) return HalbachBasis();
 
             const size_t configuration = gene * basis.num_candidates + candidate;
 
@@ -197,49 +202,55 @@ HalbachBasis HalbachBasis::build(const HalbachSpec& spec, const bool& verbose) {
       observation point wide. Every iteration is independent and writes three
       floats nobody else writes, so there is no reduction and no atomic here.
     */
-    Kokkos::parallel_for(
-        "halbach_basis",
-        Kokkos::MDRangePolicy<ExecSpace, Kokkos::Rank<2>>(
-            {0, 0}, {(int64_t) num_configurations, (int64_t) num_points}),
-        KOKKOS_LAMBDA(const int64_t configuration, const int64_t point) {
+    const size_t chunk = progress
+        ? std::max(size_t(1), size_t(16384) / num_configurations) : num_points;
+    for (size_t start = 0; start < num_points; start += chunk) {
+        const size_t stop = std::min(start + chunk, num_points);
+        Kokkos::parallel_for(
+            "halbach_basis",
+            Kokkos::MDRangePolicy<ExecSpace, Kokkos::Rank<2>>(
+                {0, (int64_t) start}, {(int64_t) num_configurations, (int64_t) stop}),
+            KOKKOS_LAMBDA(const int64_t configuration, const int64_t point) {
 
-            const float observation_point[3] = {
-                observation_points(point, 0),
-                observation_points(point, 1),
-                observation_points(point, 2)
-            };
+                const float observation_point[3] = {
+                    observation_points(point, 0),
+                    observation_points(point, 1),
+                    observation_points(point, 2)
+                };
 
-            double sum_x = 0.0;
-            double sum_y = 0.0;
-            double sum_z = 0.0;
+                double sum_x = 0.0;
+                double sum_y = 0.0;
+                double sum_z = 0.0;
 
-            const uint32_t begin = first(configuration);
-            const uint32_t end = begin + count(configuration);
+                const uint32_t begin = first(configuration);
+                const uint32_t end = begin + count(configuration);
 
-            for (uint32_t m = begin; m < end; m++) {
+                for (uint32_t m = begin; m < end; m++) {
 
-                const MagnetKernel magnet = kernels(m);
+                    const MagnetKernel magnet = kernels(m);
 
-                const float* parameters = greeter::magnetParameters(
-                    magnet_parameters, magnet.parameter_offset);
+                    const float* parameters = greeter::magnetParameters(
+                        magnet_parameters, magnet.parameter_offset);
 
-                float b_x = 0.0f;
-                float b_y = 0.0f;
-                float b_z = 0.0f;
+                    float b_x = 0.0f;
+                    float b_y = 0.0f;
+                    float b_z = 0.0f;
 
-                magnet.kernel(parameters, observation_point, b_x, b_y, b_z);
+                    magnet.kernel(parameters, observation_point, b_x, b_y, b_z);
 
-                sum_x += b_x;
-                sum_y += b_y;
-                sum_z += b_z;
-            }
+                    sum_x += b_x;
+                    sum_y += b_y;
+                    sum_z += b_z;
+                }
 
-            fields(configuration, 0, point) = sum_x;
-            fields(configuration, 1, point) = sum_y;
-            fields(configuration, 2, point) = sum_z;
-        });
+                fields(configuration, 0, point) = sum_x;
+                fields(configuration, 1, point) = sum_y;
+                fields(configuration, 2, point) = sum_z;
+            });
 
-    Kokkos::fence();
+        Kokkos::fence();
+        if (progress && !progress(num_configurations * stop, work)) return HalbachBasis();
+    }
 
     if (verbose) {
         std::cout << "  basis built in " << timer.seconds() << " s" << std::endl;

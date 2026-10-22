@@ -227,6 +227,19 @@ void viewer::SimulationWorker::runSensitivity(const greeter::service::Sensitivit
   busy = false;
 }
 
+void viewer::SimulationWorker::runRobustOptimization(const greeter::service::RobustOptimizationRequest& request) {
+  busy = true;
+  try {
+    WorkerProgress progress(*this, "robust optimization");
+    auto report = greeter::service::optimizeRobustly(request, &progress);
+    if (report.cancelled || cancel_requested) emit cancelled();
+    else emit robustOptimizationFinished(report);
+  } catch (const std::exception& error) {
+    emit failed(QString::fromUtf8(error.what()));
+  }
+  busy = false;
+}
+
 void viewer::SimulationWorker::writeSnapshot(const QString& path) {
 
   try {
